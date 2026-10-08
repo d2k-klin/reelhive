@@ -526,9 +526,9 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 | --- | --- | --- |
 | **M1** ✅ **Done** (2026-10-08) | End-to-end `small` level | `run small.yaml` produces a 60s 16:9 MP4 with narration and ducked music; CI green; 3 templates |
 | **M2** ✅ **Done** (2026-10-08) | `medium` level, all providers, all visual sources | Script approval stop, brand theme, 9:16 and 1:1, all 5 providers including Copilot; screenshots with login and masking, provided images, OpenAI generation, `auto` fallbacks |
-| **M3** ✅ **Implemented** (2026-10-09) | `high` level + local UI | Per-scene spec editing, image approval, `regen --scene`; secure loopback UI with generated contracts, resumable events and 8 templates |
+| **M3** ✅ **Done** (2026-10-09) | `high` level + local UI | Per-scene spec editing, image approval, `regen --scene`; secure loopback UI with generated contracts, resumable events and 8 templates |
 | **M4** ✅ **Implemented** (2026-10-08) | Evals | Eval harness and first cross-provider report; prompt-change gate in CI |
-| **M5** 🟡 **Docs done, release pending** (2026-10-08) | Public v0.1.0 | READMEs and docs complete, demo GIF, GitHub Release v0.1.0, repo public |
+| **M5** ✅ **Released v0.1.0** (2026-10-09; repository still private) | Public v0.1.0 | READMEs and docs complete, demo GIF, GitHub Release v0.1.0, repo public |
 | **M6** 🟡 **Backend started** (2026-10-08) | AI quick actions with CopilotKit *(later phase, learning goal)* | `suggest` agent behind an AG-UI endpoint; CopilotKit renders 3–4 suggestion buttons per beat and scene; one click regenerates via the existing path; `reelhive suggest` in the CLI; `docs/copilotkit.md` written; released as v0.2.0 |
 
 **M1 notes**
@@ -572,6 +572,26 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 - The local FastAPI server binds only to `127.0.0.1`, requires a per-launch token, validates Host and write Origins, caps and re-encodes uploads, allow-lists downloads, queues one production job, persists checkpoints, and resumes SSE by event ID.
 - The React studio provides brief and visual setup, YAML import/export, script approval, all eight scene templates, Revideo previews, single-scene regeneration, image approval, a live graph and gate log, runs history, final downloads, themes, and non-secret settings.
 - The supplied `assets/brand` bundle contains five unique Mr.D illustrations; the UI uses the available poses by context and verifies optimized WebP derivatives through the manifest. Additional named poses and per-node portraits require a larger supplied brand bundle.
+
+**Final verification (2026-10-09, before v0.1.0)**
+
+Every section of this plan and of `reelhive-ui-plan.md` was checked against the code.
+- **All CI steps pass locally:** ruff, mypy, pytest with all extras (90% coverage), the three slow real-render tests, renderer and UI vitest, tsc, and the new studio end-to-end tests.
+- **Real run of `examples/briefs/high.yaml`:** Kokoro and Revideo, with the agents' answers canned. It went through both approval stops and rendered a 30.0 s video with the new `stat` and `bullets` templates, the dark theme, the credit and the metadata tag. The first version of the example was 124 wpm; the pace gate caught it, and the example was fixed.
+- **Added because the plan required them and they were missing:**
+  - the `init`, `voices` and `preview` CLI commands (§5);
+  - `examples/briefs/high.yaml` (§5);
+  - a run-log line when the visible credit is disabled (§3.7);
+  - `design/` (style guide and prompts) and `scripts/generate_assets.py` (§5, UI plan §10.4);
+  - Playwright end-to-end and axe accessibility tests for the studio in both themes, plus a `ui-e2e` CI job (§6, §9, UI plan §15);
+  - the Mr.D mascot in the README hero, and the studio screenshot in the quickstart (§8);
+  - a README in every folder, with a test that keeps it that way.
+- **Removed:** about 8 MB of raw brand PNGs from `assets/brand/`. The UI uses only the WebP files in the manifest; originals belong in the brand archive (§11).
+- **Still open:**
+  - **Needs art:** six new mascot poses, the 12 role portraits and the illustrated icons (UI plan §10). Their prompts are ready in `design/`; the art itself must be generated, curated and supplied with the brand set.
+  - **Needs API keys or quota:** the first real cross-provider eval report and the committed Claude baseline (M4), and live paid-provider runs.
+  - **Needs the owner:** making the repository public (M5), and branch protection on `main`.
+  - **M6:** the AG-UI endpoint, the CopilotKit buttons, one-click apply with undo, and the suggestions eval metric, for v0.2.0.
 
 `core/service.py` exists from M1, so the UI in M3 is a new front end on finished logic, not a rewrite. M6 adds a feature on top of a released product, so it can't delay v0.1.0.
 

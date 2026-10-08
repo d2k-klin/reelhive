@@ -330,6 +330,39 @@ class Service:
         ctx.events.emit("spec.edited", scenes=[index], note=note)
         return RunResult(run_dir, "awaiting_scenes")
 
+    def preview_scene(self, run_dir: Path, index: int) -> Path:
+        """Render one scene of spec.json, silent and without the credit, to previews/scene_NN.mp4."""
+        from reelhive.schemas.scene_spec import SceneSpec
+
+        run_dir = run_dir.resolve()
+        spec = SceneSpec.model_validate_json((run_dir / "spec.json").read_text())
+        scene = next((s for s in spec.scenes if s.index == index), None)
+        if scene is None:
+            raise ValueError(f"scene {index} does not exist (1-{len(spec.scenes)})")
+        length = scene.duration or 4.0
+        one = spec.model_copy(
+            update={
+                "scenes": [scene.model_copy(update={"index": 1, "start": 0.0, "duration": length})],
+                "duration": length,
+                "credit": None,
+                "music": None,
+            }
+        )
+        # The renderer embeds images relative to the spec's folder, so the preview spec sits in the run folder.
+        spec_path = run_dir / f".preview_{index:02d}.json"
+        out = run_dir / "previews" / f"scene_{index:02d}.mp4"
+        out.parent.mkdir(exist_ok=True)
+        spec_path.write_text(one.model_dump_json())
+        if self._renderer is None:  # previews need only the renderer, not models or TTS
+            from reelhive.render.bridge import render
+
+            self._renderer = render
+        try:
+            self._renderer(spec_path, out, lambda _: None)
+        finally:
+            spec_path.unlink(missing_ok=True)
+        return out
+
     def cancel(self, run_dir: Path) -> None:
         (run_dir / "cancel.requested").touch()
 

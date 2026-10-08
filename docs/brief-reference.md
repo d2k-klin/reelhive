@@ -6,7 +6,7 @@ A brief is a YAML file. Unknown keys are rejected, so typos fail early with a cl
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `level` | `small` \| `medium` | `small` | `high` arrives in M3 |
+| `level` | `small` \| `medium` \| `high` | `small` | |
 | `audience` | text | required | Who the video is for |
 | `storyline` | text | required | The arc in a sentence or two |
 | `features` | list, 1-8 | required | One feature beat (and usually one card) each |
@@ -34,6 +34,16 @@ At `small`, accent and speed are fixed to `us` and `1.0`, and production starts 
 | `cta_url` | text, ≤60 | none | Shown on the closing card |
 
 Medium pauses after the script. Edit `runs/<run>/script.json` if you like, then run `reelhive approve runs/<run>`.
+
+## High adds
+
+| Field | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `scenes` | list of 1-12 scenes | planned by the `scenes` agent | Each scene: `index`, `template`, `text` (per template, see [templates.md](templates.md)), `narration`, optional `feature`, `duration_override` (0.5-180 s), `voice_override` (gender, accent, speed), `visual_request` (`kind`, `image`, `route`, `prompt`) |
+| `music_track` | file name | chosen by the music agent | A track listed in `assets/music/manifest.json` |
+| `music_volume` | 0-1 | `0.3` | Music level under the voice, before ducking |
+
+High pauses twice: after the script (`reelhive approve runs/<run>`), and after the scenes are prepared, so you can review and approve every image (`reelhive approve-scenes runs/<run>`). In between, `reelhive regen runs/<run> --scene 3 --note "..."` redoes one scene and `reelhive preview runs/<run> --scene 3` renders it alone. The UI does the same with buttons. See [examples/briefs/high.yaml](../examples/briefs/high.yaml).
 
 ## Example
 

@@ -1,0 +1,16 @@
+# Mr.D as every graph node (docs/reelhive-ui-plan.md §10.2). One portrait per node; the UI shows state in CSS.
+# Brand work: chosen files go to Dav's brand set and come back through assets/brand/.
+kind: role
+assets:
+  - {name: role-brief, prompt: "Mr.D as a producer's assistant holding a clipboard."}
+  - {name: role-script, prompt: "Mr.D as a scriptwriter holding a notebook and pen, a second pen behind his ear."}
+  - {name: role-scenes, prompt: "Mr.D as a film director holding storyboard frames and a director's clapper slate."}
+  - {name: role-visuals, prompt: "Mr.D as a photographer with a camera around his neck and a small paintbrush in one hand."}
+  - {name: role-narrate, prompt: "Mr.D as a narrator speaking into a studio microphone, wearing a headset."}
+  - {name: role-music, prompt: "Mr.D as a composer wearing big headphones with small floating lime music notes."}
+  - {name: role-timing, prompt: "Mr.D as a timekeeper holding a large stopwatch."}
+  - {name: role-critic, prompt: "Mr.D as a critic holding a magnifying glass and a scorecard."}
+  - {name: role-fix, prompt: "Mr.D as a fixer holding a wrench, hoodie sleeves rolled up."}
+  - {name: role-recheck, prompt: "Mr.D as an inspector holding a checklist and a rubber stamp."}
+  - {name: role-render, prompt: "Mr.D as a projectionist holding a film reel next to a small film projector."}
+  - {name: role-suggest, prompt: "Mr.D as an editor holding sticky notes and a red pen (the M6 quick-actions agent)."}

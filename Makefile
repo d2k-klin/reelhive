@@ -1,4 +1,4 @@
-.PHONY: setup test test-slow lint schema demo eval eval-baseline
+.PHONY: setup test test-ui test-slow lint schema demo eval eval-baseline
 
 setup:  ## Python deps, renderer deps and the headless browser Revideo renders with
 	uv sync --extra dev $(EXTRAS)
@@ -11,6 +11,10 @@ test:
 	uv run --all-extras pytest --cov --cov-report=term-missing --cov-fail-under=85
 	npm test -w renderer
 	npm test -w ui
+
+test-ui:  ## studio end to end + accessibility (Playwright + axe) against the real server
+	npm run build -w ui
+	npm run test:e2e -w ui
 
 test-slow:  ## real Kokoro + real render
 	uv run pytest -m slow
