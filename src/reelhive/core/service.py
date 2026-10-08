@@ -171,3 +171,26 @@ class Service:
             return asyncio.run(self.run_async(ctx, approved=True))
         finally:
             lock.unlink()
+
+    def suggest(self, run_dir: Path, kind: str, index: int, on_event: Callable[[Event], None] | None = None) -> Any:
+        """3-4 quick-action suggestions for one beat or scene of a run (M6). Read-only; cached per version."""
+        from reelhive.agents.suggester import suggest
+        from reelhive.providers.factory import ProviderError, build_model
+        from reelhive.schemas.scene_spec import SceneSpec
+
+        run_dir = run_dir.resolve()
+        brief = Brief.model_validate(yaml.safe_load((run_dir / "brief.yaml").read_text()))
+        script = Script.model_validate_json((run_dir / "script.json").read_text())
+        spec_path = run_dir / "spec.json"
+        spec = SceneSpec.model_validate_json(spec_path.read_text()) if spec_path.exists() else None
+        if self._models and "fast" in self._models:
+            model = self._models["fast"]
+        elif self.config.provider == "copilot":
+            # ponytail: first version runs on Strands providers (plan §3.10); Copilot is a follow-up.
+            raise ProviderError("suggestions run on Claude, Bedrock, OpenAI or Ollama; Copilot is a follow-up")
+        else:
+            model = build_model(self.config, self.config.provider, "fast")
+        events = EventBus(run_dir / "run.log.jsonl")
+        if on_event:
+            events.subscribe(on_event)
+        return asyncio.run(suggest(model, run_dir, kind, index, brief, script, spec, events))  # type: ignore[arg-type]

@@ -22,6 +22,8 @@ EVENT_TYPES = {
     "run.finished",
     "run.paused",
     "script.approved",
+    "suggestion.offered",
+    "suggestion.applied",  # emitted by the regenerate path (M3) when a suggestion's note is used
 }
 
 

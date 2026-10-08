@@ -529,7 +529,7 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 | **M3** | `high` level + local UI | Per-scene spec editing, image approval, `regen --scene`; `reelhive ui` meets the "done when" list in `reelhive-ui-plan.md`; 8 templates |
 | **M4** ✅ **Implemented** (2026-10-08) | Evals | Eval harness and first cross-provider report; prompt-change gate in CI |
 | **M5** 🟡 **Docs done, release pending** (2026-10-08) | Public v0.1.0 | READMEs and docs complete, demo GIF, GitHub Release v0.1.0, repo public |
-| **M6** | AI quick actions with CopilotKit *(later phase, learning goal)* | `suggest` agent behind an AG-UI endpoint; CopilotKit renders 3–4 suggestion buttons per beat and scene; one click regenerates via the existing path; `reelhive suggest` in the CLI; `docs/copilotkit.md` written; released as v0.2.0 |
+| **M6** 🟡 **Backend started** (2026-10-08) | AI quick actions with CopilotKit *(later phase, learning goal)* | `suggest` agent behind an AG-UI endpoint; CopilotKit renders 3–4 suggestion buttons per beat and scene; one click regenerates via the existing path; `reelhive suggest` in the CLI; `docs/copilotkit.md` written; released as v0.2.0 |
 
 **M1 notes**
 - Templates: `hook`, `feature-card`, `cta`, plus the `credit` card. Provider: Claude only. Brief: `small` level, 16:9 only; other levels, formats and the `visuals` block are rejected with a clear message until M2/M3.
@@ -562,6 +562,10 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 - Done: the README restructured to §8, with a demo GIF and MP4 made with ReelHive (`assets/demo/`, from `assets/demo/brief.yaml`); `docs/architecture.md`, `strands-graph.md`, `brief-reference.md`, `templates.md` and `adding-a-template.md`; `renderer/README.md` and `assets/music/README.md` (`evals/README.md` came with M4); CONTRIBUTING, CODE_OF_CONDUCT, SECURITY and CHANGELOG; issue templates (bug, feature, new template request), a PR template, Dependabot (pip, npm, actions), CODEOWNERS, and `release.yml` (a `v*` tag builds the wheel and creates a GitHub Release with the CHANGELOG section, the wheel and `demo.mp4`; nothing is published to PyPI or npm). A test keeps every relative doc link working.
 - The demo's script and scene text were written by hand in place of an agent call (no API key was available); the voice, music, timing, gates and render are ReelHive's. Regenerate it with a real run before the public release. Rendering it confirmed the short-video finding from M4: at 20s, a problem beat no longer fits next to the per-scene padding, so the demo uses four beats.
 - Pending, by decision: v0.1.0 waits for M3 (the README quickstart should lead with `reelhive ui`, and `ui/README.md` comes with it); then bump the version, move `[Unreleased]` to `[0.1.0]` in the CHANGELOG, tag `v0.1.0`, and make the repository public. Also open: the Mr.D mascot in the README hero, once `assets/brand/` lands with its manifest (§11), and branch protection on `main`.
+
+**M6 notes**
+- Built without the UI: the `suggest` agent (fast tier, Strands providers) returning 3-4 validated suggestions (a distinct label of ≤28 characters plus the instruction behind it) for one beat or scene; caching per version of that beat or scene in the run folder; `suggestion.offered` events in `run.log.jsonl`; and `reelhive suggest <run> --beat N | --scene N`. Learning notes and the integration plan are in `docs/copilotkit.md`.
+- Waits for M3, which is being built separately: the AG-UI endpoint in M3's FastAPI server (`server/agui.py`), the CopilotKit buttons in the UI, applying through M3's regenerate routes with undo and a `suggestion.applied` event, `reelhive suggest --apply`, the suggestions eval metric, and the v0.2.0 release.
 
 `core/service.py` exists from M1, so the UI in M3 is a new front end on finished logic, not a rewrite. M6 adds a feature on top of a released product, so it can't delay v0.1.0.
 

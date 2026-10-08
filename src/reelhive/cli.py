@@ -260,3 +260,29 @@ def eval_(
         if problems:
             raise typer.Exit(1)
         console.print("[green]✓ No regressions against the baseline.[/green]")
+
+
+@app.command()
+def suggest(
+    run_dir: Path = typer.Argument(..., exists=True, file_okay=False, help="Run folder."),
+    scene: int = typer.Option(None, "--scene", min=1, help="Scene number (needs spec.json)."),
+    beat: int = typer.Option(None, "--beat", min=1, help="Beat number of script.json."),
+):
+    """Suggest 3-4 quick edits for one beat or scene (the same suggestions the UI shows as buttons)."""
+    from reelhive.config import Config
+    from reelhive.core.service import Service
+    from reelhive.providers.factory import ProviderError
+
+    if (scene is None) == (beat is None):
+        console.print("[red]Pass exactly one of --scene or --beat.[/red]")
+        raise typer.Exit(2)
+    kind, index = ("scene", scene) if scene is not None else ("beat", beat)
+    try:
+        config = Config.model_validate_json((run_dir / "config.json").read_text())
+        result = Service(config).suggest(run_dir, kind, index)
+    except (ProviderError, ValueError, FileNotFoundError) as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1) from e
+    console.print(f"[bold]Suggestions for {kind} {index}[/bold]")
+    for n, s in enumerate(result.suggestions, start=1):
+        console.print(f"  [bold]{n}. {s.label}[/bold]  [dim]{s.instruction}[/dim]")

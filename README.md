@@ -134,6 +134,10 @@ REELHIVE_DISABLE_CREDIT=true uv run reelhive run brief.yaml
 
 An invisible MP4 metadata tag is always written.
 
+## Quick actions
+
+`reelhive suggest runs/<run> --beat 2` (or `--scene 3`) offers 3-4 specific edits for that beat or scene, such as "Punchier hook" or "Shorten by ~2s". In the local UI they will appear as buttons rendered with CopilotKit. See [docs/copilotkit.md](docs/copilotkit.md).
+
 ## Evals
 
 `reelhive eval --providers claude,bedrock --set core` scores scripts, scene specs and image prompts across providers on a 24-brief dataset, without rendering video or paying for images, and writes a comparison report. Prompt changes are gated in CI against a baseline. See [evals/README.md](evals/README.md).
