@@ -1,0 +1,5 @@
+{
+  "name": "reelhive-workspace",
+  "private": true,
+  "workspaces": ["renderer"]
+}

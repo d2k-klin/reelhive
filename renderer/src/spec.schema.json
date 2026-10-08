@@ -1,0 +1,405 @@
+{
+  "$defs": {
+    "Credit": {
+      "properties": {
+        "mode": {
+          "enum": [
+            "end",
+            "corner"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "text": {
+          "default": "Made with ReelHive by Mr.D",
+          "title": "Text",
+          "type": "string"
+        },
+        "duration": {
+          "description": "Seconds the end card takes; 0 for corner",
+          "title": "Duration",
+          "type": "number"
+        }
+      },
+      "required": [
+        "mode",
+        "duration"
+      ],
+      "title": "Credit",
+      "type": "object"
+    },
+    "CtaScene": {
+      "properties": {
+        "index": {
+          "minimum": 1,
+          "title": "Index",
+          "type": "integer"
+        },
+        "narration": {
+          "title": "Narration",
+          "type": "string"
+        },
+        "feature": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Feature"
+        },
+        "audio": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Narration WAV, relative to the run folder",
+          "title": "Audio"
+        },
+        "start": {
+          "default": 0.0,
+          "title": "Start",
+          "type": "number"
+        },
+        "duration": {
+          "default": 0.0,
+          "title": "Duration",
+          "type": "number"
+        },
+        "template": {
+          "const": "cta",
+          "default": "cta",
+          "title": "Template",
+          "type": "string"
+        },
+        "text": {
+          "$ref": "#/$defs/CtaText"
+        }
+      },
+      "required": [
+        "index",
+        "narration",
+        "text"
+      ],
+      "title": "CtaScene",
+      "type": "object"
+    },
+    "CtaText": {
+      "properties": {
+        "headline": {
+          "maxLength": 60,
+          "title": "Headline",
+          "type": "string"
+        },
+        "subline": {
+          "anyOf": [
+            {
+              "maxLength": 60,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subline"
+        }
+      },
+      "required": [
+        "headline"
+      ],
+      "title": "CtaText",
+      "type": "object"
+    },
+    "FeatureCardScene": {
+      "properties": {
+        "index": {
+          "minimum": 1,
+          "title": "Index",
+          "type": "integer"
+        },
+        "narration": {
+          "title": "Narration",
+          "type": "string"
+        },
+        "feature": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Feature"
+        },
+        "audio": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Narration WAV, relative to the run folder",
+          "title": "Audio"
+        },
+        "start": {
+          "default": 0.0,
+          "title": "Start",
+          "type": "number"
+        },
+        "duration": {
+          "default": 0.0,
+          "title": "Duration",
+          "type": "number"
+        },
+        "template": {
+          "const": "feature-card",
+          "default": "feature-card",
+          "title": "Template",
+          "type": "string"
+        },
+        "text": {
+          "$ref": "#/$defs/FeatureCardText"
+        }
+      },
+      "required": [
+        "index",
+        "narration",
+        "text"
+      ],
+      "title": "FeatureCardScene",
+      "type": "object"
+    },
+    "FeatureCardText": {
+      "properties": {
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 4,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Short marker such as 01",
+          "title": "Label"
+        },
+        "headline": {
+          "maxLength": 40,
+          "title": "Headline",
+          "type": "string"
+        },
+        "body": {
+          "anyOf": [
+            {
+              "maxLength": 110,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Body"
+        }
+      },
+      "required": [
+        "headline"
+      ],
+      "title": "FeatureCardText",
+      "type": "object"
+    },
+    "HookScene": {
+      "properties": {
+        "index": {
+          "minimum": 1,
+          "title": "Index",
+          "type": "integer"
+        },
+        "narration": {
+          "title": "Narration",
+          "type": "string"
+        },
+        "feature": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Feature"
+        },
+        "audio": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Narration WAV, relative to the run folder",
+          "title": "Audio"
+        },
+        "start": {
+          "default": 0.0,
+          "title": "Start",
+          "type": "number"
+        },
+        "duration": {
+          "default": 0.0,
+          "title": "Duration",
+          "type": "number"
+        },
+        "template": {
+          "const": "hook",
+          "default": "hook",
+          "title": "Template",
+          "type": "string"
+        },
+        "text": {
+          "$ref": "#/$defs/HookText"
+        }
+      },
+      "required": [
+        "index",
+        "narration",
+        "text"
+      ],
+      "title": "HookScene",
+      "type": "object"
+    },
+    "HookText": {
+      "properties": {
+        "headline": {
+          "maxLength": 48,
+          "title": "Headline",
+          "type": "string"
+        },
+        "subline": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subline"
+        }
+      },
+      "required": [
+        "headline"
+      ],
+      "title": "HookText",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "version": {
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "format": {
+      "default": "16:9",
+      "title": "Format",
+      "type": "string"
+    },
+    "width": {
+      "default": 1920,
+      "title": "Width",
+      "type": "integer"
+    },
+    "height": {
+      "default": 1080,
+      "title": "Height",
+      "type": "integer"
+    },
+    "fps": {
+      "default": 30,
+      "title": "Fps",
+      "type": "integer"
+    },
+    "duration": {
+      "default": 0.0,
+      "title": "Duration",
+      "type": "number"
+    },
+    "scenes": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "cta": "#/$defs/CtaScene",
+            "feature-card": "#/$defs/FeatureCardScene",
+            "hook": "#/$defs/HookScene"
+          },
+          "propertyName": "template"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/HookScene"
+          },
+          {
+            "$ref": "#/$defs/FeatureCardScene"
+          },
+          {
+            "$ref": "#/$defs/CtaScene"
+          }
+        ]
+      },
+      "title": "Scenes",
+      "type": "array"
+    },
+    "credit": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Credit"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "music": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Music file chosen from the library",
+      "title": "Music"
+    }
+  },
+  "required": [
+    "scenes"
+  ],
+  "title": "SceneSpec",
+  "type": "object"
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@reelhive/renderer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render": "tsx render.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@revideo/2d": "0.11.0",
+    "@revideo/core": "0.11.0",
+    "@revideo/ffmpeg": "0.11.0",
+    "@revideo/renderer": "0.11.0",
+    "@revideo/ui": "0.11.0",
+    "@revideo/vite-plugin": "0.11.0",
+    "tsx": "^4.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.1",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

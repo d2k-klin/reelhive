@@ -1,0 +1,13 @@
+level: small
+audience: Platform engineers at mid-size SaaS companies
+storyline: Cloud bills grow silently. CostHive finds the waste in minutes.
+features:
+  - Scans every region in one command
+  - Flags idle and oversized resources
+  - Exports a fix-it report
+duration: 60          # seconds
+format: "16:9"        # M1: 16:9 only (9:16 and 1:1 arrive in M2)
+voice:
+  gender: female      # female | male
+closing: Try CostHive free on GitHub.
+credit: end           # end | corner  (disable with REELHIVE_DISABLE_CREDIT=true)

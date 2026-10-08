@@ -1,0 +1,8 @@
+# Copy to config.yaml. Every key is optional; these are the defaults.
+provider: claude            # M1: claude. bedrock, openai, ollama and copilot arrive in M2.
+models:
+  claude:
+    strong: claude-sonnet-5-5   # script, critic, fix
+    fast: claude-haiku-5-5      # scenes, music
+max_tokens: 8000
+runs_dir: runs
