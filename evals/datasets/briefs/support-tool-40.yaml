@@ -1,0 +1,19 @@
+level: small
+audience: Support leads at e-commerce shops
+storyline: The same ten questions fill the queue every day. Answerly answers them
+  with your own help center.
+features:
+- Answers from your help center
+- Hands off to a human with context
+duration: 40
+closing: Answer 40% of tickets automatically.
+visuals:
+  source: auto
+  screenshots:
+    url: ${SITE}
+    mask:
+    - .api-key
+    frame: browser
+  images:
+    dir: ${DATASET}/images
+    captions: ${DATASET}/images/captions.yaml

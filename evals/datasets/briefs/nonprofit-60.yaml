@@ -1,0 +1,16 @@
+level: small
+audience: Volunteers and small donors
+storyline: Every week, local food banks throw away food they could have shared. MealBridge
+  connects them with shelters.
+features:
+- Food banks post surplus in two taps
+- Shelters claim pickups nearby
+- Drivers get a route on their phone
+duration: 60
+format: '1:1'
+closing: Volunteer this weekend at mealbridge.org
+visuals:
+  source: auto
+  images:
+    dir: ${DATASET}/images
+    captions: ${DATASET}/images/captions.yaml

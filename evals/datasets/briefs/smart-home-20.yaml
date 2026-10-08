@@ -1,0 +1,17 @@
+level: small
+audience: Renters who cannot drill into walls
+storyline: Smart home without the landlord conversation.
+features:
+- Stick-on sensors
+- No hub required
+duration: 20
+format: '9:16'
+voice:
+  gender: male
+  accent: uk
+closing: Find Stickhome at stickhome.co.uk
+visuals:
+  source: auto
+  images:
+    dir: ${DATASET}/images
+    captions: ${DATASET}/images/captions.yaml

@@ -14,6 +14,9 @@ class RenderNode(FunctionNode):
         assert ctx.spec
         spec_path = ctx.path("spec.json")
         spec_path.write_text(ctx.spec.model_dump_json(indent=2))
+        if ctx.spec_only:
+            ctx.events.emit("node.task", node=self.name, task="Spec only: video rendering skipped")
+            return
 
         def progress(p: float) -> None:
             ctx.events.emit("node.task", node=self.name, task="Rendering frames", progress=round(p, 3))

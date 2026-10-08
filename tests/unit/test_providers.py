@@ -125,7 +125,7 @@ def test_copilot_rejects_repeated_invalid_output_and_closes(tmp_path, brief, mon
     client = FakeCopilotClient([{}, {}])
     monkeypatch.setattr("copilot.CopilotClient", lambda: client)
     ctx = RunContext(tmp_path, brief, EventBus(), {}, None, None, config=config)
-    with pytest.raises(ProviderError, match="did not submit valid"):
+    with pytest.raises(ProviderError, match="Copilot script did not submit valid"):
         asyncio.run(ScriptWriterNode().execute(ctx))
     assert client.stopped and client.session.closed
     assert asyncio.run(list_models()) == ["available-model"]

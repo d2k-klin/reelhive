@@ -1,0 +1,26 @@
+level: medium
+audience: SREs running Kubernetes in production
+storyline: Alerts fire, dashboards disagree, and nobody knows which change broke prod.
+  Tracebeam ties every alert to the deploy that caused it.
+features:
+- Links alerts to deploys and config changes
+- One timeline across logs, metrics and traces
+- Suggests the likely culprit service
+- Opens a rollback PR in one click
+- Works with Prometheus and OpenTelemetry
+duration: 120
+closing: Install Tracebeam with one Helm chart.
+tone: calm and precise
+pacing: balanced
+theme: dark
+music_mood: tech
+visuals:
+  source: auto
+  screenshots:
+    url: ${SITE}
+    mask:
+    - .api-key
+    frame: browser
+  images:
+    dir: ${DATASET}/images
+    captions: ${DATASET}/images/captions.yaml

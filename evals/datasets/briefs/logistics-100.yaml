@@ -1,0 +1,25 @@
+level: medium
+audience: Operations leads at regional delivery companies
+storyline: Drivers lose an hour a day to bad routes. Routewise plans routes that respect
+  real traffic and time windows.
+features:
+- Plans routes in seconds
+- Respects delivery time windows
+- Rebalances when a driver calls in sick
+- Live ETAs for customers
+- Proof of delivery photos
+duration: 100
+closing: Cut driving time by 15% with Routewise.
+pacing: balanced
+theme: dark
+music_mood: dramatic
+visuals:
+  source: auto
+  images:
+    dir: ${DATASET}/images
+    captions: ${DATASET}/images/captions.yaml
+  screenshots:
+    url: ${SITE}
+    mask:
+    - .api-key
+    frame: browser

@@ -56,3 +56,13 @@ def test_invalid_approval_leaves_run_editable(config, brief):
         svc.approve(result.run_dir)
     assert json.loads((result.run_dir / "status.json").read_text())["status"] == "awaiting_script"
     assert not (result.run_dir / ".production.lock").exists()
+
+
+def test_concurrent_approval_is_refused_without_touching_the_lock(config, brief):
+    brief.level = "medium"
+    svc = Service(config, {"strong": FakeModel({"Script": make_script(brief)})}, StubTTS(), stub_renderer)
+    result = svc.run(brief)
+    (result.run_dir / ".production.lock").touch()  # another terminal is producing this run
+    with pytest.raises(ValueError, match="already being produced"):
+        svc.approve(result.run_dir)
+    assert (result.run_dir / ".production.lock").exists()

@@ -1,0 +1,15 @@
+level: small
+audience: Travellers learning a few phrases before a trip
+storyline: You do not need fluency, you need the ten phrases you will actually use.
+features:
+- Phrase packs per destination
+duration: 20
+format: '9:16'
+voice:
+  gender: male
+closing: Pack your phrases with Wordtrip.
+visuals:
+  source: generate
+  generate:
+    style: flat vector illustration, soft gradients
+    max_images: 3

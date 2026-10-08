@@ -1,0 +1,29 @@
+level: medium
+audience: HR leads at companies with 50 to 500 people
+storyline: Onboarding is a checklist nobody owns. Ramp-Up gives every new hire a clear
+  first month.
+features:
+- Day-by-day plans per role
+- Automatic account requests to IT
+- Buddy matching
+- Thirty-day pulse surveys
+duration: 90
+closing: See Ramp-Up in action at rampup.work
+tone: warm and reassuring
+pacing: slow
+theme: brand
+brand:
+  colors:
+  - '#f97316'
+  - '#1c1917'
+  - '#fafaf9'
+music_mood: inspiring
+cta_url: rampup.work
+visuals:
+  source: auto
+  images:
+    dir: ${DATASET}/images
+    captions: ${DATASET}/images/captions.yaml
+  generate:
+    style: flat vector illustration, soft gradients
+    max_images: 3

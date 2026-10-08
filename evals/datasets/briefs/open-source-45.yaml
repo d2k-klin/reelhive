@@ -1,0 +1,12 @@
+level: small
+audience: Maintainers of popular open source libraries
+storyline: Triage takes more time than coding. Triagebot labels and routes issues
+  so maintainers can build.
+features:
+- Labels new issues automatically
+- Finds duplicates
+- Asks reporters for missing details
+- Weekly digest for maintainers
+duration: 45
+format: '1:1'
+closing: Add Triagebot to your repo in 2 minutes.

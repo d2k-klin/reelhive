@@ -76,6 +76,10 @@ REELHIVE_DISABLE_CREDIT=true uv run reelhive run brief.yaml
 
 An invisible MP4 metadata tag is always written.
 
+## Evals
+
+`reelhive eval --providers claude,bedrock --set core` scores scripts, scene specs and image prompts across providers (no video, no paid images) and writes a comparison report. Prompt changes are gated in CI against a baseline. See [evals/README.md](evals/README.md).
+
 ## Development
 
 ```bash

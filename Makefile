@@ -1,4 +1,4 @@
-.PHONY: setup test test-slow lint schema demo
+.PHONY: setup test test-slow lint schema demo eval eval-baseline
 
 setup:  ## Python deps, renderer deps and the headless browser Revideo renders with
 	uv sync --extra dev $(EXTRAS)
@@ -8,7 +8,7 @@ setup:  ## Python deps, renderer deps and the headless browser Revideo renders w
 	npx puppeteer browsers install chrome-headless-shell
 
 test:
-	uv run pytest --cov --cov-report=term-missing --cov-fail-under=85
+	uv run --all-extras pytest --cov --cov-report=term-missing --cov-fail-under=85
 	npm test -w renderer
 
 test-slow:  ## real Kokoro + real render
@@ -25,3 +25,9 @@ schema:  ## regenerate renderer/src/spec.schema.json from the Pydantic models
 
 demo:
 	uv run reelhive run examples/briefs/small.yaml
+
+eval:  ## compare providers on the core set (spec only: no video, no paid images); PROVIDERS=claude,bedrock
+	uv run reelhive eval --providers $(or $(PROVIDERS),claude) --set core
+
+eval-baseline:  ## record the Claude core-set baseline the eval gate compares against; commit the file
+	uv run reelhive eval --providers claude --set core --save-baseline evals/baselines/claude-core.json

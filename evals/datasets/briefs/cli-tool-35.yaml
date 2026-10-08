@@ -1,0 +1,17 @@
+level: small
+audience: Developers who live in the terminal
+storyline: Switching between ten dashboards to ship one change is slow. Shipit puts
+  deploy status in your terminal.
+features:
+- One command shows every environment
+- Watches a deploy until it is healthy
+- Rolls back with confirmation
+duration: 35
+closing: brew install shipit
+visuals:
+  source: screenshots
+  screenshots:
+    url: ${SITE}
+    mask:
+    - .api-key
+    frame: browser

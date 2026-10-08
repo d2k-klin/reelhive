@@ -1,0 +1,17 @@
+level: small
+audience: Backend developers integrating payments
+storyline: Payments code is boring until it breaks at 3am. Ledgerly makes the boring
+  part reliable.
+features:
+- Idempotent requests by default
+- Typed SDKs for Python, Go and TypeScript
+- Webhooks with automatic retries
+duration: 45
+closing: Read the docs at ledgerly.dev/docs
+visuals:
+  source: auto
+  screenshots:
+    url: ${SITE}
+    mask:
+    - .api-key
+    frame: browser

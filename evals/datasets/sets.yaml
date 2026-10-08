@@ -1,0 +1,32 @@
+# core: the full dataset (the gate). smoke: 5 briefs for the nightly run.
+core:
+- devtool-launch-60
+- bakery-15
+- security-180
+- fitness-app-30
+- api-sdk-45
+- nonprofit-60
+- numbers-closing-40
+- url-closing-25
+- hr-tool-90
+- observability-120
+- language-app-20
+- b2b-data-75
+- restaurant-30
+- edtech-150
+- cli-tool-35
+- healthcare-60
+- game-15
+- ai-assistant-50
+- logistics-100
+- open-source-45
+- smart-home-20
+- legal-130
+- climate-55
+- support-tool-40
+smoke:
+- devtool-launch-60
+- fitness-app-30
+- nonprofit-60
+- observability-120
+- url-closing-25

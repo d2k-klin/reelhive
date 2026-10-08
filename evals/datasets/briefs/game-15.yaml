@@ -1,0 +1,13 @@
+level: small
+audience: Casual mobile gamers
+storyline: Three minutes, one puzzle, a new world every day.
+features:
+- A fresh hand-made puzzle every day
+duration: 15
+format: '9:16'
+closing: Play Driftlands today.
+visuals:
+  source: auto
+  generate:
+    style: flat vector illustration, soft gradients
+    max_images: 3

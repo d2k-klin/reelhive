@@ -1,0 +1,21 @@
+level: small
+audience: Secondary school teachers
+storyline: Marking eats evenings. Gradewise drafts feedback so teachers can focus
+  on students.
+features:
+- Drafts feedback in the teacher's voice
+- Highlights common mistakes across a class
+- Works with Google Classroom
+- Never grades without teacher review
+- Exports progress reports for parents
+- Keeps student data in the EU
+duration: 150
+closing: Join 2,000 teachers at gradewise.school
+visuals:
+  source: auto
+  images:
+    dir: ${DATASET}/images
+    captions: ${DATASET}/images/captions.yaml
+  generate:
+    style: flat vector illustration, soft gradients
+    max_images: 3

@@ -47,3 +47,11 @@ def test_corner_credit_takes_no_time(brief):
     corner = brief.model_copy(update={"credit": "corner"})
     credit = credit_for(corner)
     assert credit and credit.mode == "corner" and credit.duration == 0
+
+
+def test_short_videos_leave_room_for_scene_padding(brief):
+    short = brief.model_copy(update={"duration": 15})  # 3 features -> 6 scenes in 13.5s
+    words = target_words(short)
+    speech = words / 161 * 60
+    assert speech + 6 * (0.3 + 0.3) <= 13.5 + 0.2  # voice plus minimum padding fits
+    assert target_words(brief) == round((60 - CREDIT_SECONDS) * 145 / 60)  # long videos are unchanged
