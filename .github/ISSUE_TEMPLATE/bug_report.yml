@@ -1,0 +1,51 @@
+name: Bug report
+description: Something went wrong while making a video.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! ⚠️ **Do not paste API keys, `auth.json` contents or private screenshots.**
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ReelHive version
+      description: Output of `reelhive --version`.
+      placeholder: ReelHive 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Agent provider
+      options: [claude, bedrock, openai, ollama, copilot]
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: "`reelhive doctor` output"
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: brief
+    attributes:
+      label: Brief (sanitized)
+      render: yaml
+    validations:
+      required: false
+  - type: textarea
+    id: log
+    attributes:
+      label: Relevant lines from run.log.jsonl or the terminal
+      render: shell
+    validations:
+      required: false

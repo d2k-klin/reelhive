@@ -1,0 +1,13 @@
+# The brief behind assets/demo/demo.mp4 and demo.gif.
+level: small
+audience: Developers who need a product video but have no time to edit one
+storyline: Product videos take days of editing. ReelHive turns a short brief into a narrated video.
+features:
+  - One command, brief to MP4
+  - Local first, with the provider you choose
+duration: 20
+format: "16:9"
+voice:
+  gender: female
+closing: Try ReelHive on GitHub.
+credit: end

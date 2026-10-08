@@ -1,0 +1,25 @@
+name: New template request
+description: Propose a new scene template for the renderer.
+labels: ["template"]
+body:
+  - type: textarea
+    id: purpose
+    attributes:
+      label: What kind of scene is it for?
+      description: e.g. a comparison, a quote, a timeline. Which beats in a script would use it?
+    validations:
+      required: true
+  - type: textarea
+    id: fields
+    attributes:
+      label: On-screen fields and character limits
+      placeholder: "headline (40), left (60), right (60)"
+    validations:
+      required: true
+  - type: textarea
+    id: sketch
+    attributes:
+      label: Sketch or reference
+      description: A drawing, screenshot or link showing the layout in 16:9, 9:16 and 1:1.
+    validations:
+      required: false
