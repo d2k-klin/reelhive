@@ -2,6 +2,8 @@
 
 The local studio is a React/Vite client served by ReelHive's loopback-only FastAPI server.
 
+For end-user instructions and annotated screenshots, see the [UI user guide](../docs/ui-guide.md).
+
 ```bash
 npm run build --workspace @reelhive/ui
 uv run reelhive ui

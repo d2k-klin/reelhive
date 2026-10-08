@@ -76,6 +76,8 @@ Medium pauses before narration, visual capture/generation and rendering. High pa
 
 The local studio includes YAML import/export, uploads and test captures, script and scene editors, the same Revideo scene preview used for final output, live graph and gate events, runs history, downloads, resume/cancel controls, and non-secret provider settings. CLI users can edit `spec.json`, run `reelhive regen <run-folder> --scene N`, then `reelhive approve-scenes <run-folder>`.
 
+See the illustrated [UI user guide](docs/ui-guide.md) for launch options and the complete brief-to-download workflow.
+
 ## Visuals
 
 Each scene asks for one of three kinds of visual, and ReelHive fills it from your sources in this order:
