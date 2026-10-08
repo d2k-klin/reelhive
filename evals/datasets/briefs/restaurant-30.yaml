@@ -1,0 +1,18 @@
+level: medium
+audience: Owners of independent restaurants
+storyline: No-shows cost a table every night. TableKeep reminds guests and fills gaps
+  from a waitlist.
+features:
+- Text reminders a day ahead
+- Waitlist fills cancelled tables
+duration: 30
+format: '1:1'
+closing: Try TableKeep free for 30 days.
+tone: friendly
+pacing: fast
+music_mood: upbeat
+visuals:
+  source: images
+  images:
+    dir: ${DATASET}/images
+    captions: ${DATASET}/images/captions.yaml

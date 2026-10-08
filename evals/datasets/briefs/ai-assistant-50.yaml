@@ -1,0 +1,20 @@
+level: small
+audience: Product managers drowning in meeting notes
+storyline: Decisions get lost between meetings. Recall turns every meeting into decisions
+  and owners.
+features:
+- Summaries with decisions and owners
+- Follow-ups drafted for each owner
+- Searchable history across meetings
+duration: 50
+closing: Try Recall with your next meeting.
+visuals:
+  source: auto
+  screenshots:
+    url: ${SITE}
+    mask:
+    - .api-key
+    frame: browser
+  generate:
+    style: flat vector illustration, soft gradients
+    max_images: 3

@@ -93,7 +93,7 @@ class CopilotAgentNode(FunctionNode):
                         load_prompt("fixer") + f"\nRepair output for {tool_name}. Errors: {errors}", timeout=180
                     )
                 if submitted is None:
-                    raise ProviderError(f"Copilot {self.name} did not submit valid output: {errors}")
+                    raise ProviderError(f"Copilot {self.node.name} did not submit valid output: {errors}")
                 await asyncio.to_thread(self.node.apply, ctx, submitted)
             finally:
                 await session.disconnect()

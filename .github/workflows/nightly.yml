@@ -1,0 +1,48 @@
+name: Nightly
+
+# Slow end-to-end tests (real Kokoro, real Revideo) and a Claude eval smoke run on 5 briefs (plan §9).
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - run: pip install uv && uv sync --all-extras --frozen
+      - run: uv run playwright install --with-deps chromium
+      - run: npm ci && npx puppeteer browsers install chrome-headless-shell
+      - name: Slow tests
+        run: uv run pytest -m slow
+
+  eval-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: pip install uv && uv sync --all-extras --frozen
+      - run: uv run playwright install --with-deps chromium
+      - name: Claude smoke eval
+        run: uv run reelhive eval --providers claude --set smoke --judge claude
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: eval-smoke-report
+          path: evals/reports/

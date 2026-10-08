@@ -10,6 +10,7 @@ from reelhive.schemas.brief import Brief
 from reelhive.schemas.scene_spec import CREDIT_SECONDS, Credit, SceneSpec
 
 WPM_TARGET = 145  # what the script writer aims for; the pace check allows 130-170
+SPEECH_WPM = 161  # measured Kokoro rate at speed 1.0 (docs/plan.md, M1 notes)
 LEAD = 0.3  # silence before the voice starts in each scene (covers the fade-in)
 TAIL = 0.7  # breathing room after the voice
 TAIL_MIN = 0.3
@@ -31,7 +32,12 @@ def available_seconds(brief: Brief) -> float:
 
 
 def target_words(brief: Brief) -> int:
-    return round(available_seconds(brief) * WPM_TARGET / 60)
+    """Words for the whole script. Short videos are capped so the voice plus each scene's minimum
+    padding still fits the target (found by the M4 evals: 15-20s briefs overran by 6-8%)."""
+    available = available_seconds(brief)
+    scenes = len(brief.features) + 3  # hook, problem, one per feature, cta
+    fits = (available - scenes * (LEAD + TAIL_MIN)) * SPEECH_WPM * brief.voice.speed / 60
+    return round(min(available * WPM_TARGET / 60, fits))
 
 
 def _frames(seconds: float) -> float:

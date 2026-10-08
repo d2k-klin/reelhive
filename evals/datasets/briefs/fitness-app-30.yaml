@@ -1,0 +1,14 @@
+level: small
+audience: People getting back into running after a long break
+storyline: Most plans start too fast. Stride adapts to how you actually feel.
+features:
+- Daily plan that adjusts to your energy
+- Five-minute recovery check-ins
+duration: 30
+format: '9:16'
+closing: Download Stride free.
+visuals:
+  source: auto
+  generate:
+    style: flat vector illustration, soft gradients
+    max_images: 3

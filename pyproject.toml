@@ -93,7 +93,7 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.mypy]
 plugins = ["pydantic.mypy"]
 python_version = "3.11"
-files = ["src/reelhive"]
+files = ["src/reelhive", "evals"]
 ignore_missing_imports = true
 warn_redundant_casts = true
 warn_unused_ignores = true
@@ -105,9 +105,10 @@ disallow_untyped_defs = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]  # the evals/ harness lives at the repo root
 addopts = "-q -m 'not slow'"
 markers = ["slow: real Kokoro + real render (nightly / pre-release)"]
 
 [tool.coverage.run]
-source = ["src/reelhive"]
+source = ["src/reelhive", "evals"]
 omit = ["src/reelhive/cli.py"]

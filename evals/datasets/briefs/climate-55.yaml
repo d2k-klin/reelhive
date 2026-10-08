@@ -1,0 +1,27 @@
+level: medium
+audience: Sustainability leads at manufacturing firms
+storyline: Carbon reporting means spreadsheets from thirty suppliers. Carbonly collects
+  them and checks the math.
+features:
+- Supplier portal for emissions data
+- Automatic unit and factor checks
+- Audit trail for every number
+duration: 55
+format: '1:1'
+closing: Report your Scope 3 by Q4 with Carbonly.
+tone: serious and optimistic
+theme: brand
+brand:
+  colors:
+  - '#22c55e'
+  - '#052e16'
+  - '#f0fdf4'
+music_mood: inspiring
+visuals:
+  source: auto
+  images:
+    dir: ${DATASET}/images
+    captions: ${DATASET}/images/captions.yaml
+  generate:
+    style: flat vector illustration, soft gradients
+    max_images: 3

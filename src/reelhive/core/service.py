@@ -9,7 +9,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
@@ -48,11 +48,16 @@ class Service:
         models: dict[str, Model] | None = None,
         tts: TTS | None = None,
         renderer: Callable[[Path, Path, Callable[[float], None]], None] | None = None,
+        *,
+        spec_only: bool = False,
+        image_generator: Any = None,
     ) -> None:
         self.config = config
         self._models = models
         self._tts = tts
         self._renderer = renderer
+        self.spec_only = spec_only
+        self.image_generator = image_generator
 
     def _dependencies(self) -> None:
         if self._models is None:
@@ -89,6 +94,8 @@ class Service:
             tts=self._tts,
             renderer=self._renderer,
             config=self.config,
+            spec_only=self.spec_only,
+            image_generator=self.image_generator,
         )
 
     @staticmethod
@@ -131,6 +138,10 @@ class Service:
             )
             self._status(ctx, "done")
             return RunResult(ctx.run_dir, "done", video=ctx.video)
+        if ctx.spec_only and "render" in ran:
+            ctx.events.emit("run.finished", status="done", spec=str(ctx.path("spec.json")))
+            self._status(ctx, "done")
+            return RunResult(ctx.run_dir, "done")
         ctx.events.emit("run.finished", status="stopped", report=ctx.failures)
         self._status(ctx, "stopped")
         return RunResult(ctx.run_dir, "stopped", report=ctx.failures)
@@ -142,8 +153,11 @@ class Service:
         run_dir = run_dir.resolve()
         # Exclusive marker prevents two terminals from producing the same run concurrently.
         lock = run_dir / ".production.lock"
-        with lock.open("x"):
-            pass
+        try:
+            with lock.open("x"):
+                pass
+        except FileExistsError as e:
+            raise ValueError(f"run is already being produced; if no other process is, delete {lock}") from e
         try:
             if json.loads((run_dir / "status.json").read_text())["status"] != "awaiting_script":
                 raise ValueError("run is not awaiting script approval")

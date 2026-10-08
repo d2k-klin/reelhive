@@ -30,3 +30,6 @@ graphify-out/
 
 # Browser login state contains session tokens
 auth.json
+
+# Eval reports (keep baselines)
+evals/reports/

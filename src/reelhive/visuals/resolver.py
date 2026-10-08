@@ -67,6 +67,7 @@ def theme_for(ctx: RunContext) -> Theme:
 
 def resolve(ctx: RunContext, generator=None) -> None:
     assert ctx.spec
+    generator = generator or ctx.image_generator
     options = ctx.brief.visuals
     generation = options.generate if isinstance(options.generate, Generate) else None
     cache_path = ctx.path("visuals", "generated.json")

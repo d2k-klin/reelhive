@@ -29,6 +29,8 @@ class RunContext:
     renderer: Callable[[Path, Path, Callable[[float], None]], None]  # (spec.json, out.mp4, on_progress)
 
     config: Config = field(default_factory=Config)
+    spec_only: bool = False  # evals: stop at the render contract, no video
+    image_generator: Any = None  # visuals/generators/base.py ImageGenerator; None means configured OpenAI
     visual_catalog: list[dict[str, Any]] = field(default_factory=list)
     script: Script | None = None
     spec: SceneSpec | None = None

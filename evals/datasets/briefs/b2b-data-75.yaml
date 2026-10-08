@@ -1,0 +1,24 @@
+level: small
+audience: Data engineers maintaining nightly pipelines
+storyline: Broken pipelines are found by angry analysts at 9am. Pipewatch finds them
+  at 2am.
+features:
+- Detects schema drift before load
+- Alerts with the failing row
+- Auto-pauses downstream jobs
+- Weekly reliability report
+duration: 75
+closing: Connect your first pipeline at pipewatch.dev
+visuals:
+  source: auto
+  screenshots:
+    url: ${SITE}
+    mask:
+    - .api-key
+    frame: browser
+  images:
+    dir: ${DATASET}/images
+    captions: ${DATASET}/images/captions.yaml
+  generate:
+    style: flat vector illustration, soft gradients
+    max_images: 3

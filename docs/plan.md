@@ -525,9 +525,9 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 | # | Deliverable | Done when |
 | --- | --- | --- |
 | **M1** ✅ **Done** (2026-10-08) | End-to-end `small` level | `run small.yaml` produces a 60s 16:9 MP4 with narration and ducked music; CI green; 3 templates |
-| **M2** ✅ **Implemented** (2026-10-08) | `medium` level, all providers, all visual sources | Script approval stop, brand theme, 9:16 and 1:1, all 5 providers including Copilot; screenshots with login and masking, provided images, OpenAI generation, `auto` fallbacks |
+| **M2** ✅ **Done** (2026-10-08) | `medium` level, all providers, all visual sources | Script approval stop, brand theme, 9:16 and 1:1, all 5 providers including Copilot; screenshots with login and masking, provided images, OpenAI generation, `auto` fallbacks |
 | **M3** | `high` level + local UI | Per-scene spec editing, image approval, `regen --scene`; `reelhive ui` meets the "done when" list in `reelhive-ui-plan.md`; 8 templates |
-| **M4** | Evals | Eval harness and first cross-provider report; prompt-change gate in CI |
+| **M4** ✅ **Implemented** (2026-10-08) | Evals | Eval harness and first cross-provider report; prompt-change gate in CI |
 | **M5** | Public v0.1.0 | READMEs and docs complete, demo GIF, GitHub Release v0.1.0, repo public |
 | **M6** | AI quick actions with CopilotKit *(later phase, learning goal)* | `suggest` agent behind an AG-UI endpoint; CopilotKit renders 3–4 suggestion buttons per beat and scene; one click regenerates via the existing path; `reelhive suggest` in the CLI; `docs/copilotkit.md` written; released as v0.2.0 |
 
@@ -547,6 +547,16 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 - Visuals resolve provided images, same-origin masked screenshots with saved login state, and OpenAI concept generation. Product UI cannot use generated images. Generation uses a per-run prompt/model/size cache and an attempt cap. Actual API usage is logged; USD cost is an optional configured estimate, otherwise null.
 - Image descriptions are opt-in and currently require a vision-capable Strands scenes provider; Copilot users can override `nodes.scenes`. Screenshots remain local. Minimum source sizes and setup are in `docs/visuals.md`; provider configuration is in `docs/providers.md`.
 - Verified locally with fake-provider integration tests, real Chromium capture/masking/login-state tests, renderer tests, Python/TypeScript checks, and real portrait/square renders plus the narrated landscape smoke test. Live paid provider calls and the first GitHub CI run remain unverified.
+- Review pass: re-ran every CI step on the M2 commit (ruff, mypy, pytest with all extras at 92% coverage, vitest, tsc) plus the three slow tests. Fixed: the Copilot error message named the wrapper instead of the node; `make test` failed unless the optional provider extras were installed (it now syncs them); a second `reelhive approve` on the same run now gets a clear "already being produced" error and leaves the other process's lock alone.
+
+**M4 notes**
+- M3 was skipped here and is being built separately; M4 builds on the M2 commit and does not depend on it.
+- `reelhive eval --providers a,b --set core|smoke [--judge P|none] [--baseline F] [--save-baseline F]` runs the real draft and production graphs in spec-only mode: a TTS stand-in sized to Kokoro's measured 161 wpm, no render (the run stops at `spec.json`), placeholder images with the prompts recorded, and screenshots from a fixture site served on 127.0.0.1. Medium briefs are approved as drafted.
+- Dataset: 24 briefs (`evals/datasets/briefs`), covering technical and non-technical audiences, 15s to 3m, all three formats, 1 to 8 features, URL and number closings, small and medium levels, and every visual source combination. `smoke` is 5 of them.
+- Metrics: the deterministic set from §7 (`evals/metrics/deterministic.py`, built on the critic's hard checks) plus judge scores from fixed rubrics (`evals/rubrics`). Each run writes `report.md`, `report.html` and `results.json`, with one row per metric and one column per provider, plus seconds and tokens per node. Token cost in USD is not computed (no price table); image cost uses `image_generation.cost_per_image` when set.
+- Gate: every higher-is-better metric may drop by at most 5% (relative) against `evals/baselines/claude-core.json`; generated product UI must stay at 0. `eval-gate.yml` runs it on PRs that touch prompts, rubrics, the dataset or the baseline, and fails, rather than skipping, without the `ANTHROPIC_API_KEY` secret. `nightly.yml` runs the slow tests and a Claude smoke eval.
+- Finding from the first dry run: for 15-20s briefs, a script that hit the word target exactly still overran the duration gate by 6-8%, because the target ignored each scene's minimum padding. `target_words` now caps short videos so the voice plus padding fits; videos of 25s and longer are unchanged. All 24 briefs are now reachable.
+- Verified locally with fake providers (unit tests, plus a smoke-set integration run comparing two providers through the real graphs, fixture-site screenshots, the judge, the reports and the gate). Still to do, needing API keys or quota: the first real cross-provider report and the committed Claude baseline (`make eval-baseline`).
 
 `core/service.py` exists from M1, so the UI in M3 is a new front end on finished logic, not a rewrite. M6 adds a feature on top of a released product, so it can't delay v0.1.0.
 

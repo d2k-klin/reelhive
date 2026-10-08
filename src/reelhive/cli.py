@@ -211,3 +211,52 @@ def models(
     except Exception as e:
         console.print(f"[red]Cannot list models:[/red] {e}")
         raise typer.Exit(1) from e
+
+
+@app.command("eval")
+def eval_(
+    providers: str = typer.Option("claude", "--providers", help="Comma-separated providers to compare."),
+    set_name: str = typer.Option("core", "--set", help="Brief set from evals/datasets/sets.yaml."),
+    judge: str = typer.Option("claude", "--judge", help="Provider for the LLM judge (strong tier), or 'none'."),
+    baseline: Path = typer.Option(None, "--baseline", exists=True, dir_okay=False, help="Fail on >5% regressions."),
+    save_baseline: Path = typer.Option(None, "--save-baseline", dir_okay=False, help="Write results as a baseline."),
+    out: Path = typer.Option(Path("evals/reports"), "--out", help="Report directory."),
+    config_file: Path = typer.Option(None, "--config", exists=True, dir_okay=False, help="config.yaml path."),
+    concurrency: int = typer.Option(4, "--concurrency", min=1, help="Briefs evaluated at once."),
+):
+    """Score scripts, specs and image prompts across providers (no video, no paid images)."""
+    import asyncio
+    import json
+    import sys
+
+    from reelhive.config import REPO_ROOT
+    from reelhive.providers.factory import ProviderError, build_model
+
+    sys.path.insert(0, str(REPO_ROOT))  # ponytail: evals/ ships with the clone, not the wheel
+    from evals.run import gate, run_eval_async
+
+    config = load_config(config_file)
+    chosen = [p.strip() for p in providers.split(",") if p.strip()]
+    try:
+        judge_model = None if judge == "none" else build_model(config, judge, "strong")
+        report = asyncio.run(run_eval_async(chosen, config, set_name, judge_model, out, concurrency=concurrency))
+    except (ProviderError, KeyError) as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(2) from e
+    console.print(f"Report: {report['dir']}/report.md")
+    if save_baseline:
+        save_baseline.parent.mkdir(parents=True, exist_ok=True)
+        save_baseline.write_text(json.dumps({"set": set_name, "providers": report["providers"]}, indent=2) + "\n")
+        console.print(f"Baseline saved: {save_baseline}")
+    if baseline:
+        saved = json.loads(baseline.read_text())
+        problems = (
+            gate(report["providers"], saved["providers"])
+            if saved["set"] == set_name
+            else [f"baseline is for set {saved['set']!r}, not {set_name!r}"]
+        )
+        for line in problems:
+            console.print(f"[red]✗ {line}[/red]")
+        if problems:
+            raise typer.Exit(1)
+        console.print("[green]✓ No regressions against the baseline.[/green]")

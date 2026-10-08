@@ -1,0 +1,16 @@
+level: medium
+audience: Clinic managers at small private practices
+storyline: Phones ring all morning for appointment changes. CareSlot lets patients
+  rebook themselves.
+features:
+- Online rebooking with your rules
+- Automatic reminders by SMS
+- Fills cancellations from a waitlist
+duration: 60
+format: '16:9'
+closing: Ask for a demo at careslot.health
+tone: calm and trustworthy
+voice:
+  gender: female
+  accent: uk
+music_mood: calm
