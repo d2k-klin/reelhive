@@ -48,7 +48,7 @@ def test_factory_builds_claude_tiers():
 
 
 def test_factory_rejects_unavailable_providers():
-    with pytest.raises(ProviderError, match="arrives in M2"):
+    with pytest.raises(ProviderError, match="models.ollama"):
         build_models(Config(provider="ollama"))
     with pytest.raises(ProviderError, match="models.claude"):
         build_models(Config(models={}))

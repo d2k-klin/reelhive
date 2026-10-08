@@ -12,7 +12,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
-FORMATS = {"16:9": (1920, 1080)}
+FORMATS = {"16:9": (1920, 1080), "9:16": (1080, 1920), "1:1": (1080, 1080)}
 CREDIT_TEXT = "Made with ReelHive by Mr.D"  # mirrors renderer/src/templates/credit.tsx (contract-tested)
 CREDIT_SECONDS = 1.5
 
@@ -33,10 +33,34 @@ class CtaText(BaseModel):
     subline: str | None = Field(None, max_length=60)
 
 
+class VisualRequest(BaseModel):
+    kind: Literal["product_ui", "concept", "none"] = "none"
+    image: str | None = Field(None, description="Filename from the provided image catalog")
+    route: str | None = Field(None, description="Route from the screenshot catalog")
+    prompt: str | None = Field(None, description="Concept illustration only; never product UI")
+
+
+class VisualAsset(BaseModel):
+    source: Literal["provided", "screenshot", "generated"]
+    file: str
+    frame: Literal["browser", "phone", "none"] = "none"
+
+
+class Theme(BaseModel):
+    background: str = "#0f1115"
+    surface: str = "#1a1d24"
+    text: str = "#f5f5f4"
+    muted: str = "#a8a29e"
+    accent: str = "#f5a524"
+    logo: str | None = None
+
+
 class _SceneBase(BaseModel):
     index: int = Field(ge=1)
     narration: str
     feature: str | None = None
+    visual_request: VisualRequest = VisualRequest()
+    visual: VisualAsset | None = None
     audio: str | None = Field(None, description="Narration WAV, relative to the run folder")
     start: float = 0.0
     duration: float = 0.0
@@ -52,13 +76,25 @@ class FeatureCardScene(_SceneBase):
     text: FeatureCardText
 
 
+class ImageScene(_SceneBase):
+    template: Literal["image-full"] = "image-full"
+    text: HookText
+
+
+class ScreenshotScene(_SceneBase):
+    template: Literal["screenshot-pan"] = "screenshot-pan"
+    text: HookText
+
+
 class CtaScene(_SceneBase):
     template: Literal["cta"] = "cta"
     text: CtaText
 
 
-Scene = Annotated[HookScene | FeatureCardScene | CtaScene, Field(discriminator="template")]
-TEMPLATES = ("hook", "feature-card", "cta")
+Scene = Annotated[
+    HookScene | FeatureCardScene | CtaScene | ImageScene | ScreenshotScene, Field(discriminator="template")
+]
+TEMPLATES = ("hook", "feature-card", "cta", "image-full", "screenshot-pan")
 
 
 class Credit(BaseModel):
@@ -74,7 +110,8 @@ class SceneSpec(BaseModel):
     height: int = 1080
     fps: int = 30
     duration: float = 0.0
-    scenes: list[Scene]
+    theme: Theme = Theme()
+    scenes: list[Scene] = Field(min_length=1)
     credit: Credit | None = None
     music: str | None = Field(None, description="Music file chosen from the library")
 

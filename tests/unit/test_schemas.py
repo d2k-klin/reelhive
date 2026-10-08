@@ -14,12 +14,11 @@ def test_example_brief_is_valid(brief):
 @pytest.mark.parametrize(
     "change, message",
     [
-        ({"level": "medium"}, "later milestone"),
-        ({"format": "9:16"}, "arrives in M2"),
+        ({"level": "high"}, "arrives in M3"),
         ({"features": []}, "at least 1"),
         ({"features": [f"f{i}" for i in range(9)]}, "at most 8"),
         ({"duration": 5}, "greater than or equal to 15"),
-        ({"visuals": {"url": "http://localhost"}}, "Extra inputs"),
+        ({"visuals": {"url": "file:///etc/passwd"}}, "http"),
     ],
 )
 def test_brief_rejects(brief, change, message):

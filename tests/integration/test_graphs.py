@@ -47,7 +47,7 @@ def test_pass_path_renders_a_video(config, brief):
     started = [d["node"] for d in of_type(events, "node.started")]
     assert started[:2] == ["brief", "script"]
     assert set(started[2:5]) == {"scenes", "narrate", "music"}  # parallel branches
-    assert started[5:] == ["timing", "critic", "render"]
+    assert started[5:] == ["visuals", "timing", "critic", "render"]
     assert [d["node"] for d in of_type(events, "node.skipped")] == ["fix", "recheck"]
     assert all(d["passed"] for d in of_type(events, "gate.result"))
     assert of_type(events, "critic.verdict")[0]["passed"]

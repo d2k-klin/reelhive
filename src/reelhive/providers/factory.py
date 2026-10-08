@@ -1,4 +1,4 @@
-"""Picks the model behind each agent tier. Graph code never knows which provider is in use."""
+"""Provider selection stays outside graph construction."""
 
 from __future__ import annotations
 
@@ -7,19 +7,53 @@ from strands.models.model import Model
 from reelhive.config import Config
 
 TIERS = ("strong", "fast")
+NODE_TIERS = {"script": "strong", "scenes": "fast", "music": "fast", "critic": "strong", "fix": "strong"}
 
 
 class ProviderError(RuntimeError):
     pass
 
 
-def build_models(config: Config) -> dict[str, Model]:
-    # ponytail: Claude only in M1; Bedrock, OpenAI, Ollama and Copilot land in M2 (plan §12).
-    if config.provider != "claude":
-        raise ProviderError(f"provider {config.provider!r} arrives in M2; M1 supports 'claude'")
-    tiers = config.models.get("claude")
+def model_id(config: Config, provider: str, tier: str) -> str:
+    tiers = config.models.get(provider)
     if tiers is None:
-        raise ProviderError("config.yaml: models.claude.{strong,fast} is required")
-    from strands.models.anthropic import AnthropicModel
+        raise ProviderError(f"config.yaml: models.{provider}.{{strong,fast}} is required")
+    return str(getattr(tiers, tier))
 
-    return {tier: AnthropicModel(model_id=getattr(tiers, tier), max_tokens=config.max_tokens) for tier in TIERS}
+
+def build_model(config: Config, provider: str, tier: str) -> Model:
+    name = model_id(config, provider, tier)
+    try:
+        if provider == "claude":
+            from strands.models.anthropic import AnthropicModel
+
+            return AnthropicModel(model_id=name, max_tokens=config.max_tokens)
+        if provider == "bedrock":
+            from strands.models.bedrock import BedrockModel
+
+            return BedrockModel(model_id=name, max_tokens=config.max_tokens)
+        if provider == "openai":
+            from strands.models.openai import OpenAIModel
+
+            return OpenAIModel(model_id=name, params={"max_completion_tokens": config.max_tokens})
+        if provider == "ollama":
+            from strands.models.ollama import OllamaModel
+
+            return OllamaModel(host=config.ollama_host, model_id=name, max_tokens=config.max_tokens)
+    except ImportError as e:
+        raise ProviderError(f"Install the {provider} extra: uv sync --extra {provider}") from e
+    raise ProviderError(f"provider {provider!r} is not a Strands model")
+
+
+def build_models(config: Config) -> dict[str, Model]:
+    models = {}
+    if config.provider != "copilot":
+        models.update({tier: build_model(config, config.provider, tier) for tier in TIERS})
+    else:
+        model_id(config, "copilot", "strong")
+    for node, provider in config.nodes.items():
+        if provider == "copilot":
+            model_id(config, provider, NODE_TIERS[node])
+        else:
+            models[node] = build_model(config, provider, NODE_TIERS[node])
+    return models

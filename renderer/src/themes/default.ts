@@ -1,3 +1,4 @@
+import {useScene} from '@revideo/core';
 export const theme = {
   background: '#0f1115',
   surface: '#1a1d24',
@@ -6,3 +7,8 @@ export const theme = {
   accent: '#f5a524',
   font: 'Inter, Helvetica Neue, Helvetica, Arial, sans-serif',
 };
+
+export function currentTheme() {
+  const spec = useScene().variables.get('spec', {theme: {}})() as {theme?: Partial<typeof theme>};
+  return {...theme, ...spec.theme};
+}

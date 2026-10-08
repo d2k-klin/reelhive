@@ -109,6 +109,9 @@ def run(
 
     if result.status == "done":
         console.print(f"\n[bold green]Video ready:[/bold green] {result.video}")
+    elif result.status == "awaiting_script":
+        console.print(f"\n[bold]Script ready for review:[/bold] {result.run_dir / 'script.json'}")
+        console.print(f"Edit that file if needed, then run: reelhive approve {result.run_dir}")
     else:
         console.print("\n[bold red]Stopped before rendering.[/bold red] The spec still fails these checks:")
         for line in result.report:
@@ -118,11 +121,11 @@ def run(
 
 
 @app.command()
-def doctor():
+def doctor(config_file: Path = typer.Option(None, "--config", exists=True)):
     """Check every dependency and API key."""
     from reelhive.doctor import run_checks
 
-    results = run_checks()
+    results = run_checks(load_config(config_file))
     table = Table(title="ReelHive doctor")
     table.add_column("Check")
     table.add_column("Status")
@@ -133,3 +136,78 @@ def doctor():
     console.print(table)
     if any(r.required and not r.ok for r in results):
         raise typer.Exit(1)
+
+
+@app.command()
+def approve(
+    run_dir: Path = typer.Argument(..., exists=True, file_okay=False),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+):
+    """Approve the saved script.json and continue a medium run."""
+    from reelhive.config import Config
+    from reelhive.core.service import Service
+
+    try:
+        config = Config.model_validate_json((run_dir / "config.json").read_text())
+        result = Service(config).approve(run_dir, on_event=_printer(verbose))
+    except Exception as e:
+        console.print(f"[red]Approval failed:[/red] {e}")
+        raise typer.Exit(1) from e
+    if result.status != "done":
+        console.print(f"[red]Stopped:[/red] {'; '.join(result.report)}")
+        raise typer.Exit(1)
+    console.print(f"[green]Video ready:[/green] {result.video}")
+
+
+@app.command()
+def login(url: str, output: Path = typer.Option(Path("auth.json"), "--output")):
+    """Sign in manually and save a private browser session for screenshots."""
+    from reelhive.visuals.login import login as save_login
+
+    save_login(url, output)
+    console.print(f"Session saved to {output}")
+
+
+@app.command()
+def capture(
+    brief_file: Path = typer.Argument(..., exists=True, dir_okay=False),
+    output: Path = typer.Option(Path("runs/capture"), "--output"),
+):
+    """Preview masked screenshots before making a video."""
+    from reelhive.visuals.capture import capture as screenshot
+    from reelhive.visuals.capture import discover
+
+    brief = Brief.model_validate(yaml.safe_load(brief_file.read_text()))
+    options = brief.visuals.screenshots
+    if options is None:
+        raise typer.BadParameter("brief has no screenshot source")
+    output.mkdir(parents=True, exist_ok=True)
+    for i, page in enumerate(discover(options, brief.format), 1):
+        path = output / f"page_{i:02d}.png"
+        screenshot(options, brief.format, page["route"], path)
+        console.print(f"{path}: {page['title']}")
+
+
+@app.command()
+def models(
+    provider: str = typer.Option("copilot", "--provider"),
+    config_file: Path = typer.Option(None, "--config", exists=True),
+):
+    """List Copilot's available models, or configured models for another provider."""
+    import asyncio
+
+    from reelhive.providers.copilot.node import list_models
+
+    try:
+        if provider == "copilot":
+            names = asyncio.run(list_models())
+        else:
+            config = load_config(config_file)
+            if provider not in config.models:
+                raise ValueError(f"no models configured for {provider}")
+            names = list(config.models[provider].model_dump().values())
+        for name in names:
+            console.print(name)
+    except Exception as e:
+        console.print(f"[red]Cannot list models:[/red] {e}")
+        raise typer.Exit(1) from e

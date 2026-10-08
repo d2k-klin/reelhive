@@ -35,6 +35,8 @@ dependencies = [
     "typer>=0.27.1",
     "rich>=15.0.0",
     "pyyaml>=6.0.3",
+    "pillow>=11",
+    "playwright>=1.55",
 ]
 
 [project.optional-dependencies]
@@ -44,6 +46,15 @@ dev = [
     "ruff>=0.16.3",
     "mypy>=2.3.0",
     "types-pyyaml>=6.0.12.20260724",
+]
+openai = [
+    "strands-agents[openai]>=1.59.0",
+]
+ollama = [
+    "strands-agents[ollama]>=1.59.0",
+]
+copilot = [
+    "github-copilot-sdk==1.0.17",
 ]
 
 [project.scripts]

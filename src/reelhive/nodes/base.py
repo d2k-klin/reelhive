@@ -9,12 +9,13 @@ from __future__ import annotations
 import asyncio
 import time
 from importlib.resources import files
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from strands import Agent
 from strands.multiagent.base import MultiAgentBase, MultiAgentResult, Status
 from strands.types.event_loop import Usage
+from strands.types.exceptions import StructuredOutputException
 
 from reelhive.core.context import RunContext
 
@@ -69,6 +70,7 @@ def load_prompt(name: str) -> str:
 class AgentNode(FunctionNode):
     """An LLM node: builds a prompt from the run, gets validated structured output, applies it."""
 
+    name: ClassVar[Literal["script", "scenes", "music", "critic", "fix"]]
     tier: ClassVar[str] = "strong"  # "strong" | "fast"
     prompt: ClassVar[str]  # agents/prompts/<prompt>.md
     output: ClassVar[type[BaseModel]]
@@ -80,11 +82,27 @@ class AgentNode(FunctionNode):
         raise NotImplementedError
 
     async def execute(self, ctx: RunContext) -> Usage:
+        if ctx.config.nodes.get(self.name, ctx.config.provider) == "copilot":
+            from reelhive.providers.copilot.node import CopilotAgentNode
+
+            return await CopilotAgentNode(self).execute(ctx)
+
         def stream(**event: Any) -> None:
             if isinstance(event.get("data"), str):
                 ctx.events.emit("agent.text", node=self.name, text=event["data"])
 
-        agent = Agent(model=ctx.models[self.tier], system_prompt=load_prompt(self.prompt), callback_handler=stream)
-        result = await agent.invoke_async(self.build_prompt(ctx), structured_output_model=self.output)
+        agent = Agent(
+            model=ctx.models[self.name] if self.name in ctx.models else ctx.models[self.tier],
+            system_prompt=load_prompt(self.prompt),
+            callback_handler=stream,
+        )
+        try:
+            result = await agent.invoke_async(self.build_prompt(ctx), structured_output_model=self.output)
+        except (ValidationError, StructuredOutputException) as error:
+            ctx.events.emit("node.task", node=self.name, task="Repairing invalid structured output")
+            result = await agent.invoke_async(
+                load_prompt("fixer") + f"\nReturn a valid {self.output.__name__}. Validation error: {error}",
+                structured_output_model=self.output,
+            )
         await asyncio.to_thread(self.apply, ctx, result.structured_output)
         return result.metrics.accumulated_usage

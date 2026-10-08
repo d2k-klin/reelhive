@@ -525,7 +525,7 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 | # | Deliverable | Done when |
 | --- | --- | --- |
 | **M1** ✅ **Done** (2026-10-08) | End-to-end `small` level | `run small.yaml` produces a 60s 16:9 MP4 with narration and ducked music; CI green; 3 templates |
-| **M2** | `medium` level, all providers, all visual sources | Script approval stop, brand theme, 9:16 and 1:1, all 5 providers including Copilot; screenshots with login and masking, provided images, OpenAI generation, `auto` fallbacks |
+| **M2** ✅ **Implemented** (2026-10-08) | `medium` level, all providers, all visual sources | Script approval stop, brand theme, 9:16 and 1:1, all 5 providers including Copilot; screenshots with login and masking, provided images, OpenAI generation, `auto` fallbacks |
 | **M3** | `high` level + local UI | Per-scene spec editing, image approval, `regen --scene`; `reelhive ui` meets the "done when" list in `reelhive-ui-plan.md`; 8 templates |
 | **M4** | Evals | Eval harness and first cross-provider report; prompt-change gate in CI |
 | **M5** | Public v0.1.0 | READMEs and docs complete, demo GIF, GitHub Release v0.1.0, repo public |
@@ -539,6 +539,14 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 - Revideo 0.11 forces `--single-process`, which full Chrome rejects on macOS, so the renderer uses `chrome-headless-shell`. ffmpeg and espeak-ng fall back to the binaries bundled with `imageio-ffmpeg` and `espeakng-loader` when the system has none.
 - Kokoro speaks at about 160 wpm, so the script targets 145 wpm of video time; the rest is padding between scenes.
 - Verified locally: every CI step (ruff, mypy, pytest at 94% coverage, vitest, tsc), the slow e2e test, and a full 60s run of `small.yaml` with real Kokoro and Revideo (61.4s, 1920x1080, ducked music, credit and metadata tag), with the LLM answers canned. Still to confirm: the first run with a real `ANTHROPIC_API_KEY`, and the first CI run on GitHub after the push.
+
+**M2 notes**
+- Medium runs persist `script.json` and pause before production. Edit the file, then `reelhive approve <run-folder>`; the approved script and config are retained, and approval does not repeat drafting.
+- Added 9:16 and 1:1 rendering, brand colors/logo, voice accents/speed, tone/pacing, music mood and CTA URL. `image-full` and `screenshot-pan` bring the template count to five (plus credit); the remaining three templates stay in M3.
+- Claude, Bedrock, OpenAI, Ollama and the pinned GitHub Copilot SDK are wired through provider selection, including per-node overrides. Copilot exposes only its validated submit tool, denies other permissions, streams events and cleans up sessions on failure/cancellation.
+- Visuals resolve provided images, same-origin masked screenshots with saved login state, and OpenAI concept generation. Product UI cannot use generated images. Generation uses a per-run prompt/model/size cache and an attempt cap. Actual API usage is logged; USD cost is an optional configured estimate, otherwise null.
+- Image descriptions are opt-in and currently require a vision-capable Strands scenes provider; Copilot users can override `nodes.scenes`. Screenshots remain local. Minimum source sizes and setup are in `docs/visuals.md`; provider configuration is in `docs/providers.md`.
+- Verified locally with fake-provider integration tests, real Chromium capture/masking/login-state tests, renderer tests, Python/TypeScript checks, and real portrait/square renders plus the narrated landscape smoke test. Live paid provider calls and the first GitHub CI run remain unverified.
 
 `core/service.py` exists from M1, so the UI in M3 is a new front end on finished logic, not a rewrite. M6 adds a feature on top of a released product, so it can't delay v0.1.0.
 

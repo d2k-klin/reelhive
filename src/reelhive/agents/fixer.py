@@ -26,8 +26,15 @@ class FixerNode(AgentNode):
     def apply(self, ctx: RunContext, out: ScenePlan) -> None:
         assert ctx.spec
         before = {s.index: s.model_dump(include={"template", "text", "narration", "feature"}) for s in ctx.spec.scenes}
+        previous = {s.index: s for s in ctx.spec.scenes}
         old = {s.index: s.narration for s in ctx.spec.scenes}
         ctx.spec.scenes = [p.to_scene(i, p.narration or old.get(i, "")) for i, p in enumerate(out.scenes, start=1)]
+        for scene in ctx.spec.scenes:
+            prior = previous.get(scene.index)
+            if prior and "visual_request" not in out.scenes[scene.index - 1].model_fields_set:
+                scene.visual_request = prior.visual_request
+            if prior and scene.visual_request == prior.visual_request:
+                scene.visual = prior.visual
         after = {s.index: s.model_dump(include={"template", "text", "narration", "feature"}) for s in ctx.spec.scenes}
         changes = [
             {"scene": i, "before": before.get(i), "after": after.get(i)}

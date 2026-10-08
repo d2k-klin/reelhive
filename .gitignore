@@ -21,8 +21,12 @@ htmlcov/
 # ReelHive output and local config
 runs/
 config.yaml
+graphify-out/
 
 # OS / editor
 .DS_Store
 .idea/
 .vscode/
+
+# Browser login state contains session tokens
+auth.json

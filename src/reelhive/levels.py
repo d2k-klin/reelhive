@@ -20,5 +20,4 @@ class Level:
         return {}
 
 
-# ponytail: medium (script stop) and high (script, scenes, images) are added in M2/M3.
-LEVELS = {"small": Level("small", approval_stops=())}
+LEVELS = {"small": Level("small", approval_stops=()), "medium": Level("medium", approval_stops=("script",))}

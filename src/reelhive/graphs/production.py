@@ -1,6 +1,6 @@
 """Production graph (plan §3.1).
 
-    ┌─► scenes ─┐
+    ┌─► scenes ─► visuals ─┐
     ├─► narrate ┼─► timing ─► critic ─┬─(pass)────────────────────► render
     └─► music ──┘                     └─(fail)─► fix ─► recheck ─(pass)─┘
 
@@ -24,9 +24,10 @@ from reelhive.nodes.narrate_node import NarrateNode
 from reelhive.nodes.recheck_node import RecheckNode
 from reelhive.nodes.render_node import RenderNode
 from reelhive.nodes.timing_node import TimingNode
+from reelhive.nodes.visuals_node import VisualsNode
 
-BRANCHES = ("scenes", "narrate", "music")
-NODES = (*BRANCHES, "timing", "critic", "fix", "recheck", "render")
+BRANCHES = ("visuals", "narrate", "music")
+NODES = ("scenes", *BRANCHES, "timing", "critic", "fix", "recheck", "render")
 
 
 def all_branches_done(state: GraphState) -> bool:
@@ -50,6 +51,7 @@ def build_production_graph() -> Graph:
     b = GraphBuilder()
     for node in (
         ScenePlannerNode(),
+        VisualsNode(),
         NarrateNode(),
         MusicDirectorNode(),
         TimingNode(),
@@ -60,8 +62,9 @@ def build_production_graph() -> Graph:
     ):
         b.add_node(node, node.name)
     for branch in BRANCHES:
-        b.set_entry_point(branch)
+        b.set_entry_point("scenes" if branch == "visuals" else branch)
         b.add_edge(branch, "timing", condition=all_branches_done)
+    b.add_edge("scenes", "visuals")
     b.add_edge("timing", "critic")
     b.add_edge("critic", "render", condition=critic_passed)
     b.add_edge("critic", "fix", condition=critic_failed)

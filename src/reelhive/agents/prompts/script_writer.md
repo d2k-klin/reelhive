@@ -12,3 +12,5 @@ Rules:
 - Hit the target word count you are given (within 10%). The video's length depends on it.
 
 Return the script by calling the output tool.
+
+Honor the requested tone and pacing while staying within the word budget.

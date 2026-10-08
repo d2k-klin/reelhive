@@ -6,7 +6,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python 3.11-3.12](https://img.shields.io/badge/python-3.11--3.12-blue.svg)](pyproject.toml)
 
-**Status:** milestone M1 (the `small` level, 16:9, Claude). See [docs/plan.md](docs/plan.md) for the full plan and what comes next.
+**Status:** milestone M2 (`small` and `medium`, all three formats, five providers and all visual sources). See [docs/plan.md](docs/plan.md) for the full plan and what comes next.
 
 ## Quickstart
 
@@ -29,7 +29,7 @@ Two Strands graphs. The draft graph writes the script; the production graph turn
 ```
 brief ─► script                       (draft graph)
 
-    ┌─► scenes ─┐
+    ┌─► scenes ─► visuals ─┐
     ├─► narrate ┼─► timing ─► critic ─┬─(pass)──────────────────────► render
     └─► music ──┘                     └─(fail)─► fix ─► recheck ─(pass)─┘
 ```
@@ -39,12 +39,32 @@ brief ─► script                       (draft graph)
 | `brief` | deterministic | Validate the brief and fill the level's defaults |
 | `script` | agent (strong) | Narration split into beats, sized to the target duration |
 | `scenes` | agent (fast) | A template and on-screen text per beat |
+| `visuals` | deterministic | Provided images, masked screenshots or concept generation, with text fallbacks |
 | `narrate` | deterministic | Kokoro TTS per beat, with real durations |
 | `music` | agent (fast) + lookup | Mood and tempo, then a track from the CC0 library |
 | `timing` | deterministic | Scene lengths from the real audio |
 | `critic` | hard checks + agent | Duration, pace, closing message, feature coverage, text limits; then a rubric review |
 | `fix` / `recheck` | agent / deterministic | Repair the spec, re-voice what changed, check again or stop with a report |
 | `render` | deterministic | Revideo renders the frames; ffmpeg mixes, ducks the music under the voice and muxes |
+
+## Medium, formats and brand
+
+```bash
+uv run reelhive run examples/briefs/medium.yaml
+# Review/edit the printed run folder's script.json, then:
+uv run reelhive approve runs/<run-folder>
+```
+
+Medium pauses before narration, visual capture/generation and rendering. Approval uses the edited script and the saved provider configuration; it never asks the script writer again. `small` continues automatically. Formats are `16:9` (1920×1080), `9:16` (1080×1920) and `1:1` (1080×1080). Medium accepts tone, pacing, US/UK voice accents, speed, music mood, a CTA URL, and a brand logo with accent/background/text colors.
+
+See [visuals](docs/visuals.md) for provided images, screenshots with login/masking, generation and source fallbacks. See [providers](docs/providers.md) for Claude, Bedrock, OpenAI, Ollama, Copilot and per-node selection. `high`, scene editing and the local web UI arrive in M3.
+
+| Data | Leaves the machine? |
+| --- | --- |
+| Brief, script, image filenames/captions, page titles/headings | Sent to the selected agent provider; stays local with Ollama |
+| Screenshot pixels, audio, video, browser login state | No cloud model upload |
+| Provided image pixels | Only when `describe_images: true` |
+| Image prompts, style and brand colors | Sent to OpenAI only when concept generation is enabled |
 
 ## Credit
 

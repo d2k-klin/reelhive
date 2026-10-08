@@ -51,6 +51,26 @@
           "default": null,
           "title": "Feature"
         },
+        "visual_request": {
+          "$ref": "#/$defs/VisualRequest",
+          "default": {
+            "kind": "none",
+            "image": null,
+            "route": null,
+            "prompt": null
+          }
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VisualAsset"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "audio": {
           "anyOf": [
             {
@@ -141,6 +161,26 @@
           ],
           "default": null,
           "title": "Feature"
+        },
+        "visual_request": {
+          "$ref": "#/$defs/VisualRequest",
+          "default": {
+            "kind": "none",
+            "image": null,
+            "route": null,
+            "prompt": null
+          }
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VisualAsset"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "audio": {
           "anyOf": [
@@ -247,6 +287,26 @@
           "default": null,
           "title": "Feature"
         },
+        "visual_request": {
+          "$ref": "#/$defs/VisualRequest",
+          "default": {
+            "kind": "none",
+            "image": null,
+            "route": null,
+            "prompt": null
+          }
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VisualAsset"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "audio": {
           "anyOf": [
             {
@@ -314,6 +374,305 @@
       ],
       "title": "HookText",
       "type": "object"
+    },
+    "ImageScene": {
+      "properties": {
+        "index": {
+          "minimum": 1,
+          "title": "Index",
+          "type": "integer"
+        },
+        "narration": {
+          "title": "Narration",
+          "type": "string"
+        },
+        "feature": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Feature"
+        },
+        "visual_request": {
+          "$ref": "#/$defs/VisualRequest",
+          "default": {
+            "kind": "none",
+            "image": null,
+            "route": null,
+            "prompt": null
+          }
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VisualAsset"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "audio": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Narration WAV, relative to the run folder",
+          "title": "Audio"
+        },
+        "start": {
+          "default": 0.0,
+          "title": "Start",
+          "type": "number"
+        },
+        "duration": {
+          "default": 0.0,
+          "title": "Duration",
+          "type": "number"
+        },
+        "template": {
+          "const": "image-full",
+          "default": "image-full",
+          "title": "Template",
+          "type": "string"
+        },
+        "text": {
+          "$ref": "#/$defs/HookText"
+        }
+      },
+      "required": [
+        "index",
+        "narration",
+        "text"
+      ],
+      "title": "ImageScene",
+      "type": "object"
+    },
+    "ScreenshotScene": {
+      "properties": {
+        "index": {
+          "minimum": 1,
+          "title": "Index",
+          "type": "integer"
+        },
+        "narration": {
+          "title": "Narration",
+          "type": "string"
+        },
+        "feature": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Feature"
+        },
+        "visual_request": {
+          "$ref": "#/$defs/VisualRequest",
+          "default": {
+            "kind": "none",
+            "image": null,
+            "route": null,
+            "prompt": null
+          }
+        },
+        "visual": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VisualAsset"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "audio": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Narration WAV, relative to the run folder",
+          "title": "Audio"
+        },
+        "start": {
+          "default": 0.0,
+          "title": "Start",
+          "type": "number"
+        },
+        "duration": {
+          "default": 0.0,
+          "title": "Duration",
+          "type": "number"
+        },
+        "template": {
+          "const": "screenshot-pan",
+          "default": "screenshot-pan",
+          "title": "Template",
+          "type": "string"
+        },
+        "text": {
+          "$ref": "#/$defs/HookText"
+        }
+      },
+      "required": [
+        "index",
+        "narration",
+        "text"
+      ],
+      "title": "ScreenshotScene",
+      "type": "object"
+    },
+    "Theme": {
+      "properties": {
+        "background": {
+          "default": "#0f1115",
+          "title": "Background",
+          "type": "string"
+        },
+        "surface": {
+          "default": "#1a1d24",
+          "title": "Surface",
+          "type": "string"
+        },
+        "text": {
+          "default": "#f5f5f4",
+          "title": "Text",
+          "type": "string"
+        },
+        "muted": {
+          "default": "#a8a29e",
+          "title": "Muted",
+          "type": "string"
+        },
+        "accent": {
+          "default": "#f5a524",
+          "title": "Accent",
+          "type": "string"
+        },
+        "logo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logo"
+        }
+      },
+      "title": "Theme",
+      "type": "object"
+    },
+    "VisualAsset": {
+      "properties": {
+        "source": {
+          "enum": [
+            "provided",
+            "screenshot",
+            "generated"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "frame": {
+          "default": "none",
+          "enum": [
+            "browser",
+            "phone",
+            "none"
+          ],
+          "title": "Frame",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "file"
+      ],
+      "title": "VisualAsset",
+      "type": "object"
+    },
+    "VisualRequest": {
+      "properties": {
+        "kind": {
+          "default": "none",
+          "enum": [
+            "product_ui",
+            "concept",
+            "none"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Filename from the provided image catalog",
+          "title": "Image"
+        },
+        "route": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Route from the screenshot catalog",
+          "title": "Route"
+        },
+        "prompt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Concept illustration only; never product UI",
+          "title": "Prompt"
+        }
+      },
+      "title": "VisualRequest",
+      "type": "object"
     }
   },
   "properties": {
@@ -347,13 +706,26 @@
       "title": "Duration",
       "type": "number"
     },
+    "theme": {
+      "$ref": "#/$defs/Theme",
+      "default": {
+        "background": "#0f1115",
+        "surface": "#1a1d24",
+        "text": "#f5f5f4",
+        "muted": "#a8a29e",
+        "accent": "#f5a524",
+        "logo": null
+      }
+    },
     "scenes": {
       "items": {
         "discriminator": {
           "mapping": {
             "cta": "#/$defs/CtaScene",
             "feature-card": "#/$defs/FeatureCardScene",
-            "hook": "#/$defs/HookScene"
+            "hook": "#/$defs/HookScene",
+            "image-full": "#/$defs/ImageScene",
+            "screenshot-pan": "#/$defs/ScreenshotScene"
           },
           "propertyName": "template"
         },
@@ -366,9 +738,16 @@
           },
           {
             "$ref": "#/$defs/CtaScene"
+          },
+          {
+            "$ref": "#/$defs/ImageScene"
+          },
+          {
+            "$ref": "#/$defs/ScreenshotScene"
           }
         ]
       },
+      "minItems": 1,
       "title": "Scenes",
       "type": "array"
     },
