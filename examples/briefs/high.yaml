@@ -1,0 +1,48 @@
+# level: high — you write every scene yourself; ReelHive voices, times, checks and renders it.
+# Runs pause twice: after the script (`reelhive approve`) and after the scenes (`reelhive approve-scenes`),
+# so you can review images and tweak any scene with `reelhive regen <run> --scene N --note "..."`.
+level: high
+audience: Platform engineers at mid-size SaaS companies
+storyline: Cloud bills grow silently. CostHive finds the waste in minutes.
+features:
+  - Scans every region in one command
+  - Flags idle and oversized resources
+  - Exports a fix-it report
+duration: 30
+format: "16:9"
+voice:
+  gender: female
+  accent: us
+  speed: 1.0
+closing: Try CostHive free on GitHub.
+cta_url: github.com/d2k-klin/costhive
+theme: dark
+music_track: tech-110.mp3   # a file from assets/music/manifest.json
+music_volume: 0.25          # 0-1, before ducking under the voice
+scenes:
+  - index: 1
+    template: hook
+    narration: Your cloud bill went up again this month, and nobody on the team can say why.
+    text: {headline: Your cloud bill went up again, subline: And nobody can say why}
+  - index: 2
+    template: stat
+    narration: Most teams waste close to a third of their cloud spend.
+    text: {headline: "~30% wasted", subline: of cloud spend goes to idle and oversized resources}
+  - index: 3
+    template: bullets
+    narration: CostHive scans every region in one command and flags idle and oversized resources.
+    feature: Scans every region in one command
+    text:
+      headline: One scan, every region
+      items: [Every region in one command, Idle and oversized resources flagged]
+  - index: 4
+    template: feature-card
+    narration: Then it exports a fix-it report your engineers can act on today.
+    feature: Exports a fix-it report
+    text: {label: "03", headline: A fix-it report, body: The exact resources and the savings next to each one.}
+    voice_override: {gender: male, accent: uk, speed: 1.0}   # a second voice for one scene
+  - index: 5
+    template: cta
+    narration: Flags idle and oversized resources, every week. Try CostHive free on GitHub.
+    feature: Flags idle and oversized resources
+    text: {headline: Try CostHive free on GitHub., subline: github.com/d2k-klin/costhive}

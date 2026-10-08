@@ -346,3 +346,58 @@ def resume(run_dir: Path = typer.Argument(..., exists=True, file_okay=False)):
 
     result = Service(Config.model_validate_json((run_dir / "config.json").read_text())).resume(run_dir, _printer(False))
     console.print(f"{result.status}: {result.video or result.run_dir}")
+
+
+@app.command()
+def init(
+    folder: Path = typer.Argument(Path("."), file_okay=False, help="Where to write brief.yaml and config.yaml."),
+):
+    """Write a starter brief.yaml and config.yaml to edit (existing files are kept)."""
+    import shutil
+
+    from reelhive.config import REPO_ROOT
+
+    folder.mkdir(parents=True, exist_ok=True)
+    for source, name in (
+        (REPO_ROOT / "examples/briefs/small.yaml", "brief.yaml"),
+        (REPO_ROOT / "config.example.yaml", "config.yaml"),
+    ):
+        target = folder / name
+        if target.exists():
+            console.print(f"[dim]kept {target}[/dim]")
+        else:
+            shutil.copyfile(source, target)
+            console.print(f"[green]wrote {target}[/green]")
+    console.print(f"Next: edit {folder / 'brief.yaml'}, then [bold]reelhive run {folder / 'brief.yaml'}[/bold]")
+
+
+@app.command()
+def voices():
+    """List the Kokoro voices a brief can choose with voice.gender and voice.accent."""
+    from reelhive.audio.tts.kokoro import VOICES
+
+    table = Table(title="Voices (Kokoro)")
+    table.add_column("gender")
+    table.add_column("accent")
+    table.add_column("Kokoro voice")
+    for (gender, accent), voice in VOICES.items():
+        table.add_row(gender, accent, voice)
+    console.print(table)
+    console.print("[dim]voice.speed takes 0.8-1.2; accent and speed need level medium or high.[/dim]")
+
+
+@app.command()
+def preview(
+    run_dir: Path = typer.Argument(..., exists=True, file_okay=False, help="Run folder with a spec.json."),
+    scene: int = typer.Option(..., "--scene", min=1, help="Scene number to render."),
+):
+    """Render one scene of a run's spec (silent, no credit) to check how it looks."""
+    from reelhive.config import Config
+    from reelhive.core.service import Service
+
+    try:
+        out = Service(Config()).preview_scene(run_dir, scene)
+    except (ValueError, FileNotFoundError, RuntimeError) as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1) from e
+    console.print(f"[green]Preview:[/green] {out}")

@@ -1,0 +1,31 @@
+# ReelHive's illustrated icons (docs/reelhive-ui-plan.md §10.3), used at 48 px and larger.
+# Not the mascot: glossy black objects with lime glow edges, as if from Mr.D's studio. Released under the code
+# licence and committed to ui/src/assets/icons/. Small functional icons stay Lucide.
+kind: icon
+reference: null   # icons are objects, not the character, so no reference image
+style_override: >-
+  A single glossy black 3D object with soft lime glow edges and a thin white sticker outline, vinyl-toy style,
+  transparent background, centred, no text, no logos.
+assets:
+  - {name: icon-new-video, prompt: "A small film clapperboard with a plus sign shape."}
+  - {name: icon-runs, prompt: "A stack of three film reels."}
+  - {name: icon-settings, prompt: "A chunky gear."}
+  - {name: icon-level-small, prompt: "A single small paper sheet with one lime line."}
+  - {name: icon-level-medium, prompt: "Two stacked paper sheets with a small lime pencil."}
+  - {name: icon-level-high, prompt: "A director's chair."}
+  - {name: icon-source-auto, prompt: "A magic wand with a lime spark."}
+  - {name: icon-source-screenshots, prompt: "A browser window frame with a camera shutter shape."}
+  - {name: icon-source-images, prompt: "A photo frame with a mountain shape."}
+  - {name: icon-source-generate, prompt: "A paintbrush with a lime glowing tip."}
+  - {name: icon-source-none, prompt: "A large letter-like typographic block shape (no actual letters)."}
+  - {name: icon-format-landscape, prompt: "A wide 16:9 screen."}
+  - {name: icon-format-portrait, prompt: "A tall 9:16 phone."}
+  - {name: icon-format-square, prompt: "A square 1:1 frame."}
+  - {name: icon-mood-calm, prompt: "A gentle wave shape."}
+  - {name: icon-mood-upbeat, prompt: "A bouncing ball with motion lines."}
+  - {name: icon-mood-dramatic, prompt: "A theatre spotlight."}
+  - {name: icon-mood-inspiring, prompt: "A rising rocket."}
+  - {name: icon-mood-tech, prompt: "A circuit chip."}
+  - {name: icon-provider, prompt: "A small server rack with lime status lights."}
+  - {name: icon-empty, prompt: "An empty film reel."}
+  - {name: icon-error, prompt: "A cracked film reel."}

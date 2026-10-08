@@ -1,0 +1,10 @@
+# Added to the end of every prompt in this folder by scripts/generate_assets.py.
+style: >-
+  Keep the exact same character as the reference image: glossy 3D vinyl-toy figure with a thick white
+  sticker outline, black head shaped like the letter D with a lime glow along its curved edge, black glasses
+  with lime-lit rims and glowing lime smiling eyes, black hoodie with lime drawstrings, cargo pants with lime
+  trim and a cloud patch, backpack, black sneakers with glowing lime soles. Near-black and lime palette only.
+  Transparent background, soft frontal studio lighting, full figure centred with space for the outline.
+  No text, no logos, no background scene.
+reference: assets/brand/mr-d-laptop@2x.webp
+size: 1024x1024

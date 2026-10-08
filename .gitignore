@@ -33,3 +33,10 @@ auth.json
 
 # Eval reports (keep baselines)
 evals/reports/
+
+# Design candidates (raw generations; chosen art is exported elsewhere)
+design/candidates/
+
+# Playwright output
+test-results/
+playwright-report/

@@ -3,9 +3,8 @@
 ReelHive turns a brief into a video in two Strands graphs, driven by one core service that the CLI (and, from M3, the local UI) sit on top of.
 
 ```
-CLI (cli.py) ──┐
-               ├──► core/service.py ──► draft graph ──(approval stop for medium/high)──► production graph
-UI (server/) ──┘          │
+CLI (cli.py) ─────────────────────────────┐
+UI (React) ─► server/ ─► core/workspace.py ┴─► core/service.py ─► draft graph ─(stop: medium, high)─► production graph ─(stop: high)─► finish          │
                           └──► core/events.py ──► CLI progress · UI stream · run.log.jsonl
 ```
 
@@ -64,7 +63,8 @@ Every run is written to disk, which makes it reproducible and resumable:
 runs/2026-10-08T15-30-00-123456_cloud-bills-grow-silently/
 ├── brief.yaml        # normalized brief
 ├── config.json       # provider config, so `approve` resumes on the same models
-├── status.json       # drafting | awaiting_script | producing | done | stopped | failed
+├── status.json       # queued | drafting | awaiting_script | producing | awaiting_scenes | done | stopped | failed | cancelled | interrupted
+├── checkpoint.json   # completed nodes and state, so `reelhive resume` continues after a crash or cancel
 ├── script.json       # the script (edit it before `reelhive approve` at medium)
 ├── spec.json         # the final scene spec
 ├── visuals/          # copied, captured or generated images

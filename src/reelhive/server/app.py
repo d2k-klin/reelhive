@@ -17,6 +17,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response, StreamingRes
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
 
+from reelhive import __version__
 from reelhive.config import REPO_ROOT, Config, load_config
 from reelhive.core.workspace import RunView, Workspace
 from reelhive.schemas.brief import Brief, Screenshots
@@ -62,7 +63,12 @@ def create_app(
         await asyncio.to_thread(ws.close)
 
     app = FastAPI(
-        title="ReelHive local API", version="0.0.3", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan
+        title="ReelHive local API",
+        version=__version__,
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
+        lifespan=lifespan,
     )
     app.state.workspace, app.state.token = ws, launch_token
 

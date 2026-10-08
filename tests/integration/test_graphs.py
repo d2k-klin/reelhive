@@ -131,8 +131,9 @@ def test_disabling_the_credit_keeps_the_metadata_tag(config, brief, monkeypatch)
             "Verdict": VERDICT_PASS,
         },
     )
-    result, _ = run(svc, brief)
+    result, events = run(svc, brief)
     assert json.loads((result.run_dir / "spec.json").read_text())["credit"] is None
+    assert any("credit disabled" in d["task"] for d in of_type(events, "node.task"))  # plan §3.7: logged
     assert probe(result.video)["comment"] == CREDIT_TEXT
 
 
@@ -144,3 +145,18 @@ def test_node_errors_fail_the_run(config, brief):
     with pytest.raises(Exception, match="returned 5 scenes for 6 beats"):
         svc.run(brief, on_event=events.append)
     assert of_type(events, "run.finished")[0]["status"] == "failed"
+
+
+def test_preview_renders_one_scene_silently(config, brief):
+    svc, _, _ = service(
+        config,
+        {"Script": make_script(brief), "ScenePlan": make_plan(brief), "MusicChoice": MUSIC, "Verdict": VERDICT_PASS},
+    )
+    result, _ = run(svc, brief)
+    out = svc.preview_scene(result.run_dir, 2)
+    assert out == result.run_dir / "previews" / "scene_02.mp4"
+    scene = json.loads((result.run_dir / "spec.json").read_text())["scenes"][1]
+    assert probe(out)["duration"] == pytest.approx(scene["duration"], abs=0.1)
+    assert not list(result.run_dir.glob(".preview_*.json"))  # the temporary spec is cleaned up
+    with pytest.raises(ValueError, match="scene 99 does not exist"):
+        svc.preview_scene(result.run_dir, 99)

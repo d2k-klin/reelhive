@@ -81,3 +81,5 @@ class TimingNode(FunctionNode):
             node=self.name,
             task=f"{len(ctx.spec.scenes)} scenes, {ctx.spec.duration:.1f}s of {ctx.brief.duration}s",
         )
+        if ctx.spec.credit is None:  # plan §3.7: the run log says when the visible credit is off
+            ctx.events.emit("node.task", node=self.name, task="Visible credit disabled by REELHIVE_DISABLE_CREDIT")

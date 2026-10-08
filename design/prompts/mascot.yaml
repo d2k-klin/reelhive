@@ -1,0 +1,16 @@
+# Mascot poses the UI needs (docs/reelhive-ui-plan.md §10.1). Brand work: chosen files go to Dav's
+# brand set and come back through assets/brand/ with manifest.json.
+kind: mascot
+assets:
+  - name: mr-d-welcome
+    prompt: Mr.D waving hello with one hand raised, friendly and open, for an empty "No videos yet" screen.
+  - name: mr-d-directing
+    prompt: Mr.D as a film director holding a director's megaphone up to his mouth, energetic, mid-production.
+  - name: mr-d-thinking
+    prompt: Mr.D thinking with one hand on his chin, looking slightly up, waiting for a decision.
+  - name: mr-d-celebrating
+    prompt: Mr.D celebrating with both arms up and small lime and white confetti pieces around him.
+  - name: mr-d-puzzled
+    prompt: Mr.D puzzled with his head tilted and a small floating question mark shape beside him.
+  - name: mr-d-sleeping
+    prompt: Mr.D sitting on the floor asleep, head nodding, with three small floating "z" shapes (no letters, just shapes).
