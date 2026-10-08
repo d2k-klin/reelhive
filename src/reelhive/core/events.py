@@ -24,6 +24,9 @@ EVENT_TYPES = {
     "script.approved",
     "suggestion.offered",
     "suggestion.applied",  # emitted by the regenerate path (M3) when a suggestion's note is used
+    "run.queued",
+    "run.cancelled",
+    "spec.edited",
 }
 
 
@@ -32,6 +35,7 @@ class Event:
     type: str
     data: dict[str, Any]
     ts: float = field(default_factory=time.time)
+    id: int = 0
 
 
 class EventBus:
@@ -40,6 +44,7 @@ class EventBus:
     def __init__(self, log_path: Path | None = None) -> None:
         self.log_path = log_path
         self._subscribers: list[Callable[[Event], None]] = []
+        self._next_id = len(log_path.read_text().splitlines()) + 1 if log_path and log_path.exists() else 1
         self._lock = threading.Lock()  # nodes run in worker threads
 
     def subscribe(self, fn: Callable[[Event], None]) -> None:
@@ -50,6 +55,8 @@ class EventBus:
             raise ValueError(f"unknown event type {type!r}")
         event = Event(type, data)
         with self._lock:
+            event.id = self._next_id
+            self._next_id += 1
             if self.log_path:
                 with self.log_path.open("a") as f:
                     f.write(json.dumps(asdict(event), default=str) + "\n")

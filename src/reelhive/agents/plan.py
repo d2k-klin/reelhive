@@ -7,6 +7,8 @@ from typing import Literal
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
 from reelhive.schemas.scene_spec import (
+    BulletsScene,
+    BulletsText,
     CtaScene,
     CtaText,
     FeatureCardScene,
@@ -14,7 +16,10 @@ from reelhive.schemas.scene_spec import (
     HookScene,
     HookText,
     ImageScene,
+    ProblemScene,
     ScreenshotScene,
+    StatScene,
+    StatText,
     VisualRequest,
 )
 from reelhive.schemas.scene_spec import Scene as SceneT
@@ -25,6 +30,9 @@ TEXT_MODELS: dict[str, type[BaseModel]] = {
     "cta": CtaText,
     "image-full": HookText,
     "screenshot-pan": HookText,
+    "problem": HookText,
+    "stat": StatText,
+    "bullets": BulletsText,
 }
 SCENE_MODELS: dict[str, type[BaseModel]] = {
     "hook": HookScene,
@@ -32,11 +40,14 @@ SCENE_MODELS: dict[str, type[BaseModel]] = {
     "cta": CtaScene,
     "image-full": ImageScene,
     "screenshot-pan": ScreenshotScene,
+    "problem": ProblemScene,
+    "stat": StatScene,
+    "bullets": BulletsScene,
 }
 
 
 class PlannedScene(BaseModel):
-    template: Literal["hook", "feature-card", "cta", "image-full", "screenshot-pan"]
+    template: Literal["hook", "feature-card", "cta", "image-full", "screenshot-pan", "problem", "stat", "bullets"]
     headline: str = Field(description="Main on-screen line. Limits: hook 48, feature-card 40, cta 60 chars")
     secondary: str | None = Field(
         None, description="hook/cta: subline (80/60 chars); feature-card: body (110 chars). Optional"
@@ -47,8 +58,12 @@ class PlannedScene(BaseModel):
 
     visual_request: VisualRequest = VisualRequest()
 
+    items: list[str] | None = None
+
     def text(self) -> BaseModel:
         fields = {"headline": self.headline}
+        if self.template == "bullets":
+            return BulletsText(headline=self.headline, items=self.items or [self.secondary or self.headline])
         if self.secondary:
             fields["body" if self.template == "feature-card" else "subline"] = self.secondary
         if self.template == "feature-card" and self.label:

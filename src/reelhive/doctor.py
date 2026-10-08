@@ -78,7 +78,7 @@ def run_checks(config: Config | None = None) -> list[Result]:
         ),
     ]
 
-    providers = {config.provider, *config.nodes.values()}
+    providers = {config.provider, *config.nodes.values(), *config.tier_providers.values()}
     for provider in sorted(providers):
         if provider in ("claude", "openai"):
             key = "ANTHROPIC_API_KEY" if provider == "claude" else "OPENAI_API_KEY"

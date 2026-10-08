@@ -14,13 +14,14 @@ from typing import TYPE_CHECKING, Any
 import yaml
 
 from reelhive.config import Config
-from reelhive.core.context import RunContext
+from reelhive.core.context import RunCancelled, RunContext
 from reelhive.core.events import Event, EventBus
 from reelhive.graphs.draft import build_draft_graph
 from reelhive.graphs.production import NODES as PRODUCTION_NODES
 from reelhive.graphs.production import build_production_graph
 from reelhive.levels import LEVELS
 from reelhive.schemas.brief import Brief
+from reelhive.schemas.scene_spec import SceneSpec
 from reelhive.schemas.script import Script
 
 if TYPE_CHECKING:
@@ -116,7 +117,24 @@ class Service:
                     ctx.events.emit("run.paused", status="awaiting_script", script=str(ctx.path("script.json")))
                     return RunResult(ctx.run_dir, "awaiting_script")
             self._status(ctx, "producing")
-            result = await build_production_graph().invoke_async(task, state)
+            stage = (
+                "prepare"
+                if ctx.brief.level == "high" and ctx.stage != "finish"
+                else "finish"
+                if ctx.stage == "finish"
+                else "all"
+            )
+            ctx.stage = stage
+            ctx.checkpoint()
+            result = await build_production_graph(stage).invoke_async(task, state)
+            if stage == "prepare":
+                self._status(ctx, "awaiting_scenes")
+                ctx.events.emit("run.paused", status="awaiting_scenes")
+                return RunResult(ctx.run_dir, "awaiting_scenes")
+        except RunCancelled:
+            self._status(ctx, "cancelled")
+            ctx.events.emit("run.cancelled", status="cancelled")
+            return RunResult(ctx.run_dir, "cancelled")
         except Exception as e:
             self._status(ctx, "failed")
             ctx.events.emit("run.finished", status="failed", report=[f"{type(e).__name__}: {e}"])
@@ -161,11 +179,9 @@ class Service:
         try:
             if json.loads((run_dir / "status.json").read_text())["status"] != "awaiting_script":
                 raise ValueError("run is not awaiting script approval")
-            brief = Brief.model_validate(yaml.safe_load((run_dir / "brief.yaml").read_text()))
-            script = Script.model_validate_json((run_dir / "script.json").read_text())
-            self._dependencies()
-            ctx = self._context(run_dir, brief, on_event)
-            ctx.script = script
+            ctx = self.load(run_dir, on_event)
+            ctx.script = Script.model_validate_json((run_dir / "script.json").read_text())
+            script = ctx.script
             ctx.path("script.approved.json").write_text(script.model_dump_json(indent=2))
             ctx.events.emit("script.approved", beats=len(script.beats))
             return asyncio.run(self.run_async(ctx, approved=True))
@@ -194,3 +210,125 @@ class Service:
         if on_event:
             events.subscribe(on_event)
         return asyncio.run(suggest(model, run_dir, kind, index, brief, script, spec, events))  # type: ignore[arg-type]
+
+    def load(self, run_dir: Path, on_event: Callable[[Event], None] | None = None) -> RunContext:
+        self._dependencies()
+        brief = Brief.model_validate(yaml.safe_load((run_dir / "brief.yaml").read_text()))
+        ctx = self._context(run_dir.resolve(), brief, on_event)
+        if (run_dir / "checkpoint.json").exists():
+            ctx.restore()
+        return ctx
+
+    def save_script(self, run_dir: Path, script: Script) -> None:
+        self.require_status(run_dir, {"awaiting_script"})
+        (run_dir / "script.json").write_text(script.model_dump_json(indent=2))
+
+    @staticmethod
+    def require_status(run_dir: Path, allowed: set[str]) -> str:
+        status = json.loads((run_dir / "status.json").read_text())["status"]
+        if status not in allowed:
+            raise ValueError(f"run is {status}; expected {', '.join(sorted(allowed))}")
+        return status
+
+    def regenerate_script(self, run_dir: Path, note: str = "") -> RunResult:
+        from reelhive.agents.script_writer import ScriptWriterNode
+
+        self.require_status(run_dir, {"awaiting_script"})
+        ctx = self.load(run_dir)
+        ctx.note = note
+        ctx.completed.discard("script")
+        asyncio.run(ScriptWriterNode().invoke_async("Rewrite script", {"ctx": ctx}))
+        return RunResult(run_dir, "awaiting_script")
+
+    def refresh_scenes(self, ctx: RunContext) -> None:
+        from reelhive.nodes.narrate_node import narrate
+        from reelhive.nodes.timing_node import apply_timing
+        from reelhive.visuals.resolver import resolve
+
+        assert ctx.spec
+        for scene in ctx.spec.scenes:
+            if (
+                ctx.narrated.get(scene.index, ("",))[0] != scene.narration
+                or ctx.voiced.get(scene.index) != (scene.voice_override or ctx.brief.voice).model_dump()
+            ):
+                narrate(ctx, scene.index, scene.narration)
+        resolve(ctx)
+        apply_timing(ctx.spec, ctx.narrated, ctx.brief)
+        ctx.completed.difference_update({"critic", "fix", "recheck", "render"})
+        ctx.critic_passed = ctx.recheck_passed = False
+        ctx.checkpoint()
+
+    def save_spec(self, run_dir: Path, spec: SceneSpec) -> RunResult:
+        self.require_status(run_dir, {"awaiting_scenes", "stopped", "done"})
+        ctx = self.load(run_dir)
+        assert ctx.spec
+        if len(spec.scenes) != len(ctx.spec.scenes) or [s.index for s in spec.scenes] != list(
+            range(1, len(spec.scenes) + 1)
+        ):
+            raise ValueError("scene edits must preserve scene count and consecutive indices")
+        for scene, old in zip(spec.scenes, ctx.spec.scenes, strict=True):
+            # Asset paths and audio come from the resolver, never the editor.
+            same_visual = scene.visual_request == old.visual_request
+            scene.visual = old.visual if same_visual else None
+            scene.audio = old.audio
+            scene.image_approved = scene.image_approved if same_visual else False
+        ctx.spec.scenes = spec.scenes
+        ctx.spec.music_volume = spec.music_volume
+        self.refresh_scenes(ctx)
+        self._status(ctx, "awaiting_scenes")
+        ctx.events.emit("spec.edited", scenes=[s.index for s in spec.scenes])
+        return RunResult(run_dir, "awaiting_scenes")
+
+    def approve_scenes(self, run_dir: Path, on_event: Callable[[Event], None] | None = None) -> RunResult:
+        self.require_status(run_dir, {"awaiting_scenes", "stopped"})
+        ctx = self.load(run_dir, on_event)
+        assert ctx.spec
+        ctx.spec = SceneSpec.model_validate_json((run_dir / "spec.json").read_text())
+        if any(s.visual and not s.image_approved for s in ctx.spec.scenes):
+            raise ValueError("approve every scene image before rendering")
+        ctx.stage = "finish"
+        ctx.checkpoint()
+        return asyncio.run(self.run_async(ctx, approved=True))
+
+    def regenerate_scene(self, run_dir: Path, index: int, note: str = "") -> RunResult:
+        from reelhive.agents.plan import ScenePlan, brief_block
+        from reelhive.agents.scene_planner import ScenePlannerNode
+
+        self.require_status(run_dir, {"awaiting_scenes", "stopped", "done"})
+        ctx = self.load(run_dir)
+        assert ctx.spec
+        if not 1 <= index <= len(ctx.spec.scenes):
+            raise ValueError("scene index is out of range")
+        old = ctx.spec.scenes[index - 1]
+
+        class Regenerate(ScenePlannerNode):
+            def build_prompt(self, ctx):
+                return (
+                    f"{brief_block(ctx.brief)}\nRegenerate exactly this one scene: {old.model_dump_json()}"
+                    f"\nNote: {note}. You may rewrite narration. Return a plan containing exactly one scene."
+                )
+
+            def apply(self, ctx, out: ScenePlan):
+                if len(out.scenes) != 1:
+                    raise ValueError("regeneration must return exactly one scene")
+                result = out.scenes[0].to_scene(index, out.scenes[0].narration or old.narration)
+                result.voice_override, result.duration_override = old.voice_override, old.duration_override
+                ctx.spec.scenes[index - 1] = result
+
+        # Use the agent executor without the planner's catalog/spec initialization.
+        from reelhive.nodes.base import AgentNode
+
+        asyncio.run(AgentNode.execute(Regenerate(), ctx))
+        self.refresh_scenes(ctx)
+        self._status(ctx, "awaiting_scenes")
+        ctx.events.emit("spec.edited", scenes=[index], note=note)
+        return RunResult(run_dir, "awaiting_scenes")
+
+    def cancel(self, run_dir: Path) -> None:
+        (run_dir / "cancel.requested").touch()
+
+    def resume(self, run_dir: Path, on_event: Callable[[Event], None] | None = None) -> RunResult:
+        self.require_status(run_dir, {"interrupted", "failed", "cancelled"})
+        (run_dir / "cancel.requested").unlink(missing_ok=True)
+        ctx = self.load(run_dir, on_event)
+        return asyncio.run(self.run_async(ctx, approved=ctx.stage != "draft"))

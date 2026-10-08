@@ -47,28 +47,25 @@ def recheck_passed(state: GraphState, *, invocation_state: dict[str, Any], **_: 
     return bool(invocation_state["ctx"].recheck_passed)
 
 
-def build_production_graph() -> Graph:
+def build_production_graph(stage: str = "all") -> Graph:
     b = GraphBuilder()
-    for node in (
-        ScenePlannerNode(),
-        VisualsNode(),
-        NarrateNode(),
-        MusicDirectorNode(),
-        TimingNode(),
-        CriticNode(),
-        FixerNode(),
-        RecheckNode(),
-        RenderNode(),
-    ):
+    preparation = (ScenePlannerNode(), VisualsNode(), NarrateNode(), MusicDirectorNode(), TimingNode())
+    finishing = (CriticNode(), FixerNode(), RecheckNode(), RenderNode())
+    for node in preparation if stage == "prepare" else finishing if stage == "finish" else preparation + finishing:
         b.add_node(node, node.name)
-    for branch in BRANCHES:
-        b.set_entry_point("scenes" if branch == "visuals" else branch)
-        b.add_edge(branch, "timing", condition=all_branches_done)
-    b.add_edge("scenes", "visuals")
-    b.add_edge("timing", "critic")
-    b.add_edge("critic", "render", condition=critic_passed)
-    b.add_edge("critic", "fix", condition=critic_failed)
-    b.add_edge("fix", "recheck")
-    b.add_edge("recheck", "render", condition=recheck_passed)
+    if stage != "finish":
+        for branch in BRANCHES:
+            b.set_entry_point("scenes" if branch == "visuals" else branch)
+            b.add_edge(branch, "timing", condition=all_branches_done)
+        b.add_edge("scenes", "visuals")
+    else:
+        b.set_entry_point("critic")
+    if stage == "all":
+        b.add_edge("timing", "critic")
+    if stage != "prepare":
+        b.add_edge("critic", "render", condition=critic_passed)
+        b.add_edge("critic", "fix", condition=critic_failed)
+        b.add_edge("fix", "recheck")
+        b.add_edge("recheck", "render", condition=recheck_passed)
     b.set_max_node_executions(len(NODES))
     return b.build()

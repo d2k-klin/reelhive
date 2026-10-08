@@ -17,7 +17,7 @@ from strands.multiagent.base import MultiAgentBase, MultiAgentResult, Status
 from strands.types.event_loop import Usage
 from strands.types.exceptions import StructuredOutputException
 
-from reelhive.core.context import RunContext
+from reelhive.core.context import RunCancelled, RunContext
 
 
 def _no_usage() -> Usage:
@@ -44,6 +44,11 @@ class FunctionNode(MultiAgentBase):
         self, task: Any, invocation_state: dict[str, Any] | None = None, **kwargs: Any
     ) -> MultiAgentResult:
         ctx: RunContext = (invocation_state or {})["ctx"]
+        if ctx.path("cancel.requested").exists():
+            raise RunCancelled("Run cancelled at a node boundary")
+        if self.name in ctx.completed:
+            ctx.events.emit("node.skipped", node=self.name, reason="restored checkpoint")
+            return MultiAgentResult(status=Status.COMPLETED, accumulated_usage=_no_usage())
         ctx.events.emit("node.started", node=self.name)
         started = time.time()
         try:
@@ -53,6 +58,8 @@ class FunctionNode(MultiAgentBase):
                 "node.finished", node=self.name, status="failed", error=str(e), seconds=round(time.time() - started, 2)
             )
             raise
+        ctx.completed.add(self.name)
+        await asyncio.to_thread(ctx.checkpoint)
         ctx.events.emit(
             "node.finished",
             node=self.name,
@@ -82,7 +89,7 @@ class AgentNode(FunctionNode):
         raise NotImplementedError
 
     async def execute(self, ctx: RunContext) -> Usage:
-        if ctx.config.nodes.get(self.name, ctx.config.provider) == "copilot":
+        if ctx.config.provider_for(self.name, self.tier) == "copilot":
             from reelhive.providers.copilot.node import CopilotAgentNode
 
             return await CopilotAgentNode(self).execute(ctx)

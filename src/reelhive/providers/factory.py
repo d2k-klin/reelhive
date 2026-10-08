@@ -47,10 +47,12 @@ def build_model(config: Config, provider: str, tier: str) -> Model:
 
 def build_models(config: Config) -> dict[str, Model]:
     models = {}
-    if config.provider != "copilot":
-        models.update({tier: build_model(config, config.provider, tier) for tier in TIERS})
-    else:
-        model_id(config, "copilot", "strong")
+    for tier in TIERS:
+        provider = config.provider_for("", tier)
+        if provider != "copilot":
+            models[tier] = build_model(config, provider, tier)
+        else:
+            model_id(config, "copilot", tier)
     for node, provider in config.nodes.items():
         if provider == "copilot":
             model_id(config, provider, NODE_TIERS[node])

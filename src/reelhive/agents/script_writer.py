@@ -17,7 +17,7 @@ class ScriptWriterNode(AgentNode):
         return (
             f"{brief_block(ctx.brief)}\n\n"
             f"Target: about {target_words(ctx.brief)} words in total across all beats.\n"
-            f"Closing message, to end the final beat verbatim: {ctx.brief.closing}"
+            f"Closing message, to end the final beat verbatim: {ctx.brief.closing}\nEditing note: {ctx.note}"
         )
 
     def apply(self, ctx: RunContext, out: Script) -> None:

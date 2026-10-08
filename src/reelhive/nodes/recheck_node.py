@@ -15,7 +15,12 @@ class RecheckNode(FunctionNode):
 
     def run(self, ctx: RunContext) -> None:
         assert ctx.spec
-        changed = [s for s in ctx.spec.scenes if ctx.narrated.get(s.index, ("",))[0] != s.narration]
+        changed = [
+            s
+            for s in ctx.spec.scenes
+            if ctx.narrated.get(s.index, ("",))[0] != s.narration
+            or ctx.voiced.get(s.index) != (s.voice_override or ctx.brief.voice).model_dump()
+        ]
         for n, scene in enumerate(changed, start=1):
             ctx.events.emit(
                 "node.task", node=self.name, task=f"Re-voicing scene {scene.index}", done=n - 1, total=len(changed)

@@ -20,4 +20,8 @@ class Level:
         return {}
 
 
-LEVELS = {"small": Level("small", approval_stops=()), "medium": Level("medium", approval_stops=("script",))}
+LEVELS = {
+    "small": Level("small", approval_stops=()),
+    "medium": Level("medium", approval_stops=("script",)),
+    "high": Level("high", approval_stops=("script", "scenes")),
+}

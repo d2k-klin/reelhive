@@ -153,6 +153,9 @@ def approve(
     except Exception as e:
         console.print(f"[red]Approval failed:[/red] {e}")
         raise typer.Exit(1) from e
+    if result.status == "awaiting_scenes":
+        console.print(f"Scenes ready: {result.run_dir / 'spec.json'}. Review images, then use approve-scenes.")
+        return
     if result.status != "done":
         console.print(f"[red]Stopped:[/red] {'; '.join(result.report)}")
         raise typer.Exit(1)
@@ -286,3 +289,60 @@ def suggest(
     console.print(f"[bold]Suggestions for {kind} {index}[/bold]")
     for n, s in enumerate(result.suggestions, start=1):
         console.print(f"  [bold]{n}. {s.label}[/bold]  [dim]{s.instruction}[/dim]")
+
+
+@app.command()
+def ui(
+    port: int = typer.Option(0, min=0, max=65535),
+    no_open: bool = typer.Option(False, "--no-open"),
+    runs_dir: Path = typer.Option(None, "--runs-dir"),
+    config_file: Path = typer.Option(None, "--config", exists=True),
+):
+    """Open the local editing studio, served only on 127.0.0.1."""
+    from reelhive.server.app import serve
+
+    config = load_config(config_file)
+    if runs_dir:
+        config.runs_dir = runs_dir
+    serve(config, port, not no_open)
+
+
+@app.command("approve-scenes")
+def approve_scenes(run_dir: Path = typer.Argument(..., exists=True, file_okay=False)):
+    """Approve a high-level scene spec after reviewing its images."""
+    from reelhive.config import Config
+    from reelhive.core.service import Service
+    from reelhive.schemas.scene_spec import SceneSpec
+
+    service = Service(Config.model_validate_json((run_dir / "config.json").read_text()))
+    service.save_spec(run_dir, SceneSpec.model_validate_json((run_dir / "spec.json").read_text()))
+    result = service.approve_scenes(run_dir, _printer(False))
+    console.print(f"{result.status}: {result.video or result.report}")
+    if result.status != "done":
+        raise typer.Exit(1)
+
+
+@app.command()
+def regen(
+    run_dir: Path = typer.Argument(..., exists=True, file_okay=False),
+    scene: int = typer.Option(..., "--scene", min=1),
+    note: str = typer.Option("", "--note"),
+):
+    """Regenerate one scene and return to image/spec approval."""
+    from reelhive.config import Config
+    from reelhive.core.service import Service
+
+    result = Service(Config.model_validate_json((run_dir / "config.json").read_text())).regenerate_scene(
+        run_dir, scene, note
+    )
+    console.print(f"Scene {scene} ready for review: {result.run_dir / 'spec.json'}")
+
+
+@app.command()
+def resume(run_dir: Path = typer.Argument(..., exists=True, file_okay=False)):
+    """Resume an interrupted run from its last completed nodes."""
+    from reelhive.config import Config
+    from reelhive.core.service import Service
+
+    result = Service(Config.model_validate_json((run_dir / "config.json").read_text())).resume(run_dir, _printer(False))
+    console.print(f"{result.status}: {result.video or result.run_dir}")

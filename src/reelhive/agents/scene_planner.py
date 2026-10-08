@@ -20,6 +20,19 @@ class ScenePlannerNode(AgentNode):
 
     async def execute(self, ctx: RunContext) -> Usage:
         ctx.visual_catalog = await asyncio.to_thread(catalog, ctx)
+        if ctx.brief.level == "high" and ctx.brief.scenes:
+            from reelhive.schemas.scene_spec import FORMATS, SceneSpec
+
+            width, height = FORMATS[ctx.brief.format]
+            ctx.spec = SceneSpec(
+                format=ctx.brief.format,
+                width=width,
+                height=height,
+                scenes=[s.model_copy(deep=True) for s in ctx.brief.scenes],
+                theme=theme_for(ctx),
+                music_volume=ctx.brief.music_volume,
+            )
+            return {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}
         if ctx.brief.visuals.images and getattr(ctx.brief.visuals.images, "describe_images", False):
             from reelhive.visuals.provided import describe
 
@@ -46,6 +59,7 @@ class ScenePlannerNode(AgentNode):
         width, height = FORMATS[ctx.brief.format]
         ctx.spec = SceneSpec(
             theme=theme_for(ctx),
+            music_volume=ctx.brief.music_volume,
             format=ctx.brief.format,
             width=width,
             height=height,

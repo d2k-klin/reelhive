@@ -50,7 +50,7 @@ def hard_checks(
     )
 
     last = spec.scenes[-1]
-    on_screen = [v for v in last.text.model_dump().values() if v]
+    on_screen = [str(v) for v in last.text.model_dump().values() if v]
     closing = _norm(brief.closing)
     found = any(closing in _norm(t) for t in [last.narration, *on_screen])
     checks.append(
@@ -134,6 +134,23 @@ def hard_checks(
             f"generated images in product UI scenes: {generated_ui}",
         )
     )
+    clipped = [s.index for s in spec.scenes if s.duration < narrated.get(s.index, ("", 0))[1] + 0.3]
+    checks.append(
+        Check(
+            "voice_fit", not clipped, "narration fits scene", not clipped, f"scene duration clips narration: {clipped}"
+        )
+    )
+    if brief.level == "high":
+        unapproved = [s.index for s in spec.scenes if s.visual and not s.image_approved]
+        checks.append(
+            Check(
+                "image_approval",
+                not unapproved,
+                "all images approved",
+                not unapproved,
+                f"images need approval: {unapproved}",
+            )
+        )
     return checks
 
 
