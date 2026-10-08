@@ -6,6 +6,7 @@
 
 | Doc | Read it for |
 | --- | --- |
+| [ui-guide.md](ui-guide.md) | The studio, screen by screen, with screenshots |
 | [brief-reference.md](brief-reference.md) | Every brief field, by level, with defaults |
 | [visuals.md](visuals.md) | Provided images, screenshots with login and masking, generation, fallbacks, privacy |
 | [providers.md](providers.md) | Claude, Bedrock, OpenAI, Ollama and Copilot; per-node overrides |
