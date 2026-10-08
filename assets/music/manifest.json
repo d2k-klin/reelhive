@@ -1,0 +1,49 @@
+{
+  "tracks": [
+    {
+      "file": "upbeat-120.mp3",
+      "title": "ReelHive placeholder (upbeat)",
+      "mood": "upbeat",
+      "bpm": 120,
+      "duration": 64.0,
+      "source": "scripts/make_music.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "calm-80.mp3",
+      "title": "ReelHive placeholder (calm)",
+      "mood": "calm",
+      "bpm": 80,
+      "duration": 96.0,
+      "source": "scripts/make_music.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "inspiring-100.mp3",
+      "title": "ReelHive placeholder (inspiring)",
+      "mood": "inspiring",
+      "bpm": 100,
+      "duration": 76.8,
+      "source": "scripts/make_music.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "tech-110.mp3",
+      "title": "ReelHive placeholder (tech)",
+      "mood": "tech",
+      "bpm": 110,
+      "duration": 69.82,
+      "source": "scripts/make_music.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "dramatic-90.mp3",
+      "title": "ReelHive placeholder (dramatic)",
+      "mood": "dramatic",
+      "bpm": 90,
+      "duration": 85.33,
+      "source": "scripts/make_music.py",
+      "license": "CC0-1.0"
+    }
+  ]
+}

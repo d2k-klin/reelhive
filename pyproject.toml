@@ -1,0 +1,102 @@
+[build-system]
+requires = ["hatchling>=1.32.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "reelhive"
+version = "0.0.1"
+description = "Brief in, video out: a local-first Strands Graph that turns a short brief into a narrated, scored video."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"  # Kokoro supports 3.11-3.12
+license = { text = "Apache-2.0" }
+authors = [{ name = "ReelHive contributors" }]
+keywords = ["strands-agents", "kokoro-tts", "revideo", "ai-video", "text-to-video", "local-first"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Video",
+]
+dependencies = [
+    "strands-agents[anthropic]>=1.59.0",
+    "kokoro>=0.9.4",
+    "misaki[en]>=0.9.4",
+    "transformers>=4.45",  # keeps the resolver off ancient tokenizers builds
+    "torch>=2.6",  # direct so [tool.uv.sources] can pin the CPU wheels on Linux
+    "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
+    "soundfile>=0.13.1",
+    "numpy>=2.0",
+    "imageio-ffmpeg>=0.6.0",
+    "pydantic>=2.11",
+    "typer>=0.27.1",
+    "rich>=15.0.0",
+    "pyyaml>=6.0.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.3",
+    "mypy>=2.3.0",
+    "types-pyyaml>=6.0.12.20260724",
+]
+
+[project.scripts]
+reelhive = "reelhive.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/d2k-klin/reelhive"
+Repository = "https://github.com/d2k-klin/reelhive"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/reelhive"]
+
+# CPU-only torch on Linux keeps CI and laptops off the multi-GB CUDA wheels.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Typer requires calling typer.Option/Argument in parameter defaults.
+"src/reelhive/cli.py" = ["B008"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+python_version = "3.11"
+files = ["src/reelhive"]
+ignore_missing_imports = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = "reelhive.cli"
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -m 'not slow'"
+markers = ["slow: real Kokoro + real render (nightly / pre-release)"]
+
+[tool.coverage.run]
+source = ["src/reelhive"]
+omit = ["src/reelhive/cli.py"]
