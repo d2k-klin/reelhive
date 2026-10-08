@@ -20,7 +20,7 @@ describe('render contract', () => {
   });
 
   it('rejects unknown templates', () => {
-    expect(() => checkScene(scene('stat' as Template, {headline: 'x'}))).toThrow(/unknown template/);
+    expect(() => checkScene(scene('unknown' as Template, {headline: 'x'}))).toThrow(/unknown template/);
   });
 
   it('has a component for every template in the schema', () => {

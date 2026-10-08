@@ -9,7 +9,7 @@ import time
 import webbrowser
 from contextlib import asynccontextmanager
 from dataclasses import asdict
-from typing import Literal, Annotated
+from typing import Annotated, Literal
 
 import yaml
 from fastapi import FastAPI, File, Form, Request, UploadFile
@@ -290,7 +290,10 @@ def create_app(
 
     @app.post("/api/uploads")
     async def upload(
-        run_id: Annotated[str, Form()], file: Annotated[UploadFile, File()], caption: Annotated[str, Form()] = "", logo: Annotated[bool, Form()] = False
+        run_id: Annotated[str, Form()],
+        file: Annotated[UploadFile, File()],
+        caption: Annotated[str, Form()] = "",
+        logo: Annotated[bool, Form()] = False,
     ):
         data = await file.read(10 * 1024 * 1024 + 1)
         return await asyncio.to_thread(ws.upload, run_id, data, file.filename or "", caption, logo)

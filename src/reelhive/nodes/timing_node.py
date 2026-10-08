@@ -49,8 +49,10 @@ def apply_timing(spec: SceneSpec, narrated: dict[int, tuple[str, float]], brief:
     available = available_seconds(brief)
     base = [narrated[s.index][1] + LEAD + TAIL for s in spec.scenes]
     flexible = sum(s.duration_override is None for s in spec.scenes)
-    gap = available - sum(s.duration_override if s.duration_override is not None else length
-                          for s, length in zip(spec.scenes, base, strict=True))
+    gap = available - sum(
+        s.duration_override if s.duration_override is not None else length
+        for s, length in zip(spec.scenes, base, strict=True)
+    )
     if gap >= 0:
         delta = min(MAX_EXTRA, gap / max(1, flexible))
     else:

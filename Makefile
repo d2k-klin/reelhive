@@ -10,6 +10,7 @@ setup:  ## Python deps, renderer deps and the headless browser Revideo renders w
 test:
 	uv run --all-extras pytest --cov --cov-report=term-missing --cov-fail-under=85
 	npm test -w renderer
+	npm test -w ui
 
 test-slow:  ## real Kokoro + real render
 	uv run pytest -m slow
@@ -19,9 +20,11 @@ lint:
 	uv run ruff format --check .
 	uv run mypy
 	npx -w renderer tsc --noEmit
+	npm run build -w ui
 
 schema:  ## regenerate renderer/src/spec.schema.json from the Pydantic models
 	uv run python -m reelhive.schemas.scene_spec
+	uv run python scripts/generate_ui.py
 
 demo:
 	uv run reelhive run examples/briefs/small.yaml
