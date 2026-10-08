@@ -7,17 +7,14 @@ from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from reelhive.schemas.scene_spec import Scene
+from reelhive.schemas.voice import Voice
+
 Color = Annotated[str, Field(pattern=r"^#[0-9a-fA-F]{6}$")]
 
 
 class Options(BaseModel):
     model_config = ConfigDict(extra="forbid")
-
-
-class Voice(Options):
-    gender: Literal["female", "male"] = "female"
-    accent: Literal["us", "uk"] = "us"
-    speed: float = Field(1.0, ge=0.8, le=1.2)
 
 
 class Brand(Options):
@@ -95,9 +92,6 @@ class Brief(Options):
     cta_url: str | None = Field(None, max_length=60)
     visuals: Visuals = Visuals()
 
-    @field_validator("level")
-    @classmethod
-    def level_available(cls, value: str) -> str:
-        if value == "high":
-            raise ValueError("level 'high' arrives in M3; use 'small' or 'medium'")
-        return value
+    scenes: list[Scene] | None = Field(None, min_length=1, max_length=12)
+    music_track: str | None = None
+    music_volume: float = Field(0.3, ge=0, le=1)

@@ -1,3 +1,4 @@
+/** @jsxImportSource @revideo/2d/lib */
 import {Txt, type View2D} from '@revideo/2d';
 import {easeOutCubic, waitFor} from '@revideo/core';
 import type {Credit} from '../spec';

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Any
+from reelhive.schemas.voice import Voice
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -27,6 +28,15 @@ class ImageGeneration(BaseModel):
     cost_per_image: float | None = Field(None, ge=0, description="Optional USD estimate from your pricing")
 
 
+class Defaults(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    level: Literal["small", "medium", "high"] = "small"
+    format: Literal["16:9", "9:16", "1:1"] = "16:9"
+    voice: Voice = Voice()
+    music_mood: Literal["calm", "upbeat", "tech", "dramatic", "inspiring"] | None = None
+    credit: Literal["end", "corner"] = "end"
+
+
 class Config(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -35,10 +45,17 @@ class Config(BaseModel):
         default_factory=lambda: {"claude": Tiers(strong="claude-sonnet-5-5", fast="claude-haiku-5-5")}
     )
     nodes: dict[Literal["script", "scenes", "music", "critic", "fix"], Provider] = Field(default_factory=dict)
+    tier_providers: dict[Literal["strong", "fast"], Provider] = Field(default_factory=dict)
+    defaults: Defaults = Defaults()
     ollama_host: str = "http://localhost:11434"
     image_generation: ImageGeneration | None = None
     max_tokens: int = Field(8000, ge=1)
     runs_dir: Path = Path("runs")
+
+    def provider_for(self, node: str, tier: str) -> str:
+        nodes: dict[str, Any] = dict(self.nodes)
+        tiers: dict[str, Any] = dict(self.tier_providers)
+        return str(nodes.get(node, tiers.get(tier, self.provider)))
 
 
 def load_config(path: Path | None = None) -> Config:

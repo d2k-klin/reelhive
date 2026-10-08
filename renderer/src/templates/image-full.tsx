@@ -1,3 +1,4 @@
+/** @jsxImportSource @revideo/2d/lib */
 import {Img, Layout, Rect, Txt, type View2D} from '@revideo/2d';
 import {all, createRef} from '@revideo/core';
 import type {SceneSpec} from '../spec';

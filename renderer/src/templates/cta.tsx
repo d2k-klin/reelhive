@@ -1,3 +1,4 @@
+/** @jsxImportSource @revideo/2d/lib */
 import {Layout, Rect, Txt, type View2D} from '@revideo/2d';
 import type {SceneSpec} from '../spec';
 import {currentTheme} from '../themes/default';

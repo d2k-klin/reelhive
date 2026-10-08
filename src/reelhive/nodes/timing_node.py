@@ -48,17 +48,19 @@ def apply_timing(spec: SceneSpec, narrated: dict[int, tuple[str, float]], brief:
     spec.credit = credit_for(brief)
     available = available_seconds(brief)
     base = [narrated[s.index][1] + LEAD + TAIL for s in spec.scenes]
-    gap = available - sum(base)
+    flexible = sum(s.duration_override is None for s in spec.scenes)
+    gap = available - sum(s.duration_override if s.duration_override is not None else length
+                          for s, length in zip(spec.scenes, base, strict=True))
     if gap >= 0:
-        delta = min(MAX_EXTRA, gap / len(base))
+        delta = min(MAX_EXTRA, gap / max(1, flexible))
     else:
-        delta = -min(TAIL - TAIL_MIN, -gap / len(base))
+        delta = -min(TAIL - TAIL_MIN, -gap / max(1, flexible))
     end = 0.0
     for scene, length in zip(spec.scenes, base, strict=True):
         # Round the boundaries, not each length, so frame rounding never accumulates.
         scene.audio = f"audio/scene_{scene.index:02d}.wav"
         scene.start = _frames(end)
-        end += length + delta
+        end += scene.duration_override if scene.duration_override is not None else length + delta
         scene.duration = round(_frames(end) - scene.start, 4)
     spec.duration = round(_frames(end) + (spec.credit.duration if spec.credit else 0.0), 3)
     return spec

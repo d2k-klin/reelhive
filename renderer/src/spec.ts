@@ -2,7 +2,7 @@
 // src/reelhive/schemas/scene_spec.py; a pytest contract test keeps the two in sync.
 import schema from './spec.schema.json';
 
-export type Template = 'hook' | 'feature-card' | 'cta' | 'image-full' | 'screenshot-pan';
+export type Template = 'hook' | 'feature-card' | 'cta' | 'image-full' | 'screenshot-pan' | 'problem' | 'stat' | 'bullets';
 
 export interface SceneSpec {
   index: number;
@@ -11,7 +11,7 @@ export interface SceneSpec {
   duration: number;
   narration: string;
   visual?: {source: 'provided' | 'screenshot' | 'generated'; file: string; frame: 'browser' | 'phone' | 'none'} | null;
-  text: Record<string, string | null | undefined>;
+  text: Record<string, any>;
 }
 
 export interface Credit {
@@ -37,6 +37,7 @@ const TEXT_DEFS: Record<Template, string> = {
   cta: 'CtaText',
   'image-full': 'HookText',
   'screenshot-pan': 'HookText',
+  problem: 'HookText', stat: 'StatText', bullets: 'BulletsText',
 };
 
 /** Character limits per template field, read from the generated JSON Schema. */
@@ -58,6 +59,9 @@ export function checkScene(scene: SceneSpec): SceneSpec {
     if (value && value.length > max) {
       throw new Error(`scene ${scene.index}: ${field} is ${value.length} chars, limit ${max}`);
     }
+  }
+  if (scene.template === 'bullets' && (!Array.isArray(scene.text.items) || scene.text.items.length > 5 || scene.text.items.some((item: string) => item.length > 70))) {
+    throw new Error(`scene ${scene.index}: bullets exceed template limits`);
   }
   return scene;
 }

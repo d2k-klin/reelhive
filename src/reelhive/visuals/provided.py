@@ -48,7 +48,7 @@ async def describe(ctx) -> None:
 
     from reelhive.providers.factory import ProviderError
 
-    if ctx.config.nodes.get("scenes", ctx.config.provider) == "copilot":
+    if ctx.config.provider_for("scenes", "fast") == "copilot":
         raise ProviderError("Image descriptions require a Strands vision provider; set nodes.scenes to one")
     model = ctx.models.get("scenes", ctx.models.get("fast"))
     agent = Agent(

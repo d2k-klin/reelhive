@@ -33,8 +33,11 @@ class FixerNode(AgentNode):
             prior = previous.get(scene.index)
             if prior and "visual_request" not in out.scenes[scene.index - 1].model_fields_set:
                 scene.visual_request = prior.visual_request
+            if prior:
+                scene.voice_override, scene.duration_override = prior.voice_override, prior.duration_override
             if prior and scene.visual_request == prior.visual_request:
                 scene.visual = prior.visual
+                scene.image_approved = prior.image_approved
         after = {s.index: s.model_dump(include={"template", "text", "narration", "feature"}) for s in ctx.spec.scenes}
         changes = [
             {"scene": i, "before": before.get(i), "after": after.get(i)}

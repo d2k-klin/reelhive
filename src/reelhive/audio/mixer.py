@@ -54,12 +54,14 @@ def narration_track(run_dir: Path, spec: SceneSpec, out: Path) -> Path:
     return out
 
 
-def mix_args(narration: Path, music: Path | None, duration: float, out: Path) -> list[str]:
+def mix_args(
+    narration: Path, music: Path | None, duration: float, out: Path, volume: float = MUSIC_VOLUME
+) -> list[str]:
     if music is None:
         return ["-i", str(narration), "-ac", "2", "-ar", "48000", "-t", f"{duration:.3f}", str(out)]
     fade_at = max(0.0, duration - FADE_OUT)
     graph = (
-        f"[0:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={MUSIC_VOLUME},"
+        f"[0:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={volume},"
         f"afade=t=in:d=1,afade=t=out:st={fade_at:.3f}:d={FADE_OUT}[music];"
         "[1:a]aformat=sample_rates=48000:channel_layouts=stereo,asplit=2[voice][key];"
         "[music][key]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=400[ducked];"
@@ -87,7 +89,7 @@ def mix(run_dir: Path, spec: SceneSpec) -> Path:
     audio.mkdir(exist_ok=True)
     narration = narration_track(run_dir, spec, audio / "narration.wav")
     out = audio / "mix.wav"
-    _run(mix_args(narration, Path(spec.music) if spec.music else None, spec.duration, out))
+    _run(mix_args(narration, Path(spec.music) if spec.music else None, spec.duration, out, spec.music_volume))
     return out
 
 

@@ -10,7 +10,9 @@ import json
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+from reelhive.schemas.voice import Voice
 
 FORMATS = {"16:9": (1920, 1080), "9:16": (1080, 1920), "1:1": (1080, 1080)}
 CREDIT_TEXT = "Made with ReelHive by Mr.D"  # mirrors renderer/src/templates/credit.tsx (contract-tested)
@@ -55,10 +57,29 @@ class Theme(BaseModel):
     logo: str | None = None
 
 
+class BulletsText(BaseModel):
+    headline: str = Field(max_length=48)
+    items: list[str] = Field(min_length=1, max_length=5)
+
+    @model_validator(mode="after")
+    def fit(self):
+        if any(len(item) > 70 for item in self.items):
+            raise ValueError("each bullet must fit 70 characters")
+        return self
+
+
+class StatText(BaseModel):
+    headline: str = Field(max_length=20)
+    subline: str | None = Field(None, max_length=80)
+
+
 class _SceneBase(BaseModel):
     index: int = Field(ge=1)
     narration: str
     feature: str | None = None
+    duration_override: float | None = Field(None, ge=0.5, le=180)
+    voice_override: Voice | None = None
+    image_approved: bool = False
     visual_request: VisualRequest = VisualRequest()
     visual: VisualAsset | None = None
     audio: str | None = Field(None, description="Narration WAV, relative to the run folder")
@@ -91,10 +112,26 @@ class CtaScene(_SceneBase):
     text: CtaText
 
 
+class ProblemScene(_SceneBase):
+    template: Literal["problem"] = "problem"
+    text: HookText
+
+
+class StatScene(_SceneBase):
+    template: Literal["stat"] = "stat"
+    text: StatText
+
+
+class BulletsScene(_SceneBase):
+    template: Literal["bullets"] = "bullets"
+    text: BulletsText
+
+
 Scene = Annotated[
-    HookScene | FeatureCardScene | CtaScene | ImageScene | ScreenshotScene, Field(discriminator="template")
+    HookScene | FeatureCardScene | CtaScene | ImageScene | ScreenshotScene | ProblemScene | StatScene | BulletsScene,
+    Field(discriminator="template"),
 ]
-TEMPLATES = ("hook", "feature-card", "cta", "image-full", "screenshot-pan")
+TEMPLATES = ("hook", "feature-card", "cta", "image-full", "screenshot-pan", "problem", "stat", "bullets")
 
 
 class Credit(BaseModel):
@@ -113,6 +150,7 @@ class SceneSpec(BaseModel):
     theme: Theme = Theme()
     scenes: list[Scene] = Field(min_length=1)
     credit: Credit | None = None
+    music_volume: float = Field(0.3, ge=0, le=1)
     music: str | None = Field(None, description="Music file chosen from the library")
 
 
