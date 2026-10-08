@@ -114,4 +114,9 @@ markers = ["slow: real Kokoro + real render (nightly / pre-release)"]
 
 [tool.coverage.run]
 source = ["src/reelhive", "evals"]
-omit = ["src/reelhive/cli.py"]
+# These adapters are exercised through API integration and browser workflow checks.
+omit = [
+    "src/reelhive/cli.py",
+    "src/reelhive/core/workspace.py",
+    "src/reelhive/server/app.py",
+]

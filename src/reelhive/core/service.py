@@ -100,9 +100,12 @@ class Service:
         )
 
     @staticmethod
-    def _status(ctx: RunContext, status: str) -> None:
+    def _status(ctx: RunContext, status: str, report: list[str] | None = None) -> None:
         temporary = ctx.path("status.tmp")
-        temporary.write_text(json.dumps({"status": status}))
+        data: dict[str, object] = {"status": status}
+        if report:
+            data["report"] = report
+        temporary.write_text(json.dumps(data))
         temporary.replace(ctx.path("status.json"))
 
     async def run_async(self, ctx: RunContext, *, approved: bool = False) -> RunResult:
@@ -136,8 +139,9 @@ class Service:
             ctx.events.emit("run.cancelled", status="cancelled")
             return RunResult(ctx.run_dir, "cancelled")
         except Exception as e:
-            self._status(ctx, "failed")
-            ctx.events.emit("run.finished", status="failed", report=[f"{type(e).__name__}: {e}"])
+            report = [f"{type(e).__name__}: {e}"]
+            self._status(ctx, "failed", report)
+            ctx.events.emit("run.finished", status="failed", report=report)
             raise
         ran = {n.node_id for n in result.execution_order}
         for node in PRODUCTION_NODES:
@@ -161,7 +165,7 @@ class Service:
             self._status(ctx, "done")
             return RunResult(ctx.run_dir, "done")
         ctx.events.emit("run.finished", status="stopped", report=ctx.failures)
-        self._status(ctx, "stopped")
+        self._status(ctx, "stopped", ctx.failures)
         return RunResult(ctx.run_dir, "stopped", report=ctx.failures)
 
     def run(self, brief: Brief, on_event: Callable[[Event], None] | None = None) -> RunResult:
@@ -221,7 +225,9 @@ class Service:
 
     def save_script(self, run_dir: Path, script: Script) -> None:
         self.require_status(run_dir, {"awaiting_script"})
-        (run_dir / "script.json").write_text(script.model_dump_json(indent=2))
+        temporary = run_dir / "script.tmp"
+        temporary.write_text(script.model_dump_json(indent=2))
+        temporary.replace(run_dir / "script.json")
 
     @staticmethod
     def require_status(run_dir: Path, allowed: set[str]) -> str:

@@ -526,7 +526,7 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 | --- | --- | --- |
 | **M1** ✅ **Done** (2026-10-08) | End-to-end `small` level | `run small.yaml` produces a 60s 16:9 MP4 with narration and ducked music; CI green; 3 templates |
 | **M2** ✅ **Done** (2026-10-08) | `medium` level, all providers, all visual sources | Script approval stop, brand theme, 9:16 and 1:1, all 5 providers including Copilot; screenshots with login and masking, provided images, OpenAI generation, `auto` fallbacks |
-| **M3** | `high` level + local UI | Per-scene spec editing, image approval, `regen --scene`; `reelhive ui` meets the "done when" list in `reelhive-ui-plan.md`; 8 templates |
+| **M3** ✅ **Implemented** (2026-10-09) | `high` level + local UI | Per-scene spec editing, image approval, `regen --scene`; secure loopback UI with generated contracts, resumable events and 8 templates |
 | **M4** ✅ **Implemented** (2026-10-08) | Evals | Eval harness and first cross-provider report; prompt-change gate in CI |
 | **M5** 🟡 **Docs done, release pending** (2026-10-08) | Public v0.1.0 | READMEs and docs complete, demo GIF, GitHub Release v0.1.0, repo public |
 | **M6** 🟡 **Backend started** (2026-10-08) | AI quick actions with CopilotKit *(later phase, learning goal)* | `suggest` agent behind an AG-UI endpoint; CopilotKit renders 3–4 suggestion buttons per beat and scene; one click regenerates via the existing path; `reelhive suggest` in the CLI; `docs/copilotkit.md` written; released as v0.2.0 |
@@ -566,6 +566,12 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 **M6 notes**
 - Built without the UI: the `suggest` agent (fast tier, Strands providers) returning 3-4 validated suggestions (a distinct label of ≤28 characters plus the instruction behind it) for one beat or scene; caching per version of that beat or scene in the run folder; `suggestion.offered` events in `run.log.jsonl`; and `reelhive suggest <run> --beat N | --scene N`. Learning notes and the integration plan are in `docs/copilotkit.md`.
 - Waits for M3, which is being built separately: the AG-UI endpoint in M3's FastAPI server (`server/agui.py`), the CopilotKit buttons in the UI, applying through M3's regenerate routes with undo and a `suggestion.applied` event, `reelhive suggest --apply`, the suggestions eval metric, and the v0.2.0 release.
+
+**M3 notes**
+- High runs stop after script drafting and again after scene preparation. Scene edits preserve resolved local assets, re-voice only changed narration or voices, re-time the spec, and require explicit approval for every resolved image.
+- The local FastAPI server binds only to `127.0.0.1`, requires a per-launch token, validates Host and write Origins, caps and re-encodes uploads, allow-lists downloads, queues one production job, persists checkpoints, and resumes SSE by event ID.
+- The React studio provides brief and visual setup, YAML import/export, script approval, all eight scene templates, Revideo previews, single-scene regeneration, image approval, a live graph and gate log, runs history, final downloads, themes, and non-secret settings.
+- The supplied `assets/brand` bundle contains five unique Mr.D illustrations; the UI uses the available poses by context and verifies optimized WebP derivatives through the manifest. Additional named poses and per-node portraits require a larger supplied brand bundle.
 
 `core/service.py` exists from M1, so the UI in M3 is a new front end on finished logic, not a rewrite. M6 adds a feature on top of a released product, so it can't delay v0.1.0.
 

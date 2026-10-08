@@ -54,3 +54,5 @@ jobs:
         run: npx -w renderer tsc --noEmit
       - name: vitest
         run: npm test -w renderer
+      - name: UI build and tests
+        run: npm run build -w ui && npm test -w ui

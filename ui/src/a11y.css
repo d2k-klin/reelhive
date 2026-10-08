@@ -1,0 +1,4 @@
+html[data-theme="light"] { --muted: #595d55; }
+.sidebar .version,
+.sidebar .workspace-label,
+.sidebar footer small { color: #949a90; }

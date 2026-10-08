@@ -65,6 +65,15 @@ class Workspace:
                 status.write_text(json.dumps({"status": "interrupted"}))
                 (path / ".production.lock").unlink(missing_ok=True)
 
+    @staticmethod
+    def _write_status(path: Path, status: str, report: list[str] | None = None) -> None:
+        value: dict[str, Any] = {"status": status}
+        if report:
+            value["report"] = report
+        temporary = path / f".status.{uuid.uuid4().hex}.tmp"
+        temporary.write_text(json.dumps(value))
+        temporary.replace(path / "status.json")
+
     def path(self, run_id: str) -> Path:
         if not run_id or Path(run_id).name != run_id or run_id.startswith("."):
             raise ValueError("invalid run id")
@@ -119,19 +128,28 @@ class Workspace:
         path.mkdir()
         (path / "brief.yaml").write_text(yaml.safe_dump(brief.model_dump(mode="json"), sort_keys=False))
         (path / "config.json").write_text(self.config.model_dump_json(indent=2))
-        (path / "status.json").write_text('{"status":"editing"}')
+        self._write_status(path, "editing")
         if start:
             self.start(run_id, brief)
         return self.details(run_id)
 
-    def submit(self, run_id: str, operation: Callable[[], Any], *, production: bool = True) -> None:
+    def submit(
+        self,
+        run_id: str,
+        operation: Callable[[], Any],
+        *,
+        production: bool = True,
+        before_submit: Callable[[], Any] | None = None,
+    ) -> None:
         path = self.path(run_id)
         with self.lock:
             if run_id in self.jobs and not self.jobs[run_id].done():
                 raise ValueError("run already has an active operation")
+            if before_submit:
+                before_submit()
             if production:
                 self.queue.append(run_id)
-                (path / "status.json").write_text('{"status":"queued"}')
+                self._write_status(path, "queued")
                 EventBus(path / "run.log.jsonl").emit("run.queued", position=len(self.queue))
 
             def work():
@@ -147,7 +165,7 @@ class Workspace:
                     if not (path / "cancel.requested").exists():
                         operation()
                 except Exception as error:
-                    (path / "status.json").write_text(json.dumps({"status": "failed", "report": [str(error)]}))
+                    self._write_status(path, "failed", [str(error)])
                     EventBus(path / "run.log.jsonl").emit("run.finished", status="failed", report=[str(error)])
                 finally:
                     with self.lock:
@@ -156,7 +174,7 @@ class Workspace:
                     if acquired:
                         self.production.release()
                     if (path / "cancel.requested").exists():
-                        (path / "status.json").write_text('{"status":"cancelled"}')
+                        self._write_status(path, "cancelled")
 
             self.jobs[run_id] = self.pool.submit(work)
 
@@ -164,7 +182,7 @@ class Workspace:
         path = self.path(run_id)
         Service.require_status(path, {"editing"})
         (path / "brief.yaml").write_text(yaml.safe_dump(brief.model_dump(mode="json"), sort_keys=False))
-        (path / "status.json").write_text('{"status":"drafting"}')
+        self._write_status(path, "drafting")
 
         def draft():
             from reelhive.graphs.draft import build_draft_graph
@@ -174,7 +192,7 @@ class Workspace:
             asyncio.run(build_draft_graph().invoke_async("Write the script", {"ctx": ctx}))
             if brief.level == "small":
                 # Enqueue production only after releasing this draft job's slot.
-                (path / "status.json").write_text('{"status":"awaiting_script"}')
+                self._write_status(path, "awaiting_script")
                 with self.lock:
                     self.jobs.pop(run_id, None)
                 self.approve_script(run_id, ctx.script)
@@ -187,20 +205,19 @@ class Workspace:
     def approve_script(self, run_id: str, script: Script) -> None:
         path = self.path(run_id)
         svc = self.service(run_id)
-        svc.save_script(path, script)
 
         def approve():
-            (path / "status.json").write_text('{"status":"awaiting_script"}')
+            self._write_status(path, "awaiting_script")
             svc.approve(path)
 
-        self.submit(run_id, approve)
+        self.submit(run_id, approve, before_submit=lambda: svc.save_script(path, script))
 
     def approve_scenes(self, run_id: str) -> None:
         path = self.path(run_id)
         Service.require_status(path, {"awaiting_scenes", "stopped"})
 
         def approve():
-            (path / "status.json").write_text('{"status":"awaiting_scenes"}')
+            self._write_status(path, "awaiting_scenes")
             self.service(run_id).approve_scenes(path)
 
         self.submit(run_id, approve)
@@ -208,14 +225,25 @@ class Workspace:
     def regenerate_script(self, run_id: str, note: str) -> None:
         path = self.path(run_id)
         Service.require_status(path, {"awaiting_script"})
-        self.submit(run_id, lambda: self.service(run_id).regenerate_script(path, note), production=False)
+
+        def regenerate():
+            self._write_status(path, "awaiting_script")
+            self.service(run_id).regenerate_script(path, note)
+            self._write_status(path, "awaiting_script")
+
+        self.submit(
+            run_id,
+            regenerate,
+            production=False,
+            before_submit=lambda: self._write_status(path, "regenerating"),
+        )
 
     def edit_spec(self, run_id: str, spec: SceneSpec) -> None:
         path = self.path(run_id)
         Service.require_status(path, {"awaiting_scenes", "stopped", "done"})
 
         def edit():
-            (path / "status.json").write_text('{"status":"awaiting_scenes"}')
+            self._write_status(path, "awaiting_scenes")
             self.service(run_id).save_spec(path, spec)
 
         self.submit(run_id, edit)
@@ -225,7 +253,7 @@ class Workspace:
         Service.require_status(path, {"awaiting_scenes", "stopped", "done"})
 
         def regenerate():
-            (path / "status.json").write_text('{"status":"awaiting_scenes"}')
+            self._write_status(path, "awaiting_scenes")
             self.service(run_id).regenerate_scene(path, index, note)
 
         self.submit(run_id, regenerate)
@@ -239,7 +267,7 @@ class Workspace:
         previous = Service.require_status(path, {"interrupted", "failed", "cancelled"})
 
         def resume():
-            (path / "status.json").write_text(json.dumps({"status": previous}))
+            self._write_status(path, previous)
             self.service(run_id).resume(path)
 
         (path / "cancel.requested").unlink(missing_ok=True)

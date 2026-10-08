@@ -14,7 +14,6 @@ def test_example_brief_is_valid(brief):
 @pytest.mark.parametrize(
     "change, message",
     [
-        ({"level": "high"}, "arrives in M3"),
         ({"features": []}, "at least 1"),
         ({"features": [f"f{i}" for i in range(9)]}, "at most 8"),
         ({"duration": 5}, "greater than or equal to 15"),
@@ -30,6 +29,10 @@ def test_planned_scene_enforces_template_limits():
     with pytest.raises(ValidationError, match="does not fit the feature-card template"):
         PlannedScene(template="feature-card", headline="x" * 41)
     PlannedScene(template="cta", headline="x" * 60)  # cta allows longer headlines
+
+
+def test_high_brief_is_available_in_m3(brief):
+    assert Brief.model_validate({**brief.model_dump(), "level": "high"}).level == "high"
 
 
 def test_planned_scene_maps_secondary_to_template_field():

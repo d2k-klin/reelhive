@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal, Any
-from reelhive.schemas.voice import Voice
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
+
+from reelhive.schemas.voice import Voice
 
 REPO_ROOT = Path(__file__).resolve().parents[2]  # cloning is the install method (plan §10)
 
@@ -53,9 +54,9 @@ class Config(BaseModel):
     runs_dir: Path = Path("runs")
 
     def provider_for(self, node: str, tier: str) -> str:
-        nodes: dict[str, Any] = dict(self.nodes)
-        tiers: dict[str, Any] = dict(self.tier_providers)
-        return str(nodes.get(node, tiers.get(tier, self.provider)))
+        node_provider = next((provider for name, provider in self.nodes.items() if name == node), None)
+        tier_provider = next((provider for name, provider in self.tier_providers.items() if name == tier), None)
+        return node_provider or tier_provider or self.provider
 
 
 def load_config(path: Path | None = None) -> Config:

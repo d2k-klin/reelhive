@@ -67,12 +67,15 @@ class RunContext:
                 "failures": self.failures,
                 "critic_passed": self.critic_passed,
                 "recheck_passed": self.recheck_passed,
+                "video": self.video.name if self.video and self.video.is_file() else None,
             }
             temporary = self.path("checkpoint.tmp")
             temporary.write_text(json.dumps(data))
             temporary.replace(self.path("checkpoint.json"))
             if self.spec:
-                self.path("spec.json").write_text(self.spec.model_dump_json(indent=2))
+                spec_temporary = self.path("spec.tmp")
+                spec_temporary.write_text(self.spec.model_dump_json(indent=2))
+                spec_temporary.replace(self.path("spec.json"))
 
     def restore(self) -> None:
         from reelhive.schemas.scene_spec import SceneSpec
@@ -88,6 +91,11 @@ class RunContext:
         for key in ("music", "visual_catalog", "failures", "critic_passed", "recheck_passed"):
             if key in data:
                 setattr(self, key, data[key])
+        video = self.path(data["video"]) if data.get("video") else self.path("video.mp4")
+        if "render" in self.completed and video.is_file() and video.stat().st_size:
+            self.video = video
+        elif "render" in self.completed:
+            self.completed.remove("render")
 
 
 class RunCancelled(RuntimeError):

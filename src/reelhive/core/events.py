@@ -28,6 +28,8 @@ EVENT_TYPES = {
     "run.cancelled",
     "spec.edited",
 }
+_LOG_LOCKS: dict[Path, threading.Lock] = {}
+_LOG_LOCKS_GUARD = threading.Lock()
 
 
 @dataclass
@@ -45,7 +47,11 @@ class EventBus:
         self.log_path = log_path
         self._subscribers: list[Callable[[Event], None]] = []
         self._next_id = len(log_path.read_text().splitlines()) + 1 if log_path and log_path.exists() else 1
-        self._lock = threading.Lock()  # nodes run in worker threads
+        if log_path:
+            with _LOG_LOCKS_GUARD:
+                self._lock = _LOG_LOCKS.setdefault(log_path.resolve(), threading.Lock())
+        else:
+            self._lock = threading.Lock()
 
     def subscribe(self, fn: Callable[[Event], None]) -> None:
         self._subscribers.append(fn)
@@ -55,6 +61,8 @@ class EventBus:
             raise ValueError(f"unknown event type {type!r}")
         event = Event(type, data)
         with self._lock:
+            if self.log_path and self.log_path.exists():
+                self._next_id = max(self._next_id, len(self.log_path.read_text().splitlines()) + 1)
             event.id = self._next_id
             self._next_id += 1
             if self.log_path:
