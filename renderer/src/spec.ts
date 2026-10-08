@@ -2,7 +2,7 @@
 // src/reelhive/schemas/scene_spec.py; a pytest contract test keeps the two in sync.
 import schema from './spec.schema.json';
 
-export type Template = 'hook' | 'feature-card' | 'cta';
+export type Template = 'hook' | 'feature-card' | 'cta' | 'image-full' | 'screenshot-pan';
 
 export interface SceneSpec {
   index: number;
@@ -10,6 +10,7 @@ export interface SceneSpec {
   start: number;
   duration: number;
   narration: string;
+  visual?: {source: 'provided' | 'screenshot' | 'generated'; file: string; frame: 'browser' | 'phone' | 'none'} | null;
   text: Record<string, string | null | undefined>;
 }
 
@@ -21,6 +22,7 @@ export interface Credit {
 
 export interface Spec {
   version: number;
+  theme?: Record<string, string | null>;
   width: number;
   height: number;
   fps: number;
@@ -33,6 +35,8 @@ const TEXT_DEFS: Record<Template, string> = {
   hook: 'HookText',
   'feature-card': 'FeatureCardText',
   cta: 'CtaText',
+  'image-full': 'HookText',
+  'screenshot-pan': 'HookText',
 };
 
 /** Character limits per template field, read from the generated JSON Schema. */

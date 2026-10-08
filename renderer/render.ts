@@ -4,6 +4,7 @@ import {renderVideo} from '@revideo/renderer';
 import {readFileSync} from 'node:fs';
 import {basename, dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {embedAssets} from './src/assets';
 import type {Spec} from './src/spec';
 
 process.env.DISABLE_TELEMETRY = 'true';
@@ -13,7 +14,7 @@ if (!specPath || !outPath || !outPath.endsWith('.mp4')) {
   console.error('usage: tsx render.ts <spec.json> <out.mp4>');
   process.exit(2);
 }
-const spec: Spec = JSON.parse(readFileSync(specPath, 'utf8'));
+const spec: Spec = embedAssets(JSON.parse(readFileSync(specPath, 'utf8')), dirname(resolve(specPath)));
 const here = dirname(fileURLToPath(import.meta.url));
 
 await renderVideo({

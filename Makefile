@@ -1,7 +1,9 @@
 .PHONY: setup test test-slow lint schema demo
 
 setup:  ## Python deps, renderer deps and the headless browser Revideo renders with
-	uv sync --extra dev
+	uv sync --extra dev $(EXTRAS)
+	uv run playwright install chromium
+	uv run python -c "import importlib.util, subprocess, sys; importlib.util.find_spec('copilot') and subprocess.run([sys.executable, '-m', 'copilot', 'download-runtime'], check=True)"
 	npm ci
 	npx puppeteer browsers install chrome-headless-shell
 

@@ -18,14 +18,26 @@ class Tiers(BaseModel):
     fast: str
 
 
+Provider = Literal["claude", "bedrock", "openai", "ollama", "copilot"]
+
+
+class ImageGeneration(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    model: str
+    cost_per_image: float | None = Field(None, ge=0, description="Optional USD estimate from your pricing")
+
+
 class Config(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    provider: Literal["claude", "bedrock", "openai", "ollama", "copilot"] = "claude"
+    provider: Provider = "claude"
     models: dict[str, Tiers] = Field(
         default_factory=lambda: {"claude": Tiers(strong="claude-sonnet-5-5", fast="claude-haiku-5-5")}
     )
-    max_tokens: int = 8000
+    nodes: dict[Literal["script", "scenes", "music", "critic", "fix"], Provider] = Field(default_factory=dict)
+    ollama_host: str = "http://localhost:11434"
+    image_generation: ImageGeneration | None = None
+    max_tokens: int = Field(8000, ge=1)
     runs_dir: Path = Path("runs")
 
 

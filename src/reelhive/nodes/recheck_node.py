@@ -5,6 +5,7 @@ from reelhive.core.context import RunContext
 from reelhive.nodes.base import FunctionNode
 from reelhive.nodes.narrate_node import narrate
 from reelhive.nodes.timing_node import apply_timing
+from reelhive.visuals.resolver import resolve
 
 
 class RecheckNode(FunctionNode):
@@ -20,6 +21,7 @@ class RecheckNode(FunctionNode):
                 "node.task", node=self.name, task=f"Re-voicing scene {scene.index}", done=n - 1, total=len(changed)
             )
             narrate(ctx, scene.index, scene.narration)
+        resolve(ctx)
         apply_timing(ctx.spec, ctx.narrated, ctx.brief)
         ctx.failures = run_gates(ctx, self.name)
         ctx.recheck_passed = not ctx.failures

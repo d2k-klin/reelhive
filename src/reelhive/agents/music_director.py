@@ -24,5 +24,5 @@ class MusicDirectorNode(AgentNode):
         return f"{brief_block(ctx.brief)}\n\nAllowed moods: {', '.join(MOODS)}"
 
     def apply(self, ctx: RunContext, out: MusicChoice) -> None:
-        ctx.music = pick_track(out.mood, out.bpm)
+        ctx.music = pick_track(ctx.brief.music_mood or out.mood, out.bpm)
         ctx.events.emit("node.task", node=self.name, task=f"{out.mood} at {out.bpm} BPM: {ctx.music['title']}")

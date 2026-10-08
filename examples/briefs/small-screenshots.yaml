@@ -1,0 +1,13 @@
+level: small
+audience: Developers exploring a local product
+storyline: Show how the product simplifies a daily workflow.
+features:
+  - A clear overview of your work
+  - Fast access to the next action
+duration: 30
+format: "1:1"
+voice:
+  gender: male
+closing: Try it today.
+visuals:
+  url: http://localhost:3000

@@ -6,15 +6,37 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
-from reelhive.schemas.scene_spec import CtaScene, CtaText, FeatureCardScene, FeatureCardText, HookScene, HookText
+from reelhive.schemas.scene_spec import (
+    CtaScene,
+    CtaText,
+    FeatureCardScene,
+    FeatureCardText,
+    HookScene,
+    HookText,
+    ImageScene,
+    ScreenshotScene,
+    VisualRequest,
+)
 from reelhive.schemas.scene_spec import Scene as SceneT
 
-TEXT_MODELS: dict[str, type[BaseModel]] = {"hook": HookText, "feature-card": FeatureCardText, "cta": CtaText}
-SCENE_MODELS: dict[str, type[BaseModel]] = {"hook": HookScene, "feature-card": FeatureCardScene, "cta": CtaScene}
+TEXT_MODELS: dict[str, type[BaseModel]] = {
+    "hook": HookText,
+    "feature-card": FeatureCardText,
+    "cta": CtaText,
+    "image-full": HookText,
+    "screenshot-pan": HookText,
+}
+SCENE_MODELS: dict[str, type[BaseModel]] = {
+    "hook": HookScene,
+    "feature-card": FeatureCardScene,
+    "cta": CtaScene,
+    "image-full": ImageScene,
+    "screenshot-pan": ScreenshotScene,
+}
 
 
 class PlannedScene(BaseModel):
-    template: Literal["hook", "feature-card", "cta"]
+    template: Literal["hook", "feature-card", "cta", "image-full", "screenshot-pan"]
     headline: str = Field(description="Main on-screen line. Limits: hook 48, feature-card 40, cta 60 chars")
     secondary: str | None = Field(
         None, description="hook/cta: subline (80/60 chars); feature-card: body (110 chars). Optional"
@@ -22,6 +44,8 @@ class PlannedScene(BaseModel):
     label: str | None = Field(None, description="feature-card only: a short marker such as 01 (max 4 chars)")
     feature: str | None = Field(None, description="The brief feature this scene covers, verbatim, if any")
     narration: str | None = Field(None, description="Spoken text for this scene; set it only when asked to")
+
+    visual_request: VisualRequest = VisualRequest()
 
     def text(self) -> BaseModel:
         fields = {"headline": self.headline}
@@ -40,7 +64,9 @@ class PlannedScene(BaseModel):
         return self
 
     def to_scene(self, index: int, narration: str) -> SceneT:
-        scene = SCENE_MODELS[self.template](index=index, narration=narration, feature=self.feature, text=self.text())
+        scene = SCENE_MODELS[self.template](
+            index=index, narration=narration, feature=self.feature, text=self.text(), visual_request=self.visual_request
+        )
         return scene  # type: ignore[return-value]
 
 

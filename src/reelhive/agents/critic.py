@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, Field, ValidationError
@@ -32,7 +33,9 @@ def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
-def hard_checks(spec: SceneSpec, brief: Brief, narrated: dict[int, tuple[str, float]]) -> list[Check]:
+def hard_checks(
+    spec: SceneSpec, brief: Brief, narrated: dict[int, tuple[str, float]], run_dir: Path | None = None
+) -> list[Check]:
     checks = []
 
     err = (spec.duration - brief.duration) / brief.duration
@@ -98,6 +101,39 @@ def hard_checks(spec: SceneSpec, brief: Brief, narrated: dict[int, tuple[str, fl
 
     stale = [s.index for s in spec.scenes if narrated.get(s.index, ("",))[0] != s.narration]
     checks.append(Check("audio", not stale, "every scene voiced", not stale, f"scenes without matching audio: {stale}"))
+    from reelhive.visuals.resolver import image_ok, local_asset
+
+    bad_images, generated_ui = [], []
+    for scene in spec.scenes:
+        if scene.visual_request.kind == "product_ui" and scene.visual and scene.visual.source == "generated":
+            generated_ui.append(scene.index)
+        if scene.visual:
+            try:
+                valid = run_dir is not None and image_ok(local_asset(run_dir, scene.visual.file), brief.format)
+            except ValueError:
+                valid = False
+            if not valid:
+                bad_images.append(scene.index)
+        elif scene.template in ("image-full", "screenshot-pan"):
+            bad_images.append(scene.index)
+    checks.append(
+        Check(
+            "images",
+            not bad_images,
+            "files exist and meet minimum resolution",
+            not bad_images,
+            f"missing, invalid or low-resolution images: {bad_images}",
+        )
+    )
+    checks.append(
+        Check(
+            "product_ui",
+            not generated_ui,
+            "no generated product UI",
+            not generated_ui,
+            f"generated images in product UI scenes: {generated_ui}",
+        )
+    )
     return checks
 
 
@@ -105,7 +141,7 @@ def run_gates(ctx: RunContext, node: str) -> list[str]:
     """Run the hard checks, emit one gate.result per check, return failure messages."""
     assert ctx.spec
     failures = []
-    for c in hard_checks(ctx.spec, ctx.brief, ctx.narrated):
+    for c in hard_checks(ctx.spec, ctx.brief, ctx.narrated, ctx.run_dir):
         ctx.events.emit("gate.result", node=node, check=c.name, value=c.value, threshold=c.threshold, passed=c.passed)
         if not c.passed:
             failures.append(c.message)
@@ -119,7 +155,7 @@ def scenes_block(spec: SceneSpec, narrated: dict[int, tuple[str, float]]) -> str
         lines.append(
             f"Scene {s.index} [{s.template}] {s.duration:.1f}s (speech {speech:.1f}s), "
             f"feature={s.feature!r}\n  text: {s.text.model_dump_json(exclude_none=True)}\n"
-            f"  narration: {s.narration}"
+            f"  narration: {s.narration}\n  visual request: {s.visual_request.model_dump_json()}"
         )
     return "\n".join(lines)
 

@@ -20,6 +20,8 @@ EVENT_TYPES = {
     "critic.verdict",
     "fix.diff",
     "run.finished",
+    "run.paused",
+    "script.approved",
 }
 
 

@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from reelhive.config import Config
 from reelhive.core.events import EventBus
 from reelhive.schemas.brief import Brief
 from reelhive.schemas.scene_spec import SceneSpec
@@ -27,6 +28,8 @@ class RunContext:
     tts: TTS
     renderer: Callable[[Path, Path, Callable[[float], None]], None]  # (spec.json, out.mp4, on_progress)
 
+    config: Config = field(default_factory=Config)
+    visual_catalog: list[dict[str, Any]] = field(default_factory=list)
     script: Script | None = None
     spec: SceneSpec | None = None
     narrated: dict[int, tuple[str, float]] = field(default_factory=dict)  # scene index -> (text, seconds)

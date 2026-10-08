@@ -1,8 +1,27 @@
-# Copy to config.yaml. Every key is optional; these are the defaults.
-provider: claude            # M1: claude. bedrock, openai, ollama and copilot arrive in M2.
+# Copy to config.yaml. Claude works with defaults; replace other model IDs for your account.
+provider: claude            # claude | bedrock | openai | ollama | copilot
 models:
   claude:
-    strong: claude-sonnet-5-5   # script, critic, fix
-    fast: claude-haiku-5-5      # scenes, music
+    strong: claude-sonnet-5-5
+    fast: claude-haiku-5-5
+  bedrock:
+    strong: YOUR_BEDROCK_STRONG_MODEL_ID
+    fast: YOUR_BEDROCK_FAST_MODEL_ID
+  openai:
+    strong: YOUR_OPENAI_STRONG_MODEL_ID
+    fast: YOUR_OPENAI_FAST_MODEL_ID
+  ollama:
+    strong: YOUR_INSTALLED_OLLAMA_MODEL
+    fast: YOUR_INSTALLED_OLLAMA_MODEL
+  copilot:
+    strong: YOUR_COPILOT_MODEL_ID  # reelhive models --provider copilot
+    fast: YOUR_COPILOT_MODEL_ID
+# Optional per-node provider overrides (script, scenes, music, critic, fix):
+nodes: {}                  # e.g. {script: copilot, scenes: claude}
+ollama_host: http://localhost:11434
 max_tokens: 8000
 runs_dir: runs
+# Independent of the agent provider; requires the openai extra and OPENAI_API_KEY.
+image_generation:
+  model: gpt-image-1
+  cost_per_image: null     # optional USD estimate for run.log.jsonl; null means unknown

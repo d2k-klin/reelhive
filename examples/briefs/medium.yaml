@@ -1,0 +1,26 @@
+level: medium
+audience: Platform engineers at mid-size SaaS companies
+storyline: Cloud bills grow silently. CostHive finds the waste in minutes.
+features:
+  - Scans every region in one command
+  - Flags idle and oversized resources
+  - Exports a fix-it report
+duration: 60
+format: "9:16"
+voice:
+  gender: female
+  accent: uk
+  speed: 1.0
+tone: confident and helpful
+pacing: balanced
+brand:
+  colors: ["#4ade80", "#101820", "#ffffff"]
+  # logo: ./my-logo.png
+theme: brand
+music_mood: tech
+closing: Try CostHive free on GitHub.
+cta_url: github.com/d2k-klin/costhive
+credit: end
+# Add screenshots, images or generation using docs/visuals.md.
+visuals:
+  source: auto

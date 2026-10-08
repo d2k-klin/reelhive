@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+import yaml
 
 from reelhive.config import Config
 from reelhive.core.context import RunContext
@@ -18,6 +21,7 @@ from reelhive.graphs.production import NODES as PRODUCTION_NODES
 from reelhive.graphs.production import build_production_graph
 from reelhive.levels import LEVELS
 from reelhive.schemas.brief import Brief
+from reelhive.schemas.script import Script
 
 if TYPE_CHECKING:
     from strands.models.model import Model
@@ -50,7 +54,7 @@ class Service:
         self._tts = tts
         self._renderer = renderer
 
-    def new_run(self, brief: Brief, on_event: Callable[[Event], None] | None = None) -> RunContext:
+    def _dependencies(self) -> None:
         if self._models is None:
             from reelhive.providers.factory import build_models
 
@@ -63,25 +67,51 @@ class Service:
             from reelhive.render.bridge import render
 
             self._renderer = render
-        stamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+
+    def new_run(self, brief: Brief, on_event: Callable[[Event], None] | None = None) -> RunContext:
+        self._dependencies()
+        stamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%S-%f")
         run_dir = self.config.runs_dir / f"{stamp}_{_slug(brief.storyline)}"
         run_dir.mkdir(parents=True, exist_ok=False)
+        (run_dir / "config.json").write_text(self.config.model_dump_json(indent=2))
+        return self._context(run_dir, brief, on_event)
+
+    def _context(self, run_dir: Path, brief: Brief, on_event: Callable[[Event], None] | None) -> RunContext:
+        assert self._models is not None and self._tts is not None and self._renderer is not None
         events = EventBus(run_dir / "run.log.jsonl")
         if on_event:
             events.subscribe(on_event)
         return RunContext(
-            run_dir=run_dir, brief=brief, events=events, models=self._models, tts=self._tts, renderer=self._renderer
+            run_dir=run_dir,
+            brief=brief,
+            events=events,
+            models=self._models,
+            tts=self._tts,
+            renderer=self._renderer,
+            config=self.config,
         )
 
-    async def run_async(self, ctx: RunContext) -> RunResult:
+    @staticmethod
+    def _status(ctx: RunContext, status: str) -> None:
+        temporary = ctx.path("status.tmp")
+        temporary.write_text(json.dumps({"status": status}))
+        temporary.replace(ctx.path("status.json"))
+
+    async def run_async(self, ctx: RunContext, *, approved: bool = False) -> RunResult:
         state = {"ctx": ctx}
         task = f"Make a {ctx.brief.duration}s video for: {ctx.brief.audience}"
         try:
-            await build_draft_graph().invoke_async(task, state)
-            # ponytail: `small` has no approval stops; medium/high pause here (M2/M3).
-            assert not LEVELS[ctx.brief.level].approval_stops
+            if not approved:
+                self._status(ctx, "drafting")
+                await build_draft_graph().invoke_async(task, state)
+                if LEVELS[ctx.brief.level].approval_stops:
+                    self._status(ctx, "awaiting_script")
+                    ctx.events.emit("run.paused", status="awaiting_script", script=str(ctx.path("script.json")))
+                    return RunResult(ctx.run_dir, "awaiting_script")
+            self._status(ctx, "producing")
             result = await build_production_graph().invoke_async(task, state)
         except Exception as e:
+            self._status(ctx, "failed")
             ctx.events.emit("run.finished", status="failed", report=[f"{type(e).__name__}: {e}"])
             raise
         ran = {n.node_id for n in result.execution_order}
@@ -99,9 +129,31 @@ class Service:
                 duration=info["duration"],
                 size=ctx.video.stat().st_size,
             )
+            self._status(ctx, "done")
             return RunResult(ctx.run_dir, "done", video=ctx.video)
         ctx.events.emit("run.finished", status="stopped", report=ctx.failures)
+        self._status(ctx, "stopped")
         return RunResult(ctx.run_dir, "stopped", report=ctx.failures)
 
     def run(self, brief: Brief, on_event: Callable[[Event], None] | None = None) -> RunResult:
         return asyncio.run(self.run_async(self.new_run(brief, on_event)))
+
+    def approve(self, run_dir: Path, on_event: Callable[[Event], None] | None = None) -> RunResult:
+        run_dir = run_dir.resolve()
+        # Exclusive marker prevents two terminals from producing the same run concurrently.
+        lock = run_dir / ".production.lock"
+        with lock.open("x"):
+            pass
+        try:
+            if json.loads((run_dir / "status.json").read_text())["status"] != "awaiting_script":
+                raise ValueError("run is not awaiting script approval")
+            brief = Brief.model_validate(yaml.safe_load((run_dir / "brief.yaml").read_text()))
+            script = Script.model_validate_json((run_dir / "script.json").read_text())
+            self._dependencies()
+            ctx = self._context(run_dir, brief, on_event)
+            ctx.script = script
+            ctx.path("script.approved.json").write_text(script.model_dump_json(indent=2))
+            ctx.events.emit("script.approved", beats=len(script.beats))
+            return asyncio.run(self.run_async(ctx, approved=True))
+        finally:
+            lock.unlink()
