@@ -94,7 +94,7 @@ with tempfile.TemporaryDirectory() as runs:
                 (target / "checkpoint.json").write_text(json.dumps(checkpoint))
                 (target / "spec.json").write_text(json.dumps(checkpoint["spec"]))
                 image_brief = yaml.safe_load((target / "brief.yaml").read_text())
-                image_brief["visuals"] = {"source": "images"}
+                image_brief["visuals"] = {"source": "images", "images": {"dir": str(target)}}  # needs its folder
                 (target / "brief.yaml").write_text(yaml.safe_dump(image_brief))
             if status == "done":
                 shutil.copyfile(REPO_ROOT / "assets/demo/demo.mp4", target / "video.mp4")

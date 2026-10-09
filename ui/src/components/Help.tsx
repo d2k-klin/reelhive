@@ -18,12 +18,14 @@ export function Help({label, children}: {label: string; children: ReactNode}) {
     if (!open) return;
     const key = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
     const outside = (event: PointerEvent) => { if (!anchor.current?.contains(event.target as Node) && !panel.current?.contains(event.target as Node)) setOpen(false); };
-    const close = () => setOpen(false);
+    // Follow the button when the page scrolls or resizes. Closing here made the tooltip vanish whenever
+    // opening it scrolled the button into view (keyboard focus, a tap near the screen edge, small screens).
+    const follow = () => { if (anchor.current) show(); };
     document.addEventListener('keydown', key);
     document.addEventListener('pointerdown', outside);
-    window.addEventListener('scroll', close, true);
-    window.addEventListener('resize', close);
-    return () => { document.removeEventListener('keydown', key); document.removeEventListener('pointerdown', outside); window.removeEventListener('scroll', close, true); window.removeEventListener('resize', close); };
+    window.addEventListener('scroll', follow, true);
+    window.addEventListener('resize', follow);
+    return () => { document.removeEventListener('keydown', key); document.removeEventListener('pointerdown', outside); window.removeEventListener('scroll', follow, true); window.removeEventListener('resize', follow); };
   }, [open]);
   return <><button ref={anchor} type="button" className="help-trigger" aria-label={`Help: ${label}`} aria-describedby={open ? id : undefined} aria-expanded={open} onMouseEnter={show} onFocus={show} onBlur={() => setOpen(false)} onClick={show}><CircleHelp size={16} aria-hidden/></button>{open && createPortal(<div ref={panel} id={id} role="tooltip" className="help-tooltip" style={position}>{children}</div>, document.body)}</>;
 }

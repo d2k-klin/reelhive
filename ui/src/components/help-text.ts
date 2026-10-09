@@ -49,7 +49,7 @@ export const fieldHelp: Record<string, string> = {
 
 export function actionHelp(label: string): string | undefined {
   const actions: [RegExp, string][] = [
-    [/^Export YAML$/, 'Download this brief as a reusable text file. It contains settings and paths, not copies of your images or login session.'],
+    [/^Export brief file$/, 'Download this brief as a reusable text file. It contains settings and paths, not copies of your images or login session.'],
     [/^Preview voice$/, 'Play a short local voice sample with the current settings. The first preview may take longer while voice files load.'],
     [/^Sign in to your app$/, 'Open a separate browser to sign in yourself. Your saved session is kept privately in this run for screenshots.'],
     [/^I finished signing in$/, 'Save the signed-in browser session, then use Test capture to check the pages and privacy masks.'],

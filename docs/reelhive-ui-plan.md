@@ -121,7 +121,7 @@ At `small`, the Brief step includes a compact visuals box (one URL, an image fol
 | Credit placement | end / corner | all | If `REELHIVE_DISABLE_CREDIT` is set, shows "Credit is off (environment variable)" as read-only text |
 
 - **Validation** runs as you type with Zod schemas generated from the Pydantic models, and again on the server. Server errors are mapped back onto the right field.
-- **Import / export:** "Load brief file" imports a YAML brief; "Export brief" downloads the current form as YAML for the CLI.
+- **Import / export:** "Import brief file" (top of the page) imports a YAML brief; "Export brief file" (bottom of the last step, once the brief is complete) downloads the current form as YAML for the CLI.
 - **Drafts** are kept in the browser while you type, so a refresh doesn't lose work.
 
 ### 6.2 Visuals

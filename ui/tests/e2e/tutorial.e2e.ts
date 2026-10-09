@@ -22,16 +22,19 @@ test('field help works on hover, focus and tap, closes with Escape and never sub
   await page.keyboard.press('Escape');
   await help.click();
   await expect(page.getByRole('tooltip')).toBeVisible();
+  await page.mouse.wheel(0,120); // scrolling (as when a click scrolls the button into view) must not close it
+  await expect(page.getByRole('tooltip')).toBeVisible();
   await page.getByRole('heading',{level:1}).click();
   await expect(page.getByRole('tooltip')).toBeHidden();
   expect(writes).toBe(0);
 });
 
 test('brief import, draft persistence, visual help and YAML export',async({page})=>{
-  await page.getByLabel('Load brief',{exact:true}).setInputFiles({name:'guide.yaml',mimeType:'application/yaml',buffer:Buffer.from(JSON.stringify(brief))});
+  await page.getByLabel('Import brief file',{exact:true}).setInputFiles({name:'guide.yaml',mimeType:'application/yaml',buffer:Buffer.from(JSON.stringify(brief))});
   await expect(page.getByLabel('Who is this for?',{exact:true})).toHaveValue(brief.audience);
   await page.reload();
   await expect(page.getByLabel('Who is this for?',{exact:true})).toHaveValue(brief.audience);
+  await expect(page.getByRole('button',{name:'Export brief file',exact:true})).toBeHidden(); // only once the brief is complete
   await page.getByRole('button',{name:'Continue to visuals',exact:true}).click();
   await page.getByLabel('Visual source',{exact:true}).selectOption('screenshots');
   await page.getByLabel('App URL',{exact:true}).fill('http://localhost:3000');
@@ -39,7 +42,7 @@ test('brief import, draft persistence, visual help and YAML export',async({page}
   await expect(page.getByRole('tooltip')).toContainText('black out');
   await page.keyboard.press('Escape');
   const downloaded=page.waitForEvent('download');
-  await page.getByRole('button',{name:'Export YAML',exact:true}).click();
+  await page.getByRole('button',{name:'Export brief file',exact:true}).click();
   expect((await downloaded).suggestedFilename()).toBe('brief.yaml');
 });
 
@@ -49,7 +52,7 @@ test('sign-in completion uses the supported route',async({page})=>{
   let finished=false;
   await page.route('**/api/login/finish?id=tutorial-login',r=>{finished=true;return r.fulfill({json:{status:'signed_in'}});});
   await page.route('**/api/login/status?id=tutorial-login',r=>r.fulfill({json:{status:'signed_in',file:'/tmp/tutorial-auth.json'}}));
-  await page.getByLabel('Load brief',{exact:true}).setInputFiles({name:'brief.yaml',mimeType:'application/yaml',buffer:Buffer.from(JSON.stringify(brief))});
+  await page.getByLabel('Import brief file',{exact:true}).setInputFiles({name:'brief.yaml',mimeType:'application/yaml',buffer:Buffer.from(JSON.stringify(brief))});
   await page.getByRole('button',{name:'Continue to visuals',exact:true}).click();
   await page.getByLabel('Visual source',{exact:true}).selectOption('screenshots');
   await page.getByLabel('App URL',{exact:true}).fill('http://localhost:3000');

@@ -53,7 +53,7 @@ The main controls are:
 
 Medium and High add tone, pacing, brand colors, a logo, theme, CTA URL, music mood, and music level. High also lets you choose an exact music track. The frame on the right is a live summary of the first visual idea, brand palette, duration, voice, and estimated scene count.
 
-The draft is saved in this browser as you type. **Load brief** imports a YAML file; **Export YAML** downloads the current form so it can be reviewed, versioned, or used with the CLI. Importing validates the same schema used by production.
+The draft is saved in this browser as you type. **Import brief file** (top of the page) loads a YAML brief; **Export brief file** (bottom of the last step, next to the final button) downloads the completed form so it can be reviewed, versioned, or used with the CLI. Importing validates the same schema used by production.
 
 ## 3. Choose visual sources
 
