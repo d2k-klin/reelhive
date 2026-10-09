@@ -7,8 +7,9 @@
 | File | Judges |
 | --- | --- |
 | [`script.md`](script.md) | The script: hook, clarity, audience fit, storyline adherence, call to action |
+| [`suggestions.md`](suggestions.md) | M6 quick actions: specific, label fidelity, variety, safe |
 | [`image-prompts.md`](image-prompts.md) | Concept image prompts: relevance to the scene, style consistency, and no product UI |
 
 ## Changing a rubric
 
-A rubric change moves every judge score, so treat it like a prompt change: CI's eval gate runs on it, and the baseline must be refreshed in the same PR. Keep the anchors concrete and observable ("the first sentence names a tension the audience recognises"), not vague ("good hook"). M6's suggestion metric will add `suggestions.md` here.
+A rubric change moves every judge score, so treat it like a prompt change: CI's eval gate runs on it, and the baseline must be refreshed in the same PR. Keep the anchors concrete and observable ("the first sentence names a tension the audience recognises"), not vague ("good hook").

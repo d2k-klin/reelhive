@@ -7,11 +7,20 @@ export default defineConfig({
   fullyParallel: false,
   reporter: [['list']],
   use: {baseURL: 'http://127.0.0.1:8799', ...devices['Desktop Chrome']},
-  webServer: {
-    command: 'uv run python ui/tests/e2e/serve.py 8799',
-    cwd: '..',
-    url: 'http://127.0.0.1:8799/api/health?token=e2e-token',
-    reuseExistingServer: false,
-    timeout: 60_000,
-  },
+  webServer: [
+    {
+      command: 'uv run python ui/tests/e2e/serve.py 8799',
+      cwd: '..',
+      url: 'http://127.0.0.1:8799/api/health?token=e2e-token',
+      reuseExistingServer: false,
+      timeout: 60_000,
+    },
+    {
+      command: 'uv run python ui/tests/e2e/serve.py 8798 --fake', // fake models for the M6 quick-action flow
+      cwd: '..',
+      url: 'http://127.0.0.1:8798/api/health?token=e2e-token',
+      reuseExistingServer: false,
+      timeout: 120_000,
+    },
+  ],
 });

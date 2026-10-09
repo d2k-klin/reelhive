@@ -26,6 +26,13 @@ class ScriptJudgement(BaseModel):
     notes: str = ""
 
 
+class SuggestionJudgement(BaseModel):
+    specific: int = Score
+    label_fidelity: int = Score
+    variety: int = Score
+    safe: int = Score
+
+
 class PromptScore(BaseModel):
     scene: int
     relevance: int = Score
@@ -73,3 +80,17 @@ async def judge_run(model: Model, brief: Brief, script: Script, spec: SceneSpec 
             scores[f"judge_prompt_{field}"] = sum(values) / len(values) if values else None
     scores["judge_tokens"] = tokens
     return scores
+
+
+async def judge_suggestions(model: Model, brief: Brief, script: Script, suggestions: Any) -> dict[str, Any]:
+    """M6: score the quick actions offered for the first beat (plan §7, suggestions metric)."""
+    beats = "\n".join(f"{i}. [{b.role}] {b.narration}" for i, b in enumerate(script.beats, 1))
+    listed = "\n".join(f"- {s.label}: {s.instruction}" for s in suggestions.suggestions)
+    verdict, tokens = await _ask(
+        model,
+        "suggestions.md",
+        f"Audience: {brief.audience}\nStoryline: {brief.storyline}\nClosing message: {brief.closing}\n\n"
+        f"Script:\n{beats}\n\nSuggestions for beat 1:\n{listed}",
+        SuggestionJudgement,
+    )
+    return {**{f"judge_suggestion_{k}": v for k, v in verdict.model_dump().items()}, "judge_tokens_suggestions": tokens}

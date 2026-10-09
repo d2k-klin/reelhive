@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "ReelHive local API",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "paths": {
     "/api/health": {
@@ -672,6 +672,43 @@
         }
       }
     },
+    "/api/runs/{run_id}/script/undo": {
+      "post": {
+        "summary": "Undo Script",
+        "operationId": "undo_script_api_runs__run_id__script_undo_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/runs/{run_id}/spec": {
       "put": {
         "summary": "Edit Spec",
@@ -753,6 +790,52 @@
             }
           }
         },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs/{run_id}/scenes/{index}/undo": {
+      "post": {
+        "summary": "Undo Scene",
+        "operationId": "undo_scene_api_runs__run_id__scenes__index__undo_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Index"
+            }
+          }
+        ],
         "responses": {
           "202": {
             "description": "Successful Response",
@@ -2580,6 +2663,32 @@
             "maxLength": 2000,
             "title": "Note",
             "default": ""
+          },
+          "suggestion": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 28
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggestion",
+            "description": "Label of the quick action being applied"
+          },
+          "beat": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Beat",
+            "description": "Beat the note is about (script quick actions)"
           }
         },
         "type": "object",

@@ -18,7 +18,7 @@ from strands.models.model import Model
 
 from evals.harness import DATASET, EstimateTTS, PromptRecorder, load_set, serve_site
 from evals.metrics.deterministic import node_stats, score_spec
-from evals.metrics.judge import judge_run
+from evals.metrics.judge import judge_run, judge_suggestions
 from reelhive.config import Config
 from reelhive.core.events import Event
 from reelhive.core.service import Service
@@ -47,6 +47,10 @@ METRICS: list[tuple[str, str, bool | None]] = [
     ("judge_prompt_relevance", "Judge: image prompt relevance (1-5)", True),
     ("judge_prompt_style", "Judge: image prompt style consistency (1-5)", True),
     ("judge_prompt_no_product_ui", "Judge: image prompts avoid product UI (1-5)", True),
+    ("judge_suggestion_specific", "Judge: quick actions are specific (1-5)", True),
+    ("judge_suggestion_label_fidelity", "Judge: quick actions do what the label says (1-5)", True),
+    ("judge_suggestion_variety", "Judge: quick actions are varied (1-5)", True),
+    ("judge_suggestion_safe", "Judge: quick actions respect the brief (1-5)", True),
     ("image_count", "Images per brief (placeholders)", None),
     ("tokens", "Tokens per brief", None),
     ("seconds", "Wall time per brief (s)", None),
@@ -77,6 +81,9 @@ async def eval_brief(
     if judge and ctx.script:
         try:
             record.update(await judge_run(judge, ctx.brief, ctx.script, ctx.spec))
+            if config.provider != "copilot":  # M6 quick actions run on Strands providers
+                offered = await asyncio.to_thread(service.suggest, ctx.run_dir, "beat", 1)
+                record.update(await judge_suggestions(judge, ctx.brief, ctx.script, offered))
         except Exception as e:
             record["judge_error"] = f"{type(e).__name__}: {e}"
     return record

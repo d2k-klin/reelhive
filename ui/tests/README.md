@@ -5,6 +5,7 @@
 | Path | What it is |
 | --- | --- |
 | [`e2e/serve.py`](e2e/serve.py) | Starts the real FastAPI app on 127.0.0.1:8799 with a throwaway workspace and the fixed token `e2e-token` |
+| [`e2e/quick-actions.e2e.ts`](e2e/quick-actions.e2e.ts) | M6 against `serve.py --fake` (port 8798): buttons render, apply and undo for a beat and a scene, More ideas, no request leaves 127.0.0.1, axe |
 | [`e2e/studio.e2e.ts`](e2e/studio.e2e.ts) | Token and Origin rules; every screen in light and dark themes with axe (WCAG 2.1 A/AA); keyboard skip link and focus |
 
 ```bash

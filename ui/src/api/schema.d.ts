@@ -313,6 +313,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/runs/{run_id}/script/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Undo Script */
+        post: operations["undo_script_api_runs__run_id__script_undo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/runs/{run_id}/spec": {
         parameters: {
             query?: never;
@@ -341,6 +358,23 @@ export interface paths {
         put?: never;
         /** Regenerate Scene */
         post: operations["regenerate_scene_api_runs__run_id__scenes__index__regenerate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/scenes/{index}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Undo Scene */
+        post: operations["undo_scene_api_runs__run_id__scenes__index__undo_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1124,6 +1158,16 @@ export interface components {
              * @default
              */
             note: string;
+            /**
+             * Suggestion
+             * @description Label of the quick action being applied
+             */
+            suggestion?: string | null;
+            /**
+             * Beat
+             * @description Beat the note is about (script quick actions)
+             */
+            beat?: number | null;
         };
         /** ProblemScene */
         ProblemScene: {
@@ -2113,6 +2157,37 @@ export interface operations {
             };
         };
     };
+    undo_script_api_runs__run_id__script_undo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     edit_spec_api_runs__run_id__spec_put: {
         parameters: {
             query?: never;
@@ -2163,6 +2238,38 @@ export interface operations {
                 "application/json": components["schemas"]["Note"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_scene_api_runs__run_id__scenes__index__undo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             202: {

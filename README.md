@@ -13,7 +13,7 @@
 
 *Made with ReelHive from [assets/demo/brief.yaml](assets/demo/brief.yaml). With sound: [demo.mp4](assets/demo/demo.mp4).*
 
-**Status:** v0.1.0: all three levels, five providers, three visual sources, the local editing studio and evals. AI quick actions with CopilotKit (M6) are next. See [docs/plan.md](docs/plan.md).
+**Status:** v0.2.0: all three levels, five providers, three visual sources, the local editing studio, evals, and AI quick actions with CopilotKit. See [docs/plan.md](docs/plan.md).
 
 ## Quickstart
 
@@ -163,14 +163,23 @@ An invisible MP4 metadata tag is always written.
 | `reelhive doctor` | Check dependencies, keys and the credit setting |
 | `reelhive voices` / `reelhive models` | List voices / available models |
 | `reelhive login <url>` / `reelhive capture <brief>` | Save a sign-in for screenshots / preview masked screenshots |
-| `reelhive suggest <run> --beat N` | Quick-action suggestions for one beat or scene |
+| `reelhive suggest <run> --beat N [--apply K]` | Quick-action suggestions for one beat or scene; apply one |
+| `reelhive undo <run> --scene N \| --script` | Restore the previous version after a regeneration |
 | `reelhive eval --providers a,b` | Compare providers on the eval set |
 
 Every folder has a README that explains what's in it and how to extend it; start with [src/reelhive](src/reelhive/README.md) and [docs/](docs/README.md).
 
 ## Quick actions
 
-`reelhive suggest runs/<run> --beat 2` (or `--scene 3`) offers 3-4 specific edits for that beat or scene, such as "Punchier hook" or "Shorten by ~2s". In the local UI they will appear as buttons rendered with CopilotKit. See [docs/copilotkit.md](docs/copilotkit.md).
+On the Script and Scenes screens, the selected beat or scene gets 3-4 suggested edits as buttons, such as "Punchier hook" or "Shorten by ~2s", rendered with CopilotKit from an AG-UI tool call. One click regenerates just that beat or scene; **Undo** puts it back. The same works from the terminal:
+
+```bash
+uv run reelhive suggest runs/<run> --scene 3            # list them
+uv run reelhive suggest runs/<run> --scene 3 --apply 2  # apply the second
+uv run reelhive undo runs/<run> --scene 3
+```
+
+See [docs/copilotkit.md](docs/copilotkit.md).
 
 ## Evals
 

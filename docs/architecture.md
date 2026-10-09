@@ -87,6 +87,7 @@ runs/2026-10-08T15-30-00-123456_cloud-bills-grow-silently/
 | `critic.verdict` | rubric scores, passed, reasons |
 | `fix.diff` | before/after of each changed scene |
 | `run.paused` / `script.approved` | approval stop and resume |
+| `suggestion.offered` / `suggestion.applied` / `version.restored` | M6 quick actions: what was offered (cached or not), which was applied, and undo |
 | `run.finished` | video path and duration, or the stop report |
 
 ## Providers

@@ -34,6 +34,8 @@ class CreateRun(BaseModel):
 
 class Note(BaseModel):
     note: str = Field("", max_length=2000)
+    suggestion: str | None = Field(None, max_length=28, description="Label of the quick action being applied")
+    beat: int | None = Field(None, ge=1, description="Beat the note is about (script quick actions)")
 
 
 class YamlBrief(BaseModel):
@@ -227,8 +229,13 @@ def create_app(
 
     @app.post("/api/runs/{run_id}/script/regenerate", status_code=202)
     def regenerate_script(run_id: str, value: Note):
-        ws.regenerate_script(run_id, value.note)
+        ws.regenerate_script(run_id, value.note, value.suggestion, value.beat)
         return {"status": "started"}
+
+    @app.post("/api/runs/{run_id}/script/undo")
+    def undo_script(run_id: str):
+        ws.undo_script(run_id)
+        return {"status": "restored"}
 
     @app.put("/api/runs/{run_id}/spec", status_code=202)
     def edit_spec(run_id: str, spec: SceneSpec):
@@ -237,7 +244,12 @@ def create_app(
 
     @app.post("/api/runs/{run_id}/scenes/{index}/regenerate", status_code=202)
     def regenerate_scene(run_id: str, index: int, value: Note):
-        ws.regenerate_scene(run_id, index, value.note)
+        ws.regenerate_scene(run_id, index, value.note, value.suggestion)
+        return {"status": "queued"}
+
+    @app.post("/api/runs/{run_id}/scenes/{index}/undo", status_code=202)
+    def undo_scene(run_id: str, index: int):
+        ws.undo_scene(run_id, index)
         return {"status": "queued"}
 
     @app.post("/api/runs/{run_id}/approve", status_code=202)
@@ -324,6 +336,10 @@ def create_app(
     ui = REPO_ROOT / "ui" / "dist"
     if (ui / "assets").exists():
         app.mount("/assets", StaticFiles(directory=ui / "assets"), name="assets")
+
+    from reelhive.server.agui import mount
+
+    mount(app, ws)  # M6: AG-UI quick actions, behind the same middleware
 
     @app.get("/{path:path}", include_in_schema=False)
     def frontend(path: str):

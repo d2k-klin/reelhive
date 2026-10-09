@@ -222,13 +222,13 @@ class Workspace:
 
         self.submit(run_id, approve)
 
-    def regenerate_script(self, run_id: str, note: str) -> None:
+    def regenerate_script(self, run_id: str, note: str, suggestion: str | None = None, beat: int | None = None) -> None:
         path = self.path(run_id)
         Service.require_status(path, {"awaiting_script"})
 
         def regenerate():
             self._write_status(path, "awaiting_script")
-            self.service(run_id).regenerate_script(path, note)
+            self.service(run_id).regenerate_script(path, note, suggestion, beat)
             self._write_status(path, "awaiting_script")
 
         self.submit(
@@ -248,15 +248,33 @@ class Workspace:
 
         self.submit(run_id, edit)
 
-    def regenerate_scene(self, run_id: str, index: int, note: str) -> None:
+    def regenerate_scene(self, run_id: str, index: int, note: str, suggestion: str | None = None) -> None:
         path = self.path(run_id)
         Service.require_status(path, {"awaiting_scenes", "stopped", "done"})
 
         def regenerate():
             self._write_status(path, "awaiting_scenes")
-            self.service(run_id).regenerate_scene(path, index, note)
+            self.service(run_id).regenerate_scene(path, index, note, suggestion)
 
         self.submit(run_id, regenerate)
+
+    def undo_script(self, run_id: str) -> None:
+        path = self.path(run_id)
+        self.service(run_id).undo_script(path)
+
+    def undo_scene(self, run_id: str, index: int) -> None:
+        path = self.path(run_id)
+        Service.require_status(path, {"awaiting_scenes", "stopped", "done"})
+
+        def undo():
+            self._write_status(path, "awaiting_scenes")
+            self.service(run_id).undo_scene(path, index)
+
+        self.submit(run_id, undo)
+
+    def suggest(self, run_id: str, target: str, index: int, fresh: bool = False):
+        path = self.path(run_id)
+        return self.service(run_id).suggest(path, target, index, fresh=fresh)
 
     def cancel(self, run_id: str) -> None:
         self.service(run_id).cancel(self.path(run_id))
