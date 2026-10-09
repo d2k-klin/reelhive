@@ -328,7 +328,9 @@ class Service:
         ctx = self.load(run_dir, on_event)
         assert ctx.spec
         ctx.spec = SceneSpec.model_validate_json((run_dir / "spec.json").read_text())
-        if any(s.visual and not s.image_approved for s in ctx.spec.scenes):
+        if "scenes" in LEVELS[ctx.brief.level].approval_stops and any(
+            s.visual and not s.image_approved for s in ctx.spec.scenes
+        ):
             raise ValueError("approve every scene image before rendering")
         ctx.stage = "finish"
         # Approving again (after edits, or a stopped run) must re-check, not replay the old gate results.

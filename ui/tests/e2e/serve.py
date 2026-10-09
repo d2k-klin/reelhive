@@ -76,6 +76,8 @@ with tempfile.TemporaryDirectory() as runs:
         for name, source, status in [
             ("tutorial-scenes", high.run_dir, "awaiting_scenes"),
             ("tutorial-images", high.run_dir, "awaiting_scenes"),
+            ("tutorial-low-images", high.run_dir, "stopped"),
+            ("tutorial-medium-images", high.run_dir, "stopped"),
             ("tutorial-script", medium.run_dir, "awaiting_script"),
             ("tutorial-failed", high.run_dir, "failed"),
             ("tutorial-stopped", high.run_dir, "stopped"),
@@ -84,7 +86,7 @@ with tempfile.TemporaryDirectory() as runs:
             target = Path(runs) / name
             shutil.copytree(source, target)
             (target / "status.json").write_text(json.dumps({"status": status}))
-            if name == "tutorial-images":
+            if name in {"tutorial-images", "tutorial-low-images", "tutorial-medium-images"}:
                 shutil.copyfile(REPO_ROOT / "docs/ui-guide/01-new-video.png", target / "sample.png")
                 checkpoint = json.loads((target / "checkpoint.json").read_text())
                 scene = checkpoint["spec"]["scenes"][0]
@@ -94,6 +96,8 @@ with tempfile.TemporaryDirectory() as runs:
                 (target / "checkpoint.json").write_text(json.dumps(checkpoint))
                 (target / "spec.json").write_text(json.dumps(checkpoint["spec"]))
                 image_brief = yaml.safe_load((target / "brief.yaml").read_text())
+                if name != "tutorial-images":
+                    image_brief["level"] = "low" if name == "tutorial-low-images" else "medium"
                 image_brief["visuals"] = {"source": "images", "images": {"dir": str(target)}}  # needs its folder
                 (target / "brief.yaml").write_text(yaml.safe_dump(image_brief))
             if status == "done":

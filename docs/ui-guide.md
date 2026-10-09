@@ -234,7 +234,7 @@ uv run reelhive ui
 
 **A capture is blank or missing pages.** Confirm the app URL is reachable, provide routes explicitly, finish sign-in when required, and use **Test capture**. Cross-origin navigation is rejected. See [Visuals](visuals.md) for capture sizing and fallback rules.
 
-**Approve all and render is disabled.** Select every timeline scene that has an image and enable **Approve this image**, then save the scenes. Unsaved scene changes also disable rendering. Scenes without a resolved visual do not need image approval.
+**Approve all and render is disabled (High only).** Select every timeline scene that has an image and enable **Approve this image**, then save the scenes. Unsaved scene changes also disable rendering. Scenes without a resolved visual do not need image approval. Low and Medium never require individual image approval, including during recovery: save any corrections and choose **Continue production**.
 
 **A run is stuck after the UI closed.** Launch the studio again, open the run marked **Interrupted**, and choose **Resume from checkpoint**.
 

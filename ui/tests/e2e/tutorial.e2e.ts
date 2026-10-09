@@ -232,3 +232,19 @@ for(const width of [390,1440]) test(`production path and long briefs stay readab
   const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze();
   expect(axe.violations.map(v=>`${v.id}: ${v.nodes[0]?.target}`)).toEqual([]);
 });
+
+for(const level of ['low','medium']) test(`${level} recovery continues without individual image approval`,async({page,request})=>{
+  const id=`tutorial-${level}-images`;
+  await page.goto(`/runs/${id}`);
+  await expect(page.getByLabel('Headline',{exact:true})).toBeVisible();
+  await expect(page.getByRole('checkbox',{name:'Approve this image',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Help: Approve this image',exact:true})).toHaveCount(0);
+  await expect(page.locator('.timeline i')).toHaveCount(0);
+  const saved=await(await request.get(`/api/runs/${id}?token=${token}`)).json();
+  expect(saved.spec.scenes[0].visual).toBeTruthy();
+  expect(saved.spec.scenes[0].image_approved).toBe(false);
+  const resume=page.getByRole('button',{name:'Continue production',exact:true});
+  await expect(resume).toBeEnabled();
+  await resume.click();
+  await expect(page.getByRole('heading',{name:'Your video is ready.'})).toBeVisible({timeout:20000});
+});

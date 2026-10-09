@@ -39,4 +39,12 @@ describe('tutorial progress reflects the real run state',()=>{
     expect(now).toBe('Video length is holding up video creation.');
     expect(next).not.toContain('111.4');
   });
+  it('does not ask Low or Medium users to approve images during recovery',()=>{
+    for(const level of ['low','medium']) {
+      const [,next]=runGuidance('awaiting_scenes',{},null,[],level);
+      expect(next).toContain('check images automatically');
+      expect(next).not.toContain('approve every image');
+    }
+    expect(runGuidance('awaiting_scenes',{},null,[],'high')[1]).toContain('approve every image');
+  });
 });
