@@ -4,3 +4,7 @@ html[data-theme="light"] { --muted: #595d55; }
 .sidebar footer small { color: #949a90; }
 html[data-theme="light"] .connection.online { color: #3a640b; }
 html[data-theme="dark"] .connection.online { color: var(--lime); }
+html[data-theme="light"] .status.failed,
+html[data-theme="light"] .status.stopped { color: #9e2c22; }
+html[data-theme="dark"] .status.failed,
+html[data-theme="dark"] .status.stopped { color: #ff9a8a; }

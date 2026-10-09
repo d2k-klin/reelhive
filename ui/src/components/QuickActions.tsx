@@ -5,6 +5,7 @@
 // `propose_suggestions` tool call; CopilotKit executes it as a frontend tool and we render the validated
 // arguments as buttons (generative UI). Applying a suggestion never goes through the agent: it calls the
 // existing regenerate route, so the server stays the only place that changes a run.
+import {Button} from './Help';
 import {HttpAgent} from '@ag-ui/client';
 import {CopilotKitProvider, useAgent, useCopilotKit, useFrontendTool} from '@copilotkit/react-core/v2';
 import {Lightbulb, RefreshCw, Undo2} from 'lucide-react';
@@ -82,25 +83,25 @@ export function SuggestionChips({runId, target, index, version, busy, canUndo, o
         <small>Suggested by the Editor agent for this {target}</small>
       </div>
       {loading && <p className="muted">Thinking of edits…</p>}
-      {error && <p className="muted">{error}</p>}
+      {error && <p className="muted" role="status">Suggestions are unavailable. Check your agent settings or try More ideas.</p>}
       {chips && (
         <div className="chips" role="group" aria-label={`Suggestions for ${target} ${index}`}>
           {chips.map(chip => (
-            <button key={chip.label} className="chip" title={chip.instruction} disabled={busy} onClick={() => onApply(chip)}>
+            <Button key={chip.label} className="chip" help={chip.instruction} title={chip.instruction} disabled={busy} onClick={() => onApply(chip)}>
               {chip.label}
               <span className="sr-only">: {chip.instruction}</span>
-            </button>
+            </Button>
           ))}
         </div>
       )}
       <div className="quick-actions-tools">
-        <button className="link" disabled={busy || loading} onClick={() => void ask(true)}>
+        <Button className="link" disabled={busy || loading} onClick={() => void ask(true)}>
           <RefreshCw size={13} aria-hidden /> More ideas
-        </button>
+        </Button>
         {canUndo && (
-          <button className="link" disabled={busy} onClick={onUndo}>
+          <Button className="link" disabled={busy} onClick={onUndo}>
             <Undo2 size={13} aria-hidden /> Undo last change
-          </button>
+          </Button>
         )}
       </div>
     </div>

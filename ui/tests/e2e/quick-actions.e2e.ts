@@ -8,7 +8,7 @@ test.use({baseURL: BASE});
 
 async function runWithStatus(request: any, status: string): Promise<string> {
   const runs = await (await request.get(`${BASE}/api/runs?token=${TOKEN}`)).json();
-  const run = runs.find((r: any) => r.status === status);
+  const run = runs.find((r: any) => r.status === status && !r.id.startsWith('tutorial-'));
   expect(run, `a run in ${status}`).toBeTruthy();
   return run.id;
 }
@@ -21,16 +21,16 @@ test('script quick actions: suggest, apply, undo, nothing leaves the machine', a
   await page.goto(`/runs/${id}`);
 
   const chips = page.getByRole('group', {name: 'Suggestions for beat 1'});
-  await expect(chips.getByRole('button')).toHaveCount(3);
+  await expect(chips.locator('button.chip')).toHaveCount(3);
   await expect(page.getByText('Thinking of edits…')).toBeHidden();
-  await expect(chips.getByRole('button', {name: /Punchier hook/})).toHaveAttribute('title', /monthly cost number/);
+  await expect(chips.getByRole('button', {name: /^Punchier hook/})).toHaveAttribute('title', /monthly cost number/);
   const before = await page.getByLabel('Narration 1').inputValue();
 
-  await chips.getByRole('button', {name: /Punchier hook/}).click();
+  await chips.getByRole('button', {name: /^Punchier hook/}).click();
   await expect(page.getByLabel('Narration 1')).not.toHaveValue(before, {timeout: 15_000});
   await expect(page.getByLabel('Narration 1')).toHaveValue(/rewritten/);
 
-  await page.getByRole('button', {name: /Undo last change/}).click();
+  await page.getByRole('button', {name: 'Undo last change', exact:true}).click();
   await expect(page.getByLabel('Narration 1')).toHaveValue(before, {timeout: 15_000});
 
   const log = await (await request.get(`${BASE}/api/runs/${id}/files/run.log.jsonl?token=${TOKEN}`)).text();
@@ -48,21 +48,21 @@ test('scene quick actions: More ideas, apply, undo', async ({page, request}) => 
   await page.goto(`/?token=${TOKEN}`);
   await page.goto(`/runs/${id}`);
   const chips = page.getByRole('group', {name: 'Suggestions for scene 1'});
-  await expect(chips.getByRole('button')).toHaveCount(3);
-  await page.getByRole('button', {name: /More ideas/}).click();
+  await expect(chips.locator('button.chip')).toHaveCount(3);
+  await page.getByRole('button', {name: 'More ideas', exact:true}).click();
   await expect(page.getByText('Thinking of edits…')).toBeHidden();
-  await expect(chips.getByRole('button')).toHaveCount(3);
+  await expect(chips.locator('button.chip')).toHaveCount(3);
 
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
-  const headline = page.getByLabel('Headline');
+  const headline = page.getByLabel('Headline', {exact:true});
   const before = await headline.inputValue();
   await headline.fill(before + '!'); // editing re-renders the live preview; it must not crash the page
   await page.waitForTimeout(800);
   await headline.fill(before);
-  await chips.getByRole('button', {name: /Shorten by ~2s/}).click();
+  await chips.getByRole('button', {name: /^Shorten by ~2s/}).click();
   await expect(headline).toHaveValue('Cloud bills, explained', {timeout: 15_000});
-  await page.getByRole('button', {name: /Undo last change/}).click();
+  await page.getByRole('button', {name: 'Undo last change', exact:true}).click();
   await expect(headline).toHaveValue(before, {timeout: 15_000});
   expect(errors).toEqual([]);
 });
