@@ -29,7 +29,7 @@
     "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "^1.55.0",
     "@tailwindcss/vite": "^4.1.0",
-    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.2.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
