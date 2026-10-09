@@ -33,7 +33,7 @@
     "@testing-library/react": "^16.2.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
     "jsdom": "^26.0.0",
     "json-schema-to-zod": "^2.6.0",
     "openapi-typescript": "^7.6.0",
