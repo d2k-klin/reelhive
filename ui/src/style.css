@@ -10,3 +10,4 @@
 .quick-actions-tools{display:flex;gap:16px;margin-top:8px}
 .quick-actions .link{background:none;border:none;padding:0;color:inherit;text-decoration:underline;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:13px}
 .beats article .beat-actions{grid-column:1/-1}
+.field:has(> p) > .toolbar > .action-help > .secondary{border-color:var(--lime);background:var(--lime);color:var(--lime-ink);box-shadow:0 1px 0 #0002}
