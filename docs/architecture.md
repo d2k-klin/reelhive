@@ -23,7 +23,7 @@ production:   ┌─► scenes ─► visuals ─┐
 | Node | Kind | Job | Code |
 | --- | --- | --- | --- |
 | `brief` | deterministic | Validate, fill the level's defaults, make paths absolute, save `brief.yaml` | `nodes/brief_node.py` |
-| `research` | agent, fast + crawl | Read the product website (same origin, ≤10 pages, masks honoured) and write `research.json`: what it is, correct names, offerings, pains, facts, what each note refers to. Skipped without a website | `agents/researcher.py` |
+| `research` | agent, fast + crawl | Read the product website (same origin, ≤10 pages, masks honoured) and write `research.json`: what it is, correct names, offerings, pains, facts, what each note refers to. Uses a public App URL when no website is given; skipped without either | `agents/researcher.py` |
 | `script` | agent, strong | Narration as beats, sized to the target duration | `agents/script_writer.py` |
 | `scenes` | agent, fast | A template, on-screen text and a visual request per beat | `agents/scene_planner.py` |
 | `visuals` | deterministic | Resolve each visual request: provided image, screenshot or generated image, else a text fallback | `visuals/resolver.py` |
@@ -101,3 +101,7 @@ runs/2026-10-08T15-30-00-123456_cloud-bills-grow-silently/
 ## Evals
 
 `evals/` runs the same graphs in spec-only mode to score scripts, specs and image prompts per provider. See [evals/README.md](../evals/README.md).
+
+## Built on
+
+[Strands Agents](https://strandsagents.com), [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M), [Revideo](https://re.video), [Playwright](https://playwright.dev), [ffmpeg](https://ffmpeg.org), [CopilotKit](https://www.copilotkit.ai) and the [GitHub Copilot SDK](https://github.com/github/copilot-sdk).

@@ -2,304 +2,72 @@
 
 # ReelHive
 
-> Brief in, video out. A local-first tool that turns a short brief into a narrated, scored video, using a Strands Graph of agents, Kokoro TTS and Revideo.
+> Your notes in, a finished product video out.
 
 [![CI](https://github.com/d2k-klin/reelhive/actions/workflows/ci.yml/badge.svg)](https://github.com/d2k-klin/reelhive/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Python 3.11-3.12](https://img.shields.io/badge/python-3.11--3.12-blue.svg)](pyproject.toml)
-[![Local first](https://img.shields.io/badge/runs-locally-green.svg)](#privacy)
+[![Local first](https://img.shields.io/badge/runs-locally-green.svg)](docs/privacy.md)
 
 ![A 20-second video made with ReelHive](assets/demo/demo.gif)
 
 *Made with ReelHive from [assets/demo/brief.yaml](assets/demo/brief.yaml). With sound: [demo.mp4](assets/demo/demo.mp4).*
 
-**Status:** v0.4.0: all three levels, five providers, three visual sources, the local editing studio, evals, and AI quick actions with CopilotKit. See [docs/plan.md](docs/plan.md).
+## What ReelHive does
 
-## Quickstart
+Making a short product video usually means writing a script, recording a voice-over, grabbing screenshots, finding music and editing it all together. ReelHive does that work for you.
 
-Requirements: Python 3.11-3.12, Node 20+ and [uv](https://docs.astral.sh/uv/). ffmpeg and espeak-ng are used from your system when installed, and otherwise come bundled with the Python dependencies.
+You write a few rough notes: who the video is for, the story you want to tell, the points that matter and how it should end. Add your product's website if you have one. A team of AI agents then takes over the storytelling:
+
+1. **Research.** They read your website to learn what the product is, how its names are spelled and what it offers.
+2. **Write.** They turn your notes into a story, with narration sized to the length you asked for and a polished closing line.
+3. **Design.** They plan every scene: a title screen, a layout for each point, on-screen headlines, and the screenshots or images to show.
+4. **Produce.** A natural-sounding voice reads the narration, background music is picked to match the mood, and every scene is timed to the voice.
+5. **Check.** A reviewer checks the cut against the brief: the length, the pace, every key point told, the text fitting on screen. Anything that fails is fixed and checked again.
+6. **Render.** You get a finished video, plus the script and every file that went into it.
+
+Everything runs on your own machine. Only text goes to the AI service you choose, and your images and recordings stay with you. See [Privacy](docs/privacy.md).
+
+## You decide how much to control
+
+| Level | What happens |
+| --- | --- |
+| **Low** | You write the notes; the agents do everything else and deliver the video. |
+| **Medium** | You also set the tone, brand and music, and review the script before production. |
+| **High** | You direct every scene yourself: text, voice, timing and images. |
+
+You can work in the browser-based studio, or from the terminal with a brief file.
+
+## Quick start
 
 ```bash
 git clone https://github.com/d2k-klin/reelhive && cd reelhive
-make setup                                        # Python + Node deps, browsers for capture and rendering
-export ANTHROPIC_API_KEY=...                      # or configure another provider, see below
-uv run reelhive doctor                            # checks every dependency and key
-uv run reelhive ui                                # the local editing studio, in your browser
-# or, without the UI:
-uv run reelhive run examples/briefs/low.yaml
+make setup
+uv run reelhive ui
 ```
 
-![The ReelHive studio: the new-video brief form](docs/screenshots/new-video.png)
+Requirements, choosing your AI service and your first terminal run are in [Getting started](docs/getting-started.md).
 
-The video lands in `runs/<timestamp>_<slug>/video.mp4`, next to the script, the scene spec, the audio and a `run.log.jsonl` of every step. Cloning is the install method: the Node renderer lives next to the Python package, so nothing is published to PyPI or npm.
+## Documentation
 
-## How it works
-
-You give ReelHive notes: who it's for, the story, a few key points, a closing idea and, optionally, your product's website. The agents do the storytelling: they research the site, decide how to tell your points, write the narration and on-screen copy, take screenshots and produce the video. Two Strands graphs do the work. The draft graph researches and writes; the production graph turns the script into a video:
-
-```
-brief ─► research ─► script           (draft graph)
-
-    ┌─► scenes ─► visuals ─┐
-    ├─► narrate ┼─► timing ─► critic ─┬─(pass)──────────────────────► render
-    └─► music ──┘                     └─(fail)─► fix ─► recheck ─(pass)─┘
-```
-
-| Node | Type | Job |
-| --- | --- | --- |
-| `brief` | deterministic | Validate the brief and fill the level's defaults |
-| `research` | agent (fast) + crawl | Reads the product website (if given) and writes product notes: what it is, correct names, offerings, facts |
-| `script` | agent (strong) | Turns your notes and the research into a story: narration split into beats, sized to the target duration |
-| `scenes` | agent (fast) | The 3-second intro screen (product name and tagline), then a template and on-screen text per beat |
-| `visuals` | deterministic | Provided images, masked screenshots or concept generation, with text fallbacks |
-| `narrate` | deterministic | Kokoro TTS per beat, with real durations |
-| `music` | agent (fast) + lookup | Mood and tempo, then a track from the CC0 library |
-| `timing` | deterministic | Scene lengths from the real audio |
-| `critic` | hard checks + agent | Duration, pace, every key point told, text limits; then a rubric review (story, names, facts, a finished call to action) |
-| `fix` / `recheck` | agent / deterministic | Repair the spec, re-voice what changed, check again or stop with a report |
-| `render` | deterministic | Revideo renders the frames; ffmpeg mixes, ducks the music under the voice and muxes |
-
-See [docs/architecture.md](docs/architecture.md) for the full picture, and [docs/strands-graph.md](docs/strands-graph.md) for what building it taught us about Strands graphs.
-
-## Customization levels, formats and brand
-
-Low means the agents own more of the work; High means you direct more of it.
-
-| Level | You provide | Stops for approval | Example |
-| --- | --- | --- | --- |
-| `low` | audience, story, key points, closing idea, duration, format, voice gender; optionally a website or other visual source | none |  [low.yaml](examples/briefs/low.yaml), [low-screenshots.yaml](examples/briefs/low-screenshots.yaml) |
-| `medium` | + tone, pacing, brand colors and logo, theme, music mood, CTA URL, accent and speed, full `visuals` block | script | [medium.yaml](examples/briefs/medium.yaml) |
-| `high` | + every scene yourself (template, text, narration, duration, voice, image), music track and volume | script, scenes, images | [high.yaml](examples/briefs/high.yaml), or the studio |
-
-```bash
-uv run reelhive run examples/briefs/medium.yaml
-# edit runs/<run-folder>/script.json if you like, then:
-uv run reelhive approve runs/<run-folder>
-```
-
-Every field is in [docs/brief-reference.md](docs/brief-reference.md).
-
-Medium pauses before narration, visual capture/generation and rendering. High pauses again after planning so every scene, voice, duration, visual, and image approval can be edited before rendering. Approval uses the saved provider configuration and never repeats completed nodes. `low` continues automatically. Formats are `16:9` (1920×1080), `9:16` (1080×1920) and `1:1` (1080×1080).
-
-The local studio includes YAML import/export, uploads and test captures, script and scene editors, the same Revideo scene preview used for final output, live graph and gate events, runs history, downloads, resume/cancel controls, and non-secret provider settings. CLI users can edit `spec.json`, run `reelhive regen <run-folder> --scene N`, then `reelhive approve-scenes <run-folder>`.
-
-See the illustrated [UI user guide](docs/ui-guide.md) for launch options and the complete brief-to-download workflow.
-
-## The studio
-
-`uv run reelhive ui` opens the studio in your browser. It runs only on your machine, on `127.0.0.1`.
-
-### Write the brief
-
-Pick a customization level, then describe who the video is for, the story, your website, a few key points and the closing idea (the form shown in the Quickstart). [Every field](docs/brief-reference.md) can also be set from a YAML file.
-
-### Make it yours
-
-Set duration, format, voice, tone, theme and brand colors, then choose the background music: a mood, or one of the bundled instrumentals, with a preview before you commit.
-
-![Customization controls with the music mood, volume and track selector](docs/screenshots/customise.png)
-
-### Direct the scenes
-
-Every video opens with a 3-second intro screen: the product name, a one-line tagline and your site address in small letters. At the high level you can edit it, and every scene, before anything is rendered.
-
-![The intro title and tagline fields above the scene timeline](docs/screenshots/scene-editor.png)
-
-### Keep every production
-
-The Runs screen lists productions newest first with their start time. Open one to review it, download the video, or choose **Edit brief and make a new video** to change a brief and start a new run.
-
-![The Runs screen with start times, status and actions](docs/screenshots/runs.png)
-
-### Download the result
-
-![A finished production with the video player and download buttons](docs/screenshots/finished.png)
-
-## Visuals
-
-Each scene asks for one of three kinds of visual, and ReelHive fills it from your sources in this order:
-
-| Scene kind | Sources, in order |
+| Guide | What's in it |
 | --- | --- |
-| Product UI | your image → a screenshot of your app → text only |
-| Concept | your image → a generated illustration → text only |
-| None | typography only |
+| [Getting started](docs/getting-started.md) | Install, first video, customization levels, every command |
+| [The studio](docs/studio.md) | A tour of the studio, and one-click quick actions |
+| [UI user guide](docs/ui-guide.md) | The studio, screen by screen |
+| [Brief reference](docs/brief-reference.md) | Every brief field, by level |
+| [Visuals](docs/visuals.md) | Screenshots, your own images and generated images |
+| [AI providers](docs/providers.md) | Choosing and configuring the AI service |
+| [Limits](docs/limits.md) | Durations, text lengths, image sizes, voices and formats |
+| [Privacy and credit](docs/privacy.md) | What leaves your machine, and the ReelHive credit |
+| [Architecture](docs/architecture.md) | How the agents and steps fit together |
+| [All docs](docs/README.md) | Everything else, including the plan and learning notes |
 
-- **Screenshots** of your running app with Playwright: `reelhive login <url>` saves a session after you sign in by hand (ReelHive never sees passwords), `mask` selectors black out emails and keys, and `reelhive capture` previews the shots before you make a video.
-- **Your images**, matched by filename and caption; they stay on your machine unless you opt in to `describe_images`.
-- **Generated images** (OpenAI) for concept scenes only, with a per-run cap and cache. Generated images are never used for product UI.
-
-Details: [docs/visuals.md](docs/visuals.md).
-
-## Voices and formats
-
-| | US | UK |
-| --- | --- | --- |
-| female | `af_heart` (default) | `bf_emma` |
-| male | `am_michael` | `bm_george` |
-
-Kokoro runs locally on CPU, Apple Silicon or CUDA, at speeds from 0.8 to 1.2. Formats: `16:9` (1920×1080), `9:16` (1080×1920) and `1:1` (1080×1080). Templates are listed in [docs/templates.md](docs/templates.md).
-
-## Limits
-
-Values below are enforced by the code, so a brief outside them is rejected with a field error.
-
-### Video
-
-| Limit | Value |
-| --- | --- |
-| Duration | 15 to 180 seconds (default 60). The 3-second intro and the end credit card (1.5 s) count toward the target |
-| Duration accuracy | The finished video must land within ±5% of the target (for example 171-189 s for 180 s), or the critic repairs it |
-| Narration pace | 130-170 words per minute; the floor lowers for a slower voice |
-| Scenes | 2 to 12 beats per script; at most 12 scenes in a high-level brief |
-| Key points | 1 to 8 per brief |
-| Scene length override | 0.5 to 180 seconds |
-| Voice speed | 0.8 to 1.2 |
-| Frame rate | 30 fps |
-| Formats | `16:9` 1920×1080, `9:16` 1080×1920, `1:1` 1080×1080 |
-
-### Brief text
-
-| Field | Limit |
-| --- | --- |
-| Audience, story | At least 3 characters |
-| Closing idea | 3 to 200 characters |
-| Product website | 300 characters, `http(s)` only, no embedded credentials |
-| CTA URL | 60 characters |
-| Brand colors | Up to 3, as `#rrggbb` |
-| Music volume | 0 to 1 (default 0.3) |
-
-### On-screen text
-
-Per template. The agents retry until the text fits, and the renderer checks again.
-
-| Template | Limits |
-| --- | --- |
-| `hook`, `problem`, `image-full`, `screenshot-pan` | Headline 48, subline 80 characters |
-| `feature-card` | Label 4, headline 40, body 110 characters |
-| `cta` | Headline 60, subline 60, site address 60 characters |
-| Intro screen | Title 40, tagline 80, site address 60 characters; shown for 3 seconds, without narration |
-| `bullets` | Headline 48 characters; 1 to 5 items of up to 70 characters |
-| `stat` | Headline 20, subline 80 characters |
-
-### Images and capture
-
-| Limit | Value |
-| --- | --- |
-| Upload formats | PNG, JPEG, WebP |
-| Upload size | 10 MB and 30 megapixels per image (re-encoded on save); requests over 11 MB are refused |
-| Minimum scene image size | 1280×720 for `16:9`, 720×1280 for `9:16`, 720×720 for `1:1` |
-| Screenshot routes | Up to 10; with none given, up to 10 same-origin pages are discovered |
-| Website research | Same origin only, up to 10 pages, the first 3,000 characters of visible text per page |
-| Page load | 30 seconds per page; images must finish loading within 10 seconds |
-| Sign-in window | 10 minutes to finish signing in |
-| Generated images | 0 to 20 per run (default 6); failed attempts count, and product UI is never generated |
-
-### Runs and providers
-
-| Limit | Value |
-| --- | --- |
-| Concurrent productions | One at a time; others queue. Draft runs can run alongside |
-| Background workers | 4 operations at once |
-| Model output | 8,000 tokens per response (`max_tokens` in `config.yaml`) |
-| Copilot | 180 seconds per request |
-| Regeneration note | 2,000 characters |
-| Imported brief file | 100,000 characters |
-| Quick actions | 3 to 4 suggestions per beat or scene |
-
-The UI binds to `127.0.0.1` only. See [docs/brief-reference.md](docs/brief-reference.md) for every field and [docs/templates.md](docs/templates.md) for template details.
-
-## Providers
-
-| Provider | Install | Auth |
-| --- | --- | --- |
-| Claude (default) | built in | `ANTHROPIC_API_KEY` |
-| Amazon Bedrock | built in | AWS profile or IAM role |
-| OpenAI | `uv sync --extra openai` | `OPENAI_API_KEY` |
-| Ollama | `uv sync --extra ollama` | none (local) |
-| GitHub Copilot | `uv sync --extra copilot` | Copilot sign-in, `GH_TOKEN` or `COPILOT_GITHUB_TOKEN` |
-
-```yaml
-# config.yaml
-provider: claude
-nodes: {script: copilot}            # optional per-node overrides
-models:
-  claude: {strong: claude-sonnet-5-5, fast: claude-haiku-5-5}
-  copilot: {strong: YOUR_COPILOT_MODEL, fast: YOUR_COPILOT_MODEL}
-```
-
-Copilot sessions are locked down to a single submit tool; shell and file-write requests are refused. See [docs/providers.md](docs/providers.md) and [docs/copilot-sdk.md](docs/copilot-sdk.md).
-
-## Privacy
-
-| Data | Leaves your machine? |
-| --- | --- |
-| Brief text, script, image filenames and captions, page titles | Yes, to your agent provider (Claude, Bedrock, OpenAI or GitHub Copilot); no, with Ollama |
-| Product website text (when you give a website) | Yes, the research step sends the readable text of up to 10 pages to your agent provider; no, with Ollama |
-| Screenshots | No |
-| Your images | No, unless `describe_images: true` |
-| Image prompts | Yes, to OpenAI, only when `generate` is on |
-| Audio, video, login state | No |
-
-## Credit
-
-Every video ends with a short **Made with ReelHive by Mr.D** card (`credit: end`), or carries a small corner badge (`credit: corner`). To turn the visible credit off:
-
-```bash
-REELHIVE_DISABLE_CREDIT=true uv run reelhive run brief.yaml
-```
-
-An invisible MP4 metadata tag is always written.
-
-## Commands
-
-| Command | What it does |
-| --- | --- |
-| `reelhive init [folder]` | Write a starter `brief.yaml` and `config.yaml` |
-| `reelhive run <brief>` | Make a video (pauses for approval at `medium` and `high`) |
-| `reelhive approve <run>` | Continue after reviewing or editing `script.json` |
-| `reelhive approve-scenes <run>` | Continue after reviewing the scenes and images (`high`) |
-| `reelhive regen <run> --scene N --note "..."` | Redo one scene |
-| `reelhive preview <run> --scene N` | Render one scene alone to check it |
-| `reelhive resume <run>` | Continue an interrupted or cancelled run from its checkpoint |
-| `reelhive ui` | The local editing studio on 127.0.0.1 |
-| `reelhive doctor` | Check dependencies, keys and the credit setting |
-| `reelhive voices` / `reelhive models` | List voices / available models |
-| `reelhive login <url>` / `reelhive capture <brief>` | Save a sign-in for screenshots / preview masked screenshots |
-| `reelhive suggest <run> --beat N [--apply K]` | Quick-action suggestions for one beat or scene; apply one |
-| `reelhive undo <run> --scene N \| --script` | Restore the previous version after a regeneration |
-| `reelhive eval --providers a,b` | Compare providers on the eval set |
-
-Every folder has a README that explains what's in it and how to extend it; start with [src/reelhive](src/reelhive/README.md) and [docs/](docs/README.md).
-
-## Quick actions
-
-On the Script and Scenes screens, the selected beat or scene gets 3-4 suggested edits as buttons, such as "Punchier hook" or "Shorten by ~2s", rendered with CopilotKit from an AG-UI tool call. One click regenerates just that beat or scene; **Undo** puts it back. The same works from the terminal:
-
-```bash
-uv run reelhive suggest runs/<run> --scene 3            # list them
-uv run reelhive suggest runs/<run> --scene 3 --apply 2  # apply the second
-uv run reelhive undo runs/<run> --scene 3
-```
-
-See [docs/copilotkit.md](docs/copilotkit.md).
-
-## Evals
-
-`reelhive eval --providers claude,bedrock --set core` scores scripts, scene specs and image prompts across providers on a 24-brief dataset, without rendering video or paying for images, and writes a comparison report. Prompt changes are gated in CI against a baseline. See [evals/README.md](evals/README.md).
+Every folder also has a README explaining what's in it and how to extend it.
 
 ## Contributing
 
-```bash
-make test        # pytest with fakes (no API keys, no network) + renderer vitest
-make test-slow   # real Kokoro + real Revideo render
-make lint        # ruff, mypy, tsc
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) and the [evals](evals/README.md).
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) and the [plan](docs/plan.md).
+## License
 
-## License and credits
-
-Code: [Apache-2.0](LICENSE). The Mr.D name and artwork are not covered by the code license ([assets/brand/LICENSE.md](assets/brand/LICENSE.md)); the illustrations were made with AI from the Mr.D artwork and curated by hand. The placeholder music in `assets/music` is generated by `scripts/make_music.py` and dedicated to the public domain (CC0-1.0).
-
-Built on [Strands Agents](https://strandsagents.com), [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M), [Revideo](https://re.video), [Playwright](https://playwright.dev), [ffmpeg](https://ffmpeg.org) and the [GitHub Copilot SDK](https://github.com/github/copilot-sdk).
+Code: [Apache-2.0](LICENSE). The Mr.D name and artwork are not covered by the code license ([assets/brand/LICENSE.md](assets/brand/LICENSE.md)); the illustrations were made with AI from the Mr.D artwork and curated by hand. The placeholder music in `assets/music` is public domain (CC0-1.0). Acknowledgements are in [Architecture](docs/architecture.md#built-on).
