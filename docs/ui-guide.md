@@ -153,6 +153,8 @@ When the status reaches **Done**, the final section provides:
 - **Download all files (.zip)**: everything the production made (brief, product research, script, scene plan, audio, video and run log), to archive, re-run from the CLI, or share for troubleshooting;
 - **Reveal folder** to open the local run directory.
 
+To try a variation, choose **Edit brief and make a new video** at the top of any production. It opens **New video** with that production's brief filled in; change what you like and create the video again. This starts a new run and leaves the original untouched.
+
 ## 7. Manage the run library
 
 Choose **Runs** to search and filter every production in the selected runs folder.

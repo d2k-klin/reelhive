@@ -7,7 +7,7 @@ import os
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import FunctionNode
 from reelhive.schemas.brief import Brief
-from reelhive.schemas.scene_spec import CREDIT_SECONDS, Credit, SceneSpec
+from reelhive.schemas.scene_spec import CREDIT_SECONDS, INTRO_SECONDS, Credit, CtaScene, SceneSpec, display_url
 
 WPM_TARGET = 145  # what the script writer aims for; the pace check allows 130-170
 SPEECH_WPM = 161  # measured Kokoro rate at speed 1.0 (docs/plan.md, M1 notes)
@@ -25,10 +25,23 @@ def credit_for(brief: Brief) -> Credit | None:
     return Credit(mode=brief.credit, duration=CREDIT_SECONDS if brief.credit == "end" else 0.0)
 
 
-def available_seconds(brief: Brief) -> float:
-    """Seconds left for scenes once the end credit is counted into the target."""
+def intro_seconds(spec: SceneSpec) -> float:
+    return spec.intro.duration if spec.intro else 0.0
+
+
+def place_urls(spec: SceneSpec, brief: Brief) -> None:
+    """The site address is code, not copy: small on the intro, and under the closing call to action."""
+    if spec.intro and spec.intro.url is None:
+        spec.intro.url = display_url(brief.website or brief.cta_url)
+    closing = next((s for s in reversed(spec.scenes) if isinstance(s, CtaScene)), None)
+    if closing and closing.text.url is None:
+        closing.text.url = display_url(brief.cta_url or brief.website)
+
+
+def available_seconds(brief: Brief, intro: float = INTRO_SECONDS) -> float:
+    """Seconds left for scenes once the intro and the end credit are counted into the target."""
     credit = credit_for(brief)
-    return brief.duration - (credit.duration if credit else 0.0)
+    return brief.duration - intro - (credit.duration if credit else 0.0)
 
 
 def target_words(brief: Brief) -> int:
@@ -46,7 +59,9 @@ def _frames(seconds: float) -> float:
 
 def apply_timing(spec: SceneSpec, narrated: dict[int, tuple[str, float]], brief: Brief) -> SceneSpec:
     spec.credit = credit_for(brief)
-    available = available_seconds(brief)
+    place_urls(spec, brief)
+    opening = intro_seconds(spec)
+    available = available_seconds(brief, opening)
     base = [narrated[s.index][1] + LEAD + TAIL for s in spec.scenes]
     flexible = sum(s.duration_override is None for s in spec.scenes)
     gap = available - sum(
@@ -57,7 +72,7 @@ def apply_timing(spec: SceneSpec, narrated: dict[int, tuple[str, float]], brief:
         delta = min(MAX_EXTRA, gap / max(1, flexible))
     else:
         delta = -min(TAIL - TAIL_MIN, -gap / max(1, flexible))
-    end = 0.0
+    end = opening
     for scene, length in zip(spec.scenes, base, strict=True):
         # Round the boundaries, not each length, so frame rounding never accumulates.
         scene.audio = f"audio/scene_{scene.index:02d}.wav"

@@ -70,7 +70,9 @@ def hard_checks(
     )
 
     words = sum(len(s.narration.split()) for s in spec.scenes)
-    minutes = (spec.duration - (spec.credit.duration if spec.credit else 0)) / 60
+    credit_seconds = spec.credit.duration if spec.credit else 0
+    intro_seconds = spec.intro.duration if spec.intro else 0
+    minutes = (spec.duration - credit_seconds - intro_seconds) / 60
     wpm = round(words / minutes) if minutes > 0 else 0
     # The floor catches scripts that leave long silences. A slow voice can't reach 130 wpm of video
     # however the script is cut, so the floor follows the voice's measured rate (a 125-wpm voice once
@@ -161,6 +163,9 @@ def run_gates(ctx: RunContext, node: str) -> list[str]:
 
 def scenes_block(spec: SceneSpec, narrated: dict[int, tuple[str, float]]) -> str:
     lines = []
+    if spec.intro:
+        shown = spec.intro.model_dump_json(exclude_none=True, exclude={"duration"})
+        lines.append(f"Intro screen ({spec.intro.duration:.0f}s, no narration): {shown}")
     for s in spec.scenes:
         speech = narrated.get(s.index, ("", 0.0))[1]
         lines.append(

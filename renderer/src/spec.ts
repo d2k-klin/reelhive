@@ -20,6 +20,13 @@ export interface Credit {
   duration: number;
 }
 
+export interface Intro {
+  title: string;
+  tagline?: string | null;
+  url?: string | null;
+  duration: number;
+}
+
 export interface Spec {
   version: number;
   theme?: Record<string, string | null>;
@@ -27,6 +34,7 @@ export interface Spec {
   height: number;
   fps: number;
   duration: number;
+  intro?: Intro | null;
   scenes: SceneSpec[];
   credit: Credit | null;
 }
@@ -40,15 +48,31 @@ const TEXT_DEFS: Record<Template, string> = {
   problem: 'HookText', stat: 'StatText', bullets: 'BulletsText',
 };
 
-/** Character limits per template field, read from the generated JSON Schema. */
-export function limitsFor(template: Template): Record<string, number> {
-  const props = (schema as any).$defs[TEXT_DEFS[template]].properties as Record<string, any>;
+/** Character limits per field of one text definition, read from the generated JSON Schema. */
+function limitsOf(def: string): Record<string, number> {
+  const props = (schema as any).$defs[def].properties as Record<string, any>;
   const limits: Record<string, number> = {};
-  for (const [field, def] of Object.entries(props)) {
-    const max = def.maxLength ?? def.anyOf?.find((d: any) => d.maxLength)?.maxLength;
+  for (const [field, prop] of Object.entries(props)) {
+    const max = prop.maxLength ?? prop.anyOf?.find((d: any) => d.maxLength)?.maxLength;
     if (max) limits[field] = max;
   }
   return limits;
+}
+
+/** Character limits per template field. */
+export function limitsFor(template: Template): Record<string, number> {
+  return limitsOf(TEXT_DEFS[template]);
+}
+
+/** Throws on an intro that would overflow; Python validates first, this is the last guard. */
+export function checkIntro(intro: Intro): Intro {
+  for (const [field, max] of Object.entries(limitsOf('Intro'))) {
+    const value = (intro as any)[field];
+    if (typeof value === 'string' && value.length > max) {
+      throw new Error(`intro: ${field} is ${value.length} chars, limit ${max}`);
+    }
+  }
+  return intro;
 }
 
 /** Throws on text that would overflow a template; Python validates first, this is the last guard. */

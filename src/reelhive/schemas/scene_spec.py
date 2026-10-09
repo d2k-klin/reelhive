@@ -9,14 +9,49 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Annotated, Literal
+from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from reelhive.schemas.voice import Voice
 
 FORMATS = {"16:9": (1920, 1080), "9:16": (1080, 1920), "1:1": (1080, 1080)}
 CREDIT_TEXT = "Made with ReelHive by Mr.D"  # mirrors renderer/src/templates/credit.tsx (contract-tested)
 CREDIT_SECONDS = 1.5
+INTRO_SECONDS = 3.0
+
+
+def display_url(raw: str | None) -> str | None:
+    """A site address as people say it: no scheme, `www.`, query or trailing slash. None if it can't fit."""
+    if not raw:
+        return None
+    parsed = urlparse(raw if "://" in raw else f"https://{raw}")
+    host = (parsed.hostname or "").removeprefix("www.")
+    if not host:
+        return None
+    shown = host + parsed.path.rstrip("/")
+    shown = shown if len(shown) <= 60 else host
+    return shown if len(shown) <= 60 else None
+
+
+class IntroText(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str = Field(
+        min_length=1,
+        max_length=40,
+        description="The product or brand name, spelled and capitalised exactly as its owner writes it",
+    )
+    tagline: str | None = Field(
+        None, max_length=80, description="What it is, in one short line: a claim, not details or key points"
+    )
+
+
+class Intro(IntroText):
+    """The opening screen shown before the first scene; it has no narration."""
+
+    url: str | None = Field(None, max_length=60, description="Site address, shown small; set from the brief")
+    duration: float = Field(INTRO_SECONDS, ge=1, le=10)
 
 
 class HookText(BaseModel):
@@ -33,6 +68,7 @@ class FeatureCardText(BaseModel):
 class CtaText(BaseModel):
     headline: str = Field(max_length=60)
     subline: str | None = Field(None, max_length=60)
+    url: str | None = Field(None, max_length=60, description="Site address, shown small; set from the brief")
 
 
 class VisualRequest(BaseModel):
@@ -148,6 +184,7 @@ class SceneSpec(BaseModel):
     fps: int = 30
     duration: float = 0.0
     theme: Theme = Theme()
+    intro: Intro | None = None
     scenes: list[Scene] = Field(min_length=1)
     credit: Credit | None = None
     music_volume: float = Field(0.3, ge=0, le=1)

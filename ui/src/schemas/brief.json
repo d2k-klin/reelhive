@@ -197,6 +197,46 @@
       "default": null,
       "title": "Cta Url"
     },
+    "intro": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "title": {
+              "description": "The product or brand name, spelled and capitalised exactly as its owner writes it",
+              "maxLength": 40,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "tagline": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "What it is, in one short line: a claim, not details or key points",
+              "title": "Tagline"
+            }
+          },
+          "required": [
+            "title"
+          ],
+          "title": "IntroText",
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Opening screen text; when set it is used exactly. Otherwise the agents write it"
+    },
     "visuals": {
       "additionalProperties": false,
       "properties": {
@@ -1096,6 +1136,20 @@
                         ],
                         "default": null,
                         "title": "Subline"
+                      },
+                      "url": {
+                        "anyOf": [
+                          {
+                            "maxLength": 60,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Site address, shown small; set from the brief",
+                        "title": "Url"
                       }
                     },
                     "required": [

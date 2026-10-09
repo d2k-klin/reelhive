@@ -317,6 +317,8 @@ class Service:
             scene.audio = old.audio
             scene.image_approved = scene.image_approved if same_visual else False
         ctx.spec.scenes = spec.scenes
+        if spec.intro and ctx.spec.intro:  # only the words are editable; address and length are set by code
+            ctx.spec.intro.title, ctx.spec.intro.tagline = spec.intro.title, spec.intro.tagline
         ctx.spec.music_volume = spec.music_volume
         self.refresh_scenes(ctx)
         self._status(ctx, "awaiting_scenes")
@@ -405,6 +407,7 @@ class Service:
                 "scenes": [scene.model_copy(update={"index": 1, "start": 0.0, "duration": length})],
                 "duration": length,
                 "credit": None,
+                "intro": None,
                 "music": None,
             }
         )

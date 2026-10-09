@@ -1,9 +1,10 @@
 /** @jsxImportSource @revideo/2d/lib */
 import {makeScene2D, Rect, Img} from '@revideo/2d';
 import {useScene} from '@revideo/core';
-import {checkScene, type Spec} from '../spec';
+import {checkIntro, checkScene, type Spec} from '../spec';
 import {addCreditCorner, creditEnd} from '../templates/credit';
 import {imageFull} from '../templates/image-full';
+import {introCard} from '../templates/intro';
 import {TEMPLATES} from '../templates';
 import {currentTheme} from '../themes/default';
 
@@ -19,6 +20,7 @@ export default makeScene2D('from-spec', function* (view) {
     view.add(logo);
   }
   if (spec.credit?.mode === 'corner') addCreditCorner(view);
+  if (spec.intro) yield* introCard(view, checkIntro(spec.intro));
   for (const scene of spec.scenes) {
     checkScene(scene);
     yield* (scene.visual ? imageFull : TEMPLATES[scene.template])(view, scene);

@@ -10,8 +10,8 @@ A brief is a YAML file of **notes**, not copy. Write the audience, story, key po
 | `audience` | text | required | Who the video is for |
 | `storyline` | text | required | The arc in a sentence or two |
 | `features` | list, 1-8 | required | Key points as rough notes. The agents may merge, split or reorder them and write their own wording; the gate only checks that each note is told by some scene |
-| `website` | URL | none | Product website: the `research` step reads up to 10 same-origin pages for facts and correct names, and it becomes the screenshot source unless `visuals` says otherwise. Its text goes to your agent provider |
-| `duration` | seconds, 15-180 | `60` | The end credit counts toward it |
+| `website` | URL | none | Product website: the `research` step reads up to 10 same-origin pages for facts and correct names, and it becomes the screenshot source unless `visuals` says otherwise. Its text goes to your agent provider. Shown small, without `https://` or `www.`, on the intro screen |
+| `duration` | seconds, 15-180 | `60` | The 3-second intro and the end credit count toward it |
 | `format` | `16:9` \| `9:16` \| `1:1` | `16:9` | 1920×1080, 1080×1920, 1080×1080 |
 | `voice.gender` | `female` \| `male` | `female` | |
 | `closing` | text, ≤200 | required | The idea of the closing call to action. The agents polish it into a finished line; it is never copied verbatim |
@@ -19,6 +19,8 @@ A brief is a YAML file of **notes**, not copy. Write the audience, story, key po
 | `visuals` | block | none | See [visuals.md](visuals.md) |
 
 At `low`, accent and speed are fixed to `us` and `1.0`, and production starts straight after the script.
+
+Every video opens with a 3-second intro screen: the product name, a one-line tagline and, when you gave a `website` or `cta_url`, the address in small letters. The agents write the name and tagline; the name is spelled with exactly the capital and small letters of the website (or, without a website, of your notes). The same address is shown small under the closing call to action. To fix the words yourself, set `intro` (any level).
 
 ## Medium adds
 
@@ -32,7 +34,8 @@ At `low`, accent and speed are fixed to `us` and `1.0`, and production starts st
 | `brand.logo` | path | none | Copied into the run folder, shown in a corner |
 | `theme` | `default` \| `dark` \| `brand` | `default` | |
 | `music_mood` | `calm` \| `upbeat` \| `dramatic` \| `inspiring` \| `tech` | chosen by the music agent | |
-| `cta_url` | text, ≤60 | none | Shown on the closing card |
+| `cta_url` | text, ≤60 | none | Shown small under the closing call to action, and on the intro screen when there is no `website` |
+| `intro` | `title` (≤40), `tagline` (≤80, optional) | written by the `scenes` agent | The intro screen's words, used exactly as written. Briefs that supply their own `scenes` get an intro only when this is set |
 
 Medium pauses after the script. Edit `runs/<run>/script.json` if you like, then run `reelhive approve runs/<run>`.
 

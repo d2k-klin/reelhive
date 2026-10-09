@@ -142,7 +142,7 @@ def make_plan(brief: Brief, drop_feature: int | None = None, narration: list[str
     if narration:
         for s, n in zip(scenes, narration, strict=True):
             s["narration"] = n
-    return {"scenes": scenes}
+    return {"intro": {"title": "CostHive", "tagline": "Find and fix cloud waste"}, "scenes": scenes}
 
 
 VERDICT_PASS = {"hook": 4, "clarity": 4, "audience_fit": 5, "storyline": 4, "cta": 4, "passed": True, "reasons": []}

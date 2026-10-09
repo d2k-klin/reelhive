@@ -9,7 +9,7 @@ Score each from 1 to 5:
 - storyline: does the video tell the brief's story and make every key point mean something to the viewer?
 - cta: is the final call to action clear, complete and motivating, and does it carry out the brief's closing idea? Unfinished or garbled endings score 1.
 
-Also fail the video for misspelled product names, invented facts, or on-screen text that is broken or truncated.
+Also fail the video for misspelled product names, names whose capital and small letters differ from the research `names` (or, without research, from how the user wrote them in the brief), invented facts, or on-screen text that is broken or truncated. Check the intro screen too: its title must be the exact product name and its tagline a short claim, not details.
 
 Set `passed` to false only if any score is below 3 or one of those problems is present, and then list concrete, fixable reasons. Be strict but fair: a competent video should pass.
 

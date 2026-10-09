@@ -17,6 +17,7 @@ from reelhive.schemas.scene_spec import (
     HookScene,
     HookText,
     ImageScene,
+    IntroText,
     ProblemScene,
     ScreenshotScene,
     StatScene,
@@ -89,6 +90,11 @@ class PlannedScene(BaseModel):
 
 
 class ScenePlan(BaseModel):
+    intro: IntroText | None = Field(
+        None,
+        description="The 3-second opening screen. Always set it when planning scenes; when repairing, only if the"
+        " failures name it",
+    )
     scenes: list[PlannedScene] = Field(min_length=1)
 
 

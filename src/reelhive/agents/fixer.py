@@ -4,7 +4,8 @@ from reelhive.agents.critic import scenes_block, voice_wpm
 from reelhive.agents.plan import ScenePlan, brief_block, notes_block, research_block
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode
-from reelhive.nodes.timing_node import LEAD, TAIL_MIN, available_seconds, target_words
+from reelhive.nodes.timing_node import LEAD, TAIL_MIN, available_seconds, intro_seconds, place_urls, target_words
+from reelhive.schemas.scene_spec import Intro
 
 
 def fit_words(ctx: RunContext) -> int:
@@ -12,7 +13,7 @@ def fit_words(ctx: RunContext) -> int:
     assert ctx.spec
     if not ctx.narrated:
         return target_words(ctx.brief)
-    speech = available_seconds(ctx.brief) - len(ctx.spec.scenes) * (LEAD + TAIL_MIN)
+    speech = available_seconds(ctx.brief, intro_seconds(ctx.spec)) - len(ctx.spec.scenes) * (LEAD + TAIL_MIN)
     return max(10, round(min(speech * voice_wpm(ctx.spec, ctx.narrated) / 60, target_words(ctx.brief) * 1.15)))
 
 
@@ -40,6 +41,9 @@ class FixerNode(AgentNode):
         previous = {s.index: s for s in ctx.spec.scenes}
         old = {s.index: s.narration for s in ctx.spec.scenes}
         ctx.spec.scenes = [p.to_scene(i, p.narration or old.get(i, "")) for i, p in enumerate(out.scenes, start=1)]
+        if out.intro and not ctx.brief.intro:  # the brief's own intro text is never rewritten
+            ctx.spec.intro = Intro(**out.intro.model_dump())
+        place_urls(ctx.spec, ctx.brief)
         for scene in ctx.spec.scenes:
             prior = previous.get(scene.index)
             if prior and "visual_request" not in out.scenes[scene.index - 1].model_fields_set:

@@ -14,6 +14,7 @@ import uuid
 import zipfile
 from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +43,7 @@ class RunView(BaseModel):
     report: list[str] = []
     queue_position: int | None = None
     video: bool = False
+    created_at: datetime
 
 
 class Workspace:
@@ -109,17 +111,19 @@ class Workspace:
             report=state.get("report", []),
             queue_position=position,
             video=(path / "video.mp4").exists(),
+            # config.json is written once, when the run is created
+            created_at=datetime.fromtimestamp((path / "config.json").stat().st_mtime, tz=UTC),
         )
 
     def list_runs(self) -> list[RunView]:
         runs = []
-        for path in sorted(self.root.iterdir(), reverse=True):
+        for path in self.root.iterdir():
             if path.is_dir() and (path / "status.json").is_file():
                 try:
                     runs.append(self.details(path.name))
                 except (ValueError, OSError):
                     continue
-        return runs
+        return sorted(runs, key=lambda run: (run.created_at, run.id), reverse=True)
 
     def create(self, brief: Brief, start: bool = True) -> RunView:
         # Editing/upload folders do not initialize providers or make model calls.

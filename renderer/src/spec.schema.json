@@ -291,6 +291,20 @@
           ],
           "default": null,
           "title": "Subline"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "maxLength": 60,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Site address, shown small; set from the brief",
+          "title": "Url"
         }
       },
       "required": [
@@ -695,6 +709,59 @@
         "text"
       ],
       "title": "ImageScene",
+      "type": "object"
+    },
+    "Intro": {
+      "additionalProperties": false,
+      "description": "The opening screen shown before the first scene; it has no narration.",
+      "properties": {
+        "title": {
+          "description": "The product or brand name, spelled and capitalised exactly as its owner writes it",
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "tagline": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What it is, in one short line: a claim, not details or key points",
+          "title": "Tagline"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "maxLength": 60,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Site address, shown small; set from the brief",
+          "title": "Url"
+        },
+        "duration": {
+          "default": 3.0,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Duration",
+          "type": "number"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "title": "Intro",
       "type": "object"
     },
     "ProblemScene": {
@@ -1259,6 +1326,17 @@
         "accent": "#f5a524",
         "logo": null
       }
+    },
+    "intro": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Intro"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "scenes": {
       "items": {

@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from reelhive.schemas.scene_spec import Scene
+from reelhive.schemas.scene_spec import IntroText, Scene
 from reelhive.schemas.voice import Voice
 
 Color = Annotated[str, Field(pattern=r"^#[0-9a-fA-F]{6}$")]
@@ -103,6 +103,9 @@ class Brief(Options):
     theme: Literal["default", "dark", "brand"] = "default"
     music_mood: Literal["calm", "upbeat", "dramatic", "inspiring", "tech"] | None = None
     cta_url: str | None = Field(None, max_length=60)
+    intro: IntroText | None = Field(
+        None, description="Opening screen text; when set it is used exactly. Otherwise the agents write it"
+    )
     visuals: Visuals = Visuals()
 
     scenes: list[Scene] | None = Field(None, min_length=1, max_length=12)

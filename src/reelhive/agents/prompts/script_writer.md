@@ -11,6 +11,7 @@ Story:
 - End with the call to action (role "cta"). The closing idea tells you what the viewer should do; write it as a clear, finished, confident line. Fix typos and incomplete words (for example "with War" when the research names "WardBee"), and never end mid-sentence.
 
 Wording:
+- Names: say every product, company, feature and technology name exactly as the research `names` spell it, with the same capital and small letters (for example `ScanComb`, never `Scancomb` or `Scan Comb`). Without research, copy the name exactly as the user wrote it in the brief. Never change the case of a name to look more standard, and never split or merge it.
 - Never copy the notes' wording. Translate each note into what it means for this audience: a benefit, an outcome or a moment they recognise.
 - Write for the ear: plain spoken sentences, no markdown, no emoji, no lists, no stage directions, no URLs read out character by character.
 - Speak to the stated audience in the requested tone and pacing.

@@ -26,7 +26,7 @@ SUGGESTIONS = {
 
 def script_for(brief: Brief, drop_feature: bool = False) -> dict:
     roles = ["hook", *([] if brief.duration < 30 else ["problem"]), *(["feature"] * len(brief.features)), "cta"]
-    per = target_words(brief) // len(roles)
+    per = -(-target_words(brief) // len(roles))  # round up: a script that hits the target, not one just under it
     notes = [None] * (len(roles) - len(brief.features) - 1) + list(range(1, len(brief.features) + 1)) + [None]
     beats = []
     for role, note in zip(roles, notes, strict=True):

@@ -715,6 +715,8 @@ export interface components {
             music_mood?: ("calm" | "upbeat" | "tech" | "dramatic" | "inspiring") | null;
             /** Cta Url */
             cta_url?: string | null;
+            /** @description Opening screen text; when set it is used exactly. Otherwise the agents write it */
+            intro?: components["schemas"]["IntroText"] | null;
             /**
              * @default {
              *       "source": "auto",
@@ -930,6 +932,11 @@ export interface components {
             headline: string;
             /** Subline */
             subline?: string | null;
+            /**
+             * Url
+             * @description Site address, shown small; set from the brief
+             */
+            url?: string | null;
         };
         /** Defaults */
         Defaults: {
@@ -1171,6 +1178,45 @@ export interface components {
              */
             describe_images: boolean;
         };
+        /**
+         * Intro
+         * @description The opening screen shown before the first scene; it has no narration.
+         */
+        Intro: {
+            /**
+             * Title
+             * @description The product or brand name, spelled and capitalised exactly as its owner writes it
+             */
+            title: string;
+            /**
+             * Tagline
+             * @description What it is, in one short line: a claim, not details or key points
+             */
+            tagline?: string | null;
+            /**
+             * Url
+             * @description Site address, shown small; set from the brief
+             */
+            url?: string | null;
+            /**
+             * Duration
+             * @default 3
+             */
+            duration: number;
+        };
+        /** IntroText */
+        IntroText: {
+            /**
+             * Title
+             * @description The product or brand name, spelled and capitalised exactly as its owner writes it
+             */
+            title: string;
+            /**
+             * Tagline
+             * @description What it is, in one short line: a claim, not details or key points
+             */
+            tagline?: string | null;
+        };
         /** LoginRequest */
         LoginRequest: {
             /** Run Id */
@@ -1270,6 +1316,11 @@ export interface components {
              * @default false
              */
             video: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /** SceneSpec */
         SceneSpec: {
@@ -1313,6 +1364,7 @@ export interface components {
              *     }
              */
             theme: components["schemas"]["Theme"];
+            intro?: components["schemas"]["Intro"] | null;
             /** Scenes */
             scenes: (components["schemas"]["HookScene"] | components["schemas"]["FeatureCardScene"] | components["schemas"]["CtaScene"] | components["schemas"]["ImageScene"] | components["schemas"]["ScreenshotScene"] | components["schemas"]["ProblemScene"] | components["schemas"]["StatScene"] | components["schemas"]["BulletsScene"])[];
             credit?: components["schemas"]["Credit"] | null;

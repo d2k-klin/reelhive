@@ -8,8 +8,15 @@ from strands.types.event_loop import Usage
 from reelhive.agents.plan import ScenePlan, brief_block, notes_block, research_block
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode
-from reelhive.schemas.scene_spec import FORMATS, SceneSpec
+from reelhive.nodes.timing_node import place_urls
+from reelhive.schemas.scene_spec import FORMATS, Intro, IntroText, SceneSpec
 from reelhive.visuals.resolver import catalog, theme_for
+
+
+def opening_for(ctx: RunContext, planned: IntroText | None) -> Intro | None:
+    """The intro: the brief's own text if it gave one, else the agent's."""
+    text = ctx.brief.intro or planned
+    return Intro(**text.model_dump()) if text else None
 
 
 class ScenePlannerNode(AgentNode):
@@ -28,10 +35,12 @@ class ScenePlannerNode(AgentNode):
                 format=ctx.brief.format,
                 width=width,
                 height=height,
+                intro=opening_for(ctx, None),
                 scenes=[s.model_copy(deep=True) for s in ctx.brief.scenes],
                 theme=theme_for(ctx),
                 music_volume=ctx.brief.music_volume,
             )
+            place_urls(ctx.spec, ctx.brief)
             return {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}
         if ctx.brief.visuals.images and getattr(ctx.brief.visuals.images, "describe_images", False):
             from reelhive.visuals.provided import describe
@@ -64,9 +73,13 @@ class ScenePlannerNode(AgentNode):
             format=ctx.brief.format,
             width=width,
             height=height,
+            intro=opening_for(ctx, out.intro),
             scenes=[
                 p.to_scene(i, b.narration).model_copy(update={"covers": p.covers or b.covers})
                 for i, (p, b) in enumerate(zip(out.scenes, beats, strict=True), 1)
             ],
         )
+        place_urls(ctx.spec, ctx.brief)
+        intro = ctx.spec.intro
+        ctx.events.emit("node.task", node=self.name, task=f"Intro: {intro.title}" if intro else "No intro title given")
         ctx.events.emit("node.task", node=self.name, task=f"{len(out.scenes)} scenes planned")

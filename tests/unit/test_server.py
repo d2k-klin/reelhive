@@ -1,3 +1,5 @@
+import os
+
 from fastapi.testclient import TestClient
 
 from reelhive.config import Config
@@ -16,6 +18,19 @@ def sample_brief() -> Brief:
         closing="Make the cut",
         visuals={"source": "none"},
     )
+
+
+def test_runs_are_listed_newest_first_with_their_start_time(tmp_path):
+    workspace = Workspace(Config(runs_dir=tmp_path / "runs"))
+    started = {}
+    for offset in (1000, 3000, 2000):  # creation order differs from time order, and run ids are random
+        run = workspace.create(sample_brief(), start=False)
+        os.utime(workspace.path(run.id) / "config.json", (1_800_000_000 + offset, 1_800_000_000 + offset))
+        started[run.id] = offset
+    listed = workspace.list_runs()
+    assert [started[run.id] for run in listed] == [3000, 2000, 1000]
+    assert [run.created_at.timestamp() for run in listed] == [1_800_003_000, 1_800_002_000, 1_800_001_000]
+    assert listed[0].created_at.utcoffset().total_seconds() == 0
 
 
 def test_local_api_rejects_missing_token_host_and_origin(tmp_path):

@@ -18,6 +18,10 @@ export function* cta(view: View2D, scene: SceneSpec) {
             fill={theme.background} textWrap textAlign="center" width={w * 0.65} />
         </Rect>
       ) : null}
+      {scene.text.url ? (
+        <Txt text={scene.text.url} fontFamily={theme.font} fontSize={w * (portrait ? 0.026 : 0.015)}
+          fill={theme.muted} opacity={0.8} textAlign="center" />
+      ) : null}
     </Layout>
   );
   yield* playFor(view, node, scene.duration);

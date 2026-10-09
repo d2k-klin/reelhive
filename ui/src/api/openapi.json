@@ -1577,6 +1577,17 @@
             ],
             "title": "Cta Url"
           },
+          "intro": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntroText"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Opening screen text; when set it is used exactly. Otherwise the agents write it"
+          },
           "visuals": {
             "$ref": "#/components/schemas/Visuals",
             "default": {
@@ -2097,6 +2108,19 @@
               }
             ],
             "title": "Subline"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "Site address, shown small; set from the brief"
           }
         },
         "type": "object",
@@ -2636,6 +2660,87 @@
         ],
         "title": "Images"
       },
+      "Intro": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Title",
+            "description": "The product or brand name, spelled and capitalised exactly as its owner writes it"
+          },
+          "tagline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tagline",
+            "description": "What it is, in one short line: a claim, not details or key points"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "Site address, shown small; set from the brief"
+          },
+          "duration": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Duration",
+            "default": 3.0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "Intro",
+        "description": "The opening screen shown before the first scene; it has no narration."
+      },
+      "IntroText": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Title",
+            "description": "The product or brand name, spelled and capitalised exactly as its owner writes it"
+          },
+          "tagline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tagline",
+            "description": "What it is, in one short line: a claim, not details or key points"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "IntroText"
+      },
       "LoginRequest": {
         "properties": {
           "run_id": {
@@ -2863,12 +2968,18 @@
             "type": "boolean",
             "title": "Video",
             "default": false
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
           }
         },
         "type": "object",
         "required": [
           "id",
-          "status"
+          "status",
+          "created_at"
         ],
         "title": "RunView"
       },
@@ -2913,6 +3024,16 @@
               "muted": "#a8a29e",
               "accent": "#f5a524"
             }
+          },
+          "intro": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Intro"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "scenes": {
             "items": {

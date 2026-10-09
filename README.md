@@ -29,7 +29,7 @@ uv run reelhive ui                                # the local editing studio, in
 uv run reelhive run examples/briefs/low.yaml
 ```
 
-![The ReelHive studio: brief, script and scene editing, live production graph](docs/m3-ui.png)
+![The ReelHive studio: the new-video brief form](docs/screenshots/new-video.png)
 
 The video lands in `runs/<timestamp>_<slug>/video.mp4`, next to the script, the scene spec, the audio and a `run.log.jsonl` of every step. Cloning is the install method: the Node renderer lives next to the Python package, so nothing is published to PyPI or npm.
 
@@ -50,7 +50,7 @@ brief ─► research ─► script           (draft graph)
 | `brief` | deterministic | Validate the brief and fill the level's defaults |
 | `research` | agent (fast) + crawl | Reads the product website (if given) and writes product notes: what it is, correct names, offerings, facts |
 | `script` | agent (strong) | Turns your notes and the research into a story: narration split into beats, sized to the target duration |
-| `scenes` | agent (fast) | A template and on-screen text per beat |
+| `scenes` | agent (fast) | The 3-second intro screen (product name and tagline), then a template and on-screen text per beat |
 | `visuals` | deterministic | Provided images, masked screenshots or concept generation, with text fallbacks |
 | `narrate` | deterministic | Kokoro TTS per beat, with real durations |
 | `music` | agent (fast) + lookup | Mood and tempo, then a track from the CC0 library |
@@ -85,6 +85,36 @@ The local studio includes YAML import/export, uploads and test captures, script 
 
 See the illustrated [UI user guide](docs/ui-guide.md) for launch options and the complete brief-to-download workflow.
 
+## The studio
+
+`uv run reelhive ui` opens the studio in your browser. It runs only on your machine, on `127.0.0.1`.
+
+### Write the brief
+
+Pick a customization level, then describe who the video is for, the story, your website, a few key points and the closing idea (the form shown in the Quickstart). [Every field](docs/brief-reference.md) can also be set from a YAML file.
+
+### Make it yours
+
+Set duration, format, voice, tone, theme and brand colors, then choose the background music: a mood, or one of the bundled instrumentals, with a preview before you commit.
+
+![Customization controls with the music mood, volume and track selector](docs/screenshots/customise.png)
+
+### Direct the scenes
+
+Every video opens with a 3-second intro screen: the product name, a one-line tagline and your site address in small letters. At the high level you can edit it, and every scene, before anything is rendered.
+
+![The intro title and tagline fields above the scene timeline](docs/screenshots/scene-editor.png)
+
+### Keep every production
+
+The Runs screen lists productions newest first with their start time. Open one to review it, download the video, or choose **Edit brief and make a new video** to change a brief and start a new run.
+
+![The Runs screen with start times, status and actions](docs/screenshots/runs.png)
+
+### Download the result
+
+![A finished production with the video player and download buttons](docs/screenshots/finished.png)
+
 ## Visuals
 
 Each scene asks for one of three kinds of visual, and ReelHive fills it from your sources in this order:
@@ -109,6 +139,75 @@ Details: [docs/visuals.md](docs/visuals.md).
 | male | `am_michael` | `bm_george` |
 
 Kokoro runs locally on CPU, Apple Silicon or CUDA, at speeds from 0.8 to 1.2. Formats: `16:9` (1920×1080), `9:16` (1080×1920) and `1:1` (1080×1080). Templates are listed in [docs/templates.md](docs/templates.md).
+
+## Limits
+
+Values below are enforced by the code, so a brief outside them is rejected with a field error.
+
+### Video
+
+| Limit | Value |
+| --- | --- |
+| Duration | 15 to 180 seconds (default 60). The 3-second intro and the end credit card (1.5 s) count toward the target |
+| Duration accuracy | The finished video must land within ±5% of the target (for example 171-189 s for 180 s), or the critic repairs it |
+| Narration pace | 130-170 words per minute; the floor lowers for a slower voice |
+| Scenes | 2 to 12 beats per script; at most 12 scenes in a high-level brief |
+| Key points | 1 to 8 per brief |
+| Scene length override | 0.5 to 180 seconds |
+| Voice speed | 0.8 to 1.2 |
+| Frame rate | 30 fps |
+| Formats | `16:9` 1920×1080, `9:16` 1080×1920, `1:1` 1080×1080 |
+
+### Brief text
+
+| Field | Limit |
+| --- | --- |
+| Audience, story | At least 3 characters |
+| Closing idea | 3 to 200 characters |
+| Product website | 300 characters, `http(s)` only, no embedded credentials |
+| CTA URL | 60 characters |
+| Brand colors | Up to 3, as `#rrggbb` |
+| Music volume | 0 to 1 (default 0.3) |
+
+### On-screen text
+
+Per template. The agents retry until the text fits, and the renderer checks again.
+
+| Template | Limits |
+| --- | --- |
+| `hook`, `problem`, `image-full`, `screenshot-pan` | Headline 48, subline 80 characters |
+| `feature-card` | Label 4, headline 40, body 110 characters |
+| `cta` | Headline 60, subline 60, site address 60 characters |
+| Intro screen | Title 40, tagline 80, site address 60 characters; shown for 3 seconds, without narration |
+| `bullets` | Headline 48 characters; 1 to 5 items of up to 70 characters |
+| `stat` | Headline 20, subline 80 characters |
+
+### Images and capture
+
+| Limit | Value |
+| --- | --- |
+| Upload formats | PNG, JPEG, WebP |
+| Upload size | 10 MB and 30 megapixels per image (re-encoded on save); requests over 11 MB are refused |
+| Minimum scene image size | 1280×720 for `16:9`, 720×1280 for `9:16`, 720×720 for `1:1` |
+| Screenshot routes | Up to 10; with none given, up to 10 same-origin pages are discovered |
+| Website research | Same origin only, up to 10 pages, the first 3,000 characters of visible text per page |
+| Page load | 30 seconds per page; images must finish loading within 10 seconds |
+| Sign-in window | 10 minutes to finish signing in |
+| Generated images | 0 to 20 per run (default 6); failed attempts count, and product UI is never generated |
+
+### Runs and providers
+
+| Limit | Value |
+| --- | --- |
+| Concurrent productions | One at a time; others queue. Draft runs can run alongside |
+| Background workers | 4 operations at once |
+| Model output | 8,000 tokens per response (`max_tokens` in `config.yaml`) |
+| Copilot | 180 seconds per request |
+| Regeneration note | 2,000 characters |
+| Imported brief file | 100,000 characters |
+| Quick actions | 3 to 4 suggestions per beat or scene |
+
+The UI binds to `127.0.0.1` only. See [docs/brief-reference.md](docs/brief-reference.md) for every field and [docs/templates.md](docs/templates.md) for template details.
 
 ## Providers
 

@@ -9,7 +9,7 @@ from conftest import VERDICT_PASS, FakeModel, StubTTS, make_plan, make_script, s
 from reelhive.audio.mixer import probe
 from reelhive.core.events import replay
 from reelhive.core.service import Service
-from reelhive.schemas.scene_spec import CREDIT_TEXT
+from reelhive.schemas.scene_spec import CREDIT_TEXT, IntroText
 
 MUSIC = {"mood": "tech", "bpm": 110, "reason": "fits a developer audience"}
 
@@ -178,3 +178,54 @@ def test_render_progress_is_logged_per_percent_not_per_frame(config, brief):
     assert result.status == "done" and len(frames) == 100  # 0% .. 99%
     finalized = [d for d in of_type(events, "node.task") if d["task"] == "Finalizing video frames"]
     assert len(finalized) == 1 and finalized[0]["progress"] == 1.0
+
+
+def test_intro_screen_opens_the_video_and_the_address_shows_twice(config, brief):
+    brief.cta_url = "https://www.costhive.dev/pricing/?ref=x"
+    svc, _, tts = service(
+        config,
+        {"Script": make_script(brief), "ScenePlan": make_plan(brief), "MusicChoice": MUSIC, "Verdict": VERDICT_PASS},
+    )
+    result, events = run(svc, brief)
+    assert result.status == "done"
+    spec = json.loads((result.run_dir / "spec.json").read_text())
+    assert spec["intro"] == {
+        "title": "CostHive",
+        "tagline": "Find and fix cloud waste",
+        "url": "costhive.dev/pricing",
+        "duration": 3.0,
+    }
+    assert spec["scenes"][0]["start"] == 3.0
+    assert spec["scenes"][-1]["text"]["url"] == "costhive.dev/pricing"
+    assert len(tts.calls) == 6  # the intro has no narration
+    assert probe(result.video)["duration"] == pytest.approx(brief.duration, rel=0.05)
+    assert any(d["task"] == "Intro: CostHive" for d in of_type(events, "node.task"))
+
+
+def test_the_briefs_own_intro_text_beats_the_agents(config, brief):
+    brief.intro = IntroText(title="ScanComb", tagline="Next-level platform for IT security and compliance")
+    svc, _, _ = service(
+        config,
+        {"Script": make_script(brief), "ScenePlan": make_plan(brief), "MusicChoice": MUSIC, "Verdict": VERDICT_PASS},
+    )
+    result, _ = run(svc, brief)
+    spec = json.loads((result.run_dir / "spec.json").read_text())
+    assert spec["intro"]["title"] == "ScanComb"
+    assert spec["intro"]["tagline"] == "Next-level platform for IT security and compliance"
+
+
+def test_scene_preview_leaves_out_the_intro(config, brief):
+    rendered = []
+
+    def recording_renderer(spec, out, on_progress):
+        rendered.append(json.loads(spec.read_text()))
+        stub_renderer(spec, out, on_progress)
+
+    model = FakeModel(
+        {"Script": make_script(brief), "ScenePlan": make_plan(brief), "MusicChoice": MUSIC, "Verdict": VERDICT_PASS}
+    )
+    svc = Service(config, models={"strong": model, "fast": model}, tts=StubTTS(), renderer=recording_renderer)
+    result, _ = run(svc, brief)
+    svc.preview_scene(result.run_dir, 2)
+    assert rendered[0]["intro"]["title"] == "CostHive"  # the real video has it
+    assert rendered[-1]["intro"] is None and rendered[-1]["scenes"][0]["start"] == 0.0
