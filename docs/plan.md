@@ -528,7 +528,7 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 | **M2** ✅ **Done** (2026-10-08) | `medium` level, all providers, all visual sources | Script approval stop, brand theme, 9:16 and 1:1, all 5 providers including Copilot; screenshots with login and masking, provided images, OpenAI generation, `auto` fallbacks |
 | **M3** ✅ **Done** (2026-10-09) | `high` level + local UI | Per-scene spec editing, image approval, `regen --scene`; secure loopback UI with generated contracts, resumable events and 8 templates |
 | **M4** ✅ **Implemented** (2026-10-08) | Evals | Eval harness and first cross-provider report; prompt-change gate in CI |
-| **M5** ✅ **Released v0.1.0** (2026-10-09; repository still private) | Public v0.1.0 | READMEs and docs complete, demo GIF, GitHub Release v0.1.0, repo public |
+| **M5** ✅ **Released v0.1.0, repository public** (2026-10-09) | Public v0.1.0 | READMEs and docs complete, demo GIF, GitHub Release v0.1.0, repo public |
 | **M6** ✅ **Released v0.2.0** (2026-10-09) | AI quick actions with CopilotKit *(later phase, learning goal)* | `suggest` agent behind an AG-UI endpoint; CopilotKit renders 3–4 suggestion buttons per beat and scene; one click regenerates via the existing path; `reelhive suggest` in the CLI; `docs/copilotkit.md` written; released as v0.2.0 |
 
 **M1 notes**
@@ -595,7 +595,7 @@ Every section of this plan and of `reelhive-ui-plan.md` was checked against the 
 - **Still open:**
   - **Needs art:** six new mascot poses, the 12 role portraits and the illustrated icons (UI plan §10). Their prompts are ready in `design/`; the art itself must be generated, curated and supplied with the brand set.
   - **Needs API keys or quota:** the first real cross-provider eval report and the committed Claude baseline (M4), and live paid-provider runs.
-  - **Needs the owner:** making the repository public (M5), and branch protection on `main`.
+  - **Needs the owner:** branch protection on `main`, and a social preview image. The repository was made public on 2026-10-09 after a secrets scan of the full history, with the §9 topics set.
   - **M6:** the AG-UI endpoint, the CopilotKit buttons, one-click apply with undo, and the suggestions eval metric, for v0.2.0.
 
 `core/service.py` exists from M1, so the UI in M3 is a new front end on finished logic, not a rewrite. M6 adds a feature on top of a released product, so it can't delay v0.1.0.
