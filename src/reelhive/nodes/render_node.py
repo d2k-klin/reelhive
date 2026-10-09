@@ -18,8 +18,14 @@ class RenderNode(FunctionNode):
             ctx.events.emit("node.task", node=self.name, task="Spec only: video rendering skipped")
             return
 
+        last = {"percent": -1}
+
         def progress(p: float) -> None:
-            ctx.events.emit("node.task", node=self.name, task="Rendering frames", progress=round(p, 3))
+            # Revideo reports every frame; log whole percents only (a 90s video was ~2,700 events per render).
+            percent = int(p * 100)
+            if percent != last["percent"]:
+                last["percent"] = percent
+                ctx.events.emit("node.task", node=self.name, task="Rendering frames", progress=round(p, 3))
 
         silent = ctx.path("render", "silent.mp4")
         ctx.renderer(spec_path, silent, progress)

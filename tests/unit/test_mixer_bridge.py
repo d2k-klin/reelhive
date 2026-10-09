@@ -70,3 +70,23 @@ def test_bridge_reports_renderer_failure_and_missing_deps(tmp_path, monkeypatch)
     fake_repo(tmp_path / "r", monkeypatch, 'echo "Error: boom"\nexit 1\n')
     with pytest.raises(bridge.RenderError, match="boom"):
         bridge.render(tmp_path / "s.json", tmp_path / "o.mp4", print)
+
+
+def test_bundled_binaries_get_their_execute_bit_back(tmp_path):
+    # `npm ci --ignore-scripts` skips @ffprobe-installer's `chmod u+x`; rendering then died on spawn EACCES.
+    probe_bin = tmp_path / "node_modules/@ffprobe-installer/darwin-arm64/ffprobe"
+    ffmpeg_bin = tmp_path / "node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg"
+    for b in (probe_bin, ffmpeg_bin):
+        b.parent.mkdir(parents=True)
+        b.write_text("#!/bin/sh\n")
+    probe_bin.chmod(0o644)
+    ffmpeg_bin.chmod(0o755)
+    assert bridge.ensure_executable(tmp_path) == [probe_bin]
+    assert probe_bin.stat().st_mode & 0o100
+    assert bridge.ensure_executable(tmp_path) == []  # idempotent
+
+
+def test_renderer_failure_explains_permission_errors(tmp_path, monkeypatch):
+    fake_repo(tmp_path, monkeypatch, 'echo "Error: spawn /x/ffprobe EACCES"\nexit 1\n')
+    with pytest.raises(bridge.RenderError, match="npm rebuild"):
+        bridge.render(tmp_path / "s.json", tmp_path / "o.mp4", print)

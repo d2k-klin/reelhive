@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Rendering failed at the very end with `spawn .../ffprobe EACCES` when `node_modules` was installed without install scripts (`npm ci --ignore-scripts` skips the `chmod u+x` of Revideo's bundled ffprobe). The render bridge now restores the execute bit itself, `reelhive doctor` checks it, and the error explains the fix.
+- Render progress is logged per percent instead of per frame (a 90 s video wrote about 2,700 events per render attempt into `run.log.jsonl`).
+
 ## [0.2.0] - 2026-10-09
 
 M6: AI quick actions with CopilotKit.

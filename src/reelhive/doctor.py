@@ -54,6 +54,18 @@ def _chrome() -> tuple[bool, str]:
     return False, "run: npx puppeteer browsers install chrome-headless-shell"
 
 
+def _renderer_binaries() -> tuple[bool, str]:
+    from reelhive.render.bridge import bundled_media_binaries
+
+    binaries = bundled_media_binaries()
+    if not binaries:
+        return False, "missing; run make setup (npm ci)"
+    blocked = [b.name for b in binaries if os.name != "nt" and not os.access(b, os.X_OK)]
+    if blocked:
+        return False, f"not executable: {', '.join(blocked)}; run npm rebuild (rendering also fixes this itself)"
+    return True, "ffmpeg and ffprobe executable"
+
+
 def run_checks(config: Config | None = None) -> list[Result]:
     config = config or Config()
     py_ok = (3, 11) <= sys.version_info[:2] <= (3, 12)
@@ -67,6 +79,7 @@ def run_checks(config: Config | None = None) -> list[Result]:
             "installed" if (REPO_ROOT / "node_modules" / "@revideo").exists() else "missing; run make setup",
         ),
         Result("headless chrome", *_chrome()),
+        Result("renderer binaries", *_renderer_binaries()),
         Result("ffmpeg", *_ffmpeg()),
         Result("espeak-ng", *_espeak()),
         Result("kokoro", find_spec("kokoro") is not None, "installed" if find_spec("kokoro") else "missing"),

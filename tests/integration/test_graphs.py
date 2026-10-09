@@ -160,3 +160,18 @@ def test_preview_renders_one_scene_silently(config, brief):
     assert not list(result.run_dir.glob(".preview_*.json"))  # the temporary spec is cleaned up
     with pytest.raises(ValueError, match="scene 99 does not exist"):
         svc.preview_scene(result.run_dir, 99)
+
+
+def test_render_progress_is_logged_per_percent_not_per_frame(config, brief):
+    def chatty_renderer(spec, out, on_progress):
+        for frame in range(2700):  # a 90s video at 30 fps reports every frame
+            on_progress(frame / 2699)
+        stub_renderer(spec, out, lambda _: None)
+
+    model = FakeModel(
+        {"Script": make_script(brief), "ScenePlan": make_plan(brief), "MusicChoice": MUSIC, "Verdict": VERDICT_PASS}
+    )
+    svc = Service(config, models={"strong": model, "fast": model}, tts=StubTTS(), renderer=chatty_renderer)
+    result, events = run(svc, brief)
+    frames = [d for d in of_type(events, "node.task") if d["task"] == "Rendering frames"]
+    assert result.status == "done" and len(frames) == 101  # 0% .. 100%
