@@ -6,7 +6,7 @@
 
 | File | Covers |
 | --- | --- |
-| [`test_capture.py`](test_capture.py) | Discovery with the 10-page cap, explicit routes and a saved login cookie; masked selectors come out as solid black pixels; the viewport follows the format (desktop for 16:9 and 1:1, mobile emulation for 9:16) |
+| [`test_capture.py`](test_capture.py) | Discovery with the 10-page cap, unique home-page URLs, explicit routes and a saved login cookie; solid black masks; desktop/mobile viewports; pixels from below-fold lazy images; capture with continuous background requests; HTTP error rejection |
 
 Needs Chromium: `uv run playwright install chromium` (part of `make setup`; CI installs it with `--with-deps`).
 

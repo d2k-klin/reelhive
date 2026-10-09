@@ -31,6 +31,8 @@ Shortcuts: `visuals: {url: http://localhost:3000}`, `visuals: {images: ./my-imag
 
 Generated images are never accepted for product UI, including after a fix. PNG, JPEG and WebP are supported. Minimum visual resolution is 1280×720 for landscape, 720×1280 for portrait, and 720×720 for square. Images below those sizes fall through to the next source. Screenshots are full-page and use a format-sized viewport (mobile emulation for portrait). `screenshot-pan` pans tall captures inside an optional browser or phone frame.
 
+Before capturing, ReelHive scrolls through the page to trigger deferred images, returns to the top, and waits for fonts and image decoding. Preparation is bounded to 40 scroll steps and 10 seconds; continuous background requests do not prevent capture. Animations are frozen for the shot. HTTP error pages are rejected instead of becoming scene images, and discovery counts the home page only once whether its URL has a trailing slash or not.
+
 The scene planner receives filenames, captions and discovered page titles/headings. It never receives screenshot pixels. Caption files map filenames to descriptions:
 
 ```yaml
