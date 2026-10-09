@@ -8,6 +8,7 @@
 | --- | --- |
 | [`test_render_slow.py`](test_render_slow.py) | One short scene with Kokoro voice, library music and the end credit; checks duration, 1920×1080, audio stream, progress and the metadata tag |
 | [`test_visual_render_slow.py`](test_visual_render_slow.py) | Portrait and square renders with brand colors and logo, browser and phone frames, a panning screenshot and wrapped copy |
+| [`test_render_shutdown_slow.py`](test_render_shutdown_slow.py) | Forces the actual CLI renderer's browser shutdown to stall; verifies the five-second guard ends that browser and the final video has the expected duration and size |
 
 ```bash
 make test-slow

@@ -1,4 +1,14 @@
 import type {Browser} from 'puppeteer';
+import {createRequire} from 'node:module';
+
+export function installBrowserShutdownGuard(): void {
+  // tsx loads separate ESM and CommonJS instances. Guard the instance Revideo actually requires.
+  const require = createRequire(import.meta.url);
+  const rendererRequire = createRequire(require.resolve('@revideo/renderer'));
+  const puppeteer = rendererRequire('puppeteer').default as typeof import('puppeteer').default;
+  const launch = puppeteer.launch.bind(puppeteer);
+  puppeteer.launch = async options => boundBrowserShutdown(await launch(options));
+}
 
 // Chrome's single-process mode can deadlock on macOS after Browser.close.
 // Revideo requests closure after the worker finishes or fails, so this never ends an active render.

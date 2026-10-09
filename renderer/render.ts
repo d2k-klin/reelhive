@@ -1,12 +1,11 @@
 // Usage: tsx render.ts <spec.json> <out.mp4>
 // Prints `progress <0..1>` lines that src/reelhive/render/bridge.py parses.
 import {renderVideo} from '@revideo/renderer';
-import puppeteer from 'puppeteer';
 import {readFileSync} from 'node:fs';
 import {basename, dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {embedAssets} from './src/assets';
-import {boundBrowserShutdown} from './src/browser-shutdown';
+import {installBrowserShutdownGuard} from './src/browser-shutdown';
 import type {Spec} from './src/spec';
 
 process.env.DISABLE_TELEMETRY = 'true';
@@ -20,8 +19,7 @@ const spec: Spec = embedAssets(JSON.parse(readFileSync(specPath, 'utf8')), dirna
 const here = dirname(fileURLToPath(import.meta.url));
 
 // Revideo owns browser creation and closure; guard its launch in this isolated render process.
-const launch = puppeteer.launch.bind(puppeteer);
-puppeteer.launch = async options => boundBrowserShutdown(await launch(options));
+installBrowserShutdownGuard();
 
 await renderVideo({
   projectFile: resolve(here, 'src/project.ts'),

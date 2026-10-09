@@ -16,6 +16,6 @@ npx -w renderer tsc --noEmit
 
 Revideo 0.11 forces `--single-process`, which full Chrome rejects on macOS, so rendering uses `chrome-headless-shell` (`npx puppeteer browsers install chrome-headless-shell`, done by `make setup`).
 
-The single-process browser can also hang during shutdown after all media is exported. `src/browser-shutdown.ts` allows five seconds for normal closure, then terminates only that rendering browser if it is still alive. This lets final assembly proceed without rerendering frames. The guard is installed on browser launch inside the isolated renderer process.
+The single-process browser can also hang during shutdown after all media is exported. `src/browser-shutdown.ts` allows five seconds for normal closure, then terminates only that rendering browser if it is still alive. This lets final assembly proceed without rerendering frames. The guard is installed on the browser instance loaded by Revideo's CommonJS dependency path inside the isolated renderer process: `tsx` can load a separate instance for a direct ESM import. A real CLI test forces closure to stall and verifies both recovery and the finished media.
 
 Templates and their limits are listed in [docs/templates.md](../docs/templates.md), and [docs/adding-a-template.md](../docs/adding-a-template.md) walks through adding one.
