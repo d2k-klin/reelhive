@@ -1,13 +1,14 @@
 """Events, config, levels, provider factory, music library, doctor."""
 
 import json
+import runpy
 from types import SimpleNamespace
 
 import pytest
 
 from reelhive.agents.music_director import MusicChoice, MusicDirectorNode
 from reelhive.audio.music_library import MOODS, MUSIC_DIR, load_manifest, pick_track
-from reelhive.config import Config, load_config
+from reelhive.config import REPO_ROOT, Config, load_config
 from reelhive.core.events import EventBus, replay
 from reelhive.doctor import run_checks
 from reelhive.levels import LEVELS
@@ -94,3 +95,14 @@ def test_doctor_reports_credit_state(monkeypatch):
 
 def test_manifest_json_is_well_formed():
     assert json.loads((MUSIC_DIR / "manifest.json").read_text())["tracks"]
+
+
+def test_placeholder_generator_preserves_curated_music(tmp_path, monkeypatch):
+    curated = {"file": "piano.mp3", "source": "https://example.com/piano", "license": "CC0-1.0"}
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps({"tracks": [curated]}))
+    generator = runpy.run_path(str(REPO_ROOT / "scripts/make_music.py"))["main"]
+    monkeypatch.setitem(generator.__globals__, "OUT", tmp_path)
+    monkeypatch.setitem(generator.__globals__, "TRACKS", {})
+    generator()
+    assert json.loads(manifest.read_text())["tracks"] == [curated]

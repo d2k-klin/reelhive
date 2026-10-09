@@ -1,4 +1,33 @@
-# Music library
+# Music Library
+
+The eight curated instrumentals are by **The Cynic Project**
+(https://cynicmusic.com / https://pixelsphere.org), uploaded as `cynicmusic`
+on OpenGameArt. Each linked source page lists **CC0** as its license.
+CC0 permits copying, adaptation, redistribution, and commercial use without
+required attribution. Artist credits are retained here as a courtesy.
+
+| Track | Source |
+| --- | --- |
+| Vaporware | https://opengameart.org/content/calm-piano-1-vaporware |
+| Hypnotic Chill | https://opengameart.org/content/hypnotic-chill-extended-4-minute-mix |
+| Another August | https://opengameart.org/content/another-august |
+| Hyperflight Racing | https://opengameart.org/content/hyperflight-racing |
+| Town Theme | https://opengameart.org/content/town-theme-rpg |
+| Synthwave 421k | https://opengameart.org/content/calm-relax-1-synthwave-421k |
+| Crystal Cave | https://opengameart.org/content/crystal-cave-song18 |
+| Dramatic Boss Encounter | https://opengameart.org/content/dramatic-boss-encounter |
+
+License: https://creativecommons.org/publicdomain/zero/1.0/
+
+Downloaded 2026-10-09. Copies are normalized to -20 LUFS with a -2 dBTP
+target and encoded as 160 kbps MP3 at 44.1 kHz. Hyperflight Racing and Dramatic
+Boss Encounter were converted from WAV; the others were provided as MP3.
+Durations are measured from the local files. Mood tags and BPM estimates are
+editorial hints for selection, not composer-provided metadata.
+
+The original five ReelHive synth placeholders remain available for existing
+briefs. Choose a curated track in the brief's Music track selector to use it
+instead. Music is bundled locally; rendering does not download audio.# Music library
 
 ReelHive never generates music at run time. The `music` agent picks a mood and a tempo, and `audio/music_library.py` chooses the closest track listed in `manifest.json`.
 

@@ -44,6 +44,94 @@
       "duration": 85.33,
       "source": "scripts/make_music.py",
       "license": "CC0-1.0"
+    },
+    {
+      "file": "vaporware-piano.mp3",
+      "title": "Vaporware - Relaxing piano",
+      "artist": "The Cynic Project",
+      "mood": "inspiring",
+      "bpm": 100,
+      "bpm_estimated": true,
+      "duration": 164.95,
+      "source": "https://opengameart.org/content/calm-piano-1-vaporware",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "hypnotic-chill.mp3",
+      "title": "Hypnotic Chill - Chill drum and bass",
+      "artist": "The Cynic Project",
+      "mood": "tech",
+      "bpm": 140,
+      "bpm_estimated": true,
+      "duration": 250.04,
+      "source": "https://opengameart.org/content/hypnotic-chill-extended-4-minute-mix",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "another-august.mp3",
+      "title": "Another August - Serene ambient",
+      "artist": "The Cynic Project",
+      "mood": "calm",
+      "bpm": 70,
+      "bpm_estimated": true,
+      "duration": 206.56,
+      "source": "https://opengameart.org/content/another-august",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "hyperflight-racing.mp3",
+      "title": "Hyperflight Racing - Energetic electronic",
+      "artist": "The Cynic Project",
+      "mood": "upbeat",
+      "bpm": 140,
+      "bpm_estimated": true,
+      "duration": 60.69,
+      "source": "https://opengameart.org/content/hyperflight-racing",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "town-theme.mp3",
+      "title": "Town Theme - Harp and recorder",
+      "artist": "The Cynic Project",
+      "mood": "inspiring",
+      "bpm": 90,
+      "bpm_estimated": true,
+      "duration": 97.45,
+      "source": "https://opengameart.org/content/town-theme-rpg",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "synthwave-421k.mp3",
+      "title": "Synthwave 421k - Relaxing pads",
+      "artist": "The Cynic Project",
+      "mood": "calm",
+      "bpm": 60,
+      "bpm_estimated": true,
+      "duration": 474.24,
+      "source": "https://opengameart.org/content/calm-relax-1-synthwave-421k",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "crystal-cave.mp3",
+      "title": "Crystal Cave - Bells and deep bass",
+      "artist": "The Cynic Project",
+      "mood": "tech",
+      "bpm": 90,
+      "bpm_estimated": true,
+      "duration": 49.56,
+      "source": "https://opengameart.org/content/crystal-cave-song18",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "dramatic-boss.mp3",
+      "title": "Dramatic Boss Encounter - Violin and drums",
+      "artist": "The Cynic Project",
+      "mood": "dramatic",
+      "bpm": 120,
+      "bpm_estimated": true,
+      "duration": 39.92,
+      "source": "https://opengameart.org/content/dramatic-boss-encounter",
+      "license": "CC0-1.0"
     }
   ]
 }
