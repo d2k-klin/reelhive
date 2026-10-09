@@ -15,6 +15,7 @@
 | [`fastapi-local-server`](fastapi-local-server/SKILL.md) | the local UI's API server |
 | [`react-vite-ui`](react-vite-ui/SKILL.md) | the local UI |
 | [`copilotkit-ag-ui`](copilotkit-ag-ui/SKILL.md) | M6 quick actions |
+| [`graphify`](graphify/SKILL.md) | querying the repo's knowledge graph (`graphify-out/`) before reading files; its `references/` hold the detailed procedures |
 
 These are the canonical copies; [`.claude/skills`](../../.claude/skills) holds thin pointers to them for Claude Code.
 

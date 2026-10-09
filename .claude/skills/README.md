@@ -1,6 +1,6 @@
 # `.claude/skills`
 
-**Overview.** Claude Code's view of the project skills. Each folder holds a `SKILL.md` with the same name and description as the canonical skill, and a single instruction to load the canonical file in [`.agents/skills`](../../.agents/skills). That keeps one copy of each skill for every agent.
+**Overview.** Claude Code's view of the project skills. Each folder holds a `SKILL.md` with the same name and description as the canonical skill, and a single instruction to load the canonical file in [`.agents/skills`](../../.agents/skills). That keeps one copy of each skill for every agent. (`graphify` is the exception: its installer writes a full copy, with `references/`, into both folders.)
 
 ## Extending
 

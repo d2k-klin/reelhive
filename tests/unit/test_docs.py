@@ -54,7 +54,8 @@ def project_folders():
         rel = path.relative_to(REPO_ROOT).as_posix()
         if any(part in SKIP_PARTS or part.endswith(".egg-info") for part in path.relative_to(REPO_ROOT).parts):
             continue
-        if rel in NO_README or (path / "SKILL.md").exists() or not any(f.is_file() for f in path.rglob("*")):
+        in_skill = any((parent / "SKILL.md").exists() for parent in (path, *path.parents))  # documented by SKILL.md
+        if rel in NO_README or in_skill or not any(f.is_file() for f in path.rglob("*")):
             continue
         yield rel
 
