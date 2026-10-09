@@ -529,7 +529,7 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 | **M3** ✅ **Done** (2026-10-09) | `high` level + local UI | Per-scene spec editing, image approval, `regen --scene`; secure loopback UI with generated contracts, resumable events and 8 templates |
 | **M4** ✅ **Implemented** (2026-10-08) | Evals | Eval harness and first cross-provider report; prompt-change gate in CI |
 | **M5** ✅ **Released v0.1.0** (2026-10-09; repository still private) | Public v0.1.0 | READMEs and docs complete, demo GIF, GitHub Release v0.1.0, repo public |
-| **M6** 🟡 **Backend started** (2026-10-08) | AI quick actions with CopilotKit *(later phase, learning goal)* | `suggest` agent behind an AG-UI endpoint; CopilotKit renders 3–4 suggestion buttons per beat and scene; one click regenerates via the existing path; `reelhive suggest` in the CLI; `docs/copilotkit.md` written; released as v0.2.0 |
+| **M6** ✅ **Released v0.2.0** (2026-10-09) | AI quick actions with CopilotKit *(later phase, learning goal)* | `suggest` agent behind an AG-UI endpoint; CopilotKit renders 3–4 suggestion buttons per beat and scene; one click regenerates via the existing path; `reelhive suggest` in the CLI; `docs/copilotkit.md` written; released as v0.2.0 |
 
 **M1 notes**
 - Templates: `hook`, `feature-card`, `cta`, plus the `credit` card. Provider: Claude only. Brief: `small` level, 16:9 only; other levels, formats and the `visuals` block are rejected with a clear message until M2/M3.
@@ -564,8 +564,13 @@ assets/brand/                 # provided by Dav, committed, never edited by hand
 - Pending, by decision: v0.1.0 waits for M3 (the README quickstart should lead with `reelhive ui`, and `ui/README.md` comes with it); then bump the version, move `[Unreleased]` to `[0.1.0]` in the CHANGELOG, tag `v0.1.0`, and make the repository public. Also open: the Mr.D mascot in the README hero, once `assets/brand/` lands with its manifest (§11), and branch protection on `main`.
 
 **M6 notes**
-- Built without the UI: the `suggest` agent (fast tier, Strands providers) returning 3-4 validated suggestions (a distinct label of ≤28 characters plus the instruction behind it) for one beat or scene; caching per version of that beat or scene in the run folder; `suggestion.offered` events in `run.log.jsonl`; and `reelhive suggest <run> --beat N | --scene N`. Learning notes and the integration plan are in `docs/copilotkit.md`.
-- Waits for M3, which is being built separately: the AG-UI endpoint in M3's FastAPI server (`server/agui.py`), the CopilotKit buttons in the UI, applying through M3's regenerate routes with undo and a `suggestion.applied` event, `reelhive suggest --apply`, the suggestions eval metric, and the v0.2.0 release.
+- Script and Scenes show 3-4 buttons for the selected beat or scene, rendered with CopilotKit from an AG-UI `propose_suggestions` tool call. One click regenerates only that beat or scene (with the instruction as the note), Undo restores the previous version, and More ideas asks for a fresh set. Settings has an on/off switch. The CLI has the same: `reelhive suggest <run> --beat N --apply K` and `reelhive undo`.
+- Open decision 5 is resolved: CopilotKit 1.74 talks to the FastAPI AG-UI endpoint directly (`selfManagedAgents` + `HttpAgent`), so there is no Node runtime process. The plan's `useCoAgent` / `useCopilotAction` are deprecated in 1.74; the v2 `useAgent` / `useFrontendTool` are used.
+- The endpoint (`server/agui.py`) streams the tool call from the validated, cached `Service.suggest()`, rather than wrapping a free-running agent loop with the community `ag-ui-strands` adapter. That keeps suggestions bounded, cached per version and logged exactly as in the CLI. It sits behind the same token, Host and Origin checks; tests prove it.
+- `suggestion.offered`, `suggestion.applied` and `version.restored` are in the event stream and the run log. Previous versions live in `runs/<run>/versions/`. The evals gained a quick-actions judge metric (`evals/rubrics/suggestions.md`).
+- CopilotKit is limited to the lazy-loaded `ui/src/components/QuickActions.tsx`. Its Scarf install analytics are disabled, and a browser test asserts that no request leaves 127.0.0.1.
+- Found and fixed while testing: React 19 plus Revideo's `<revideo-player>` (getter-only `variables`) blanked the Scenes screen on every preview update. There is now a shim and an error boundary. The "Live" indicator's colour contrast was also fixed (axe).
+- Still open: the Mr.D **Editor** role portrait (its prompt is `role-suggest` in `design/prompts/roles.yaml`), running `suggest` on the GitHub Copilot SDK, and a live-provider check of the suggestions' quality (needs an API key).
 
 **M3 notes**
 - High runs stop after script drafting and again after scene preparation. Scene edits preserve resolved local assets, re-voice only changed narration or voices, re-time the spec, and require explicit approval for every resolved image.
@@ -621,7 +626,7 @@ Every section of this plan and of `reelhive-ui-plan.md` was checked against the 
 2. License: **Apache-2.0** recommended (see below); use whatever SentryHive and CostHive use if that is already decided, so the family matches.
 3. Source for the initial CC0 music set, 10–15 tracks across 5 moods.
 4. Whether `describe_images` should default to on for cloud providers (better matching) or stay off (images never leave the machine). Proposed: off.
-5. M6: whether CopilotKit can talk to the AG-UI endpoint in FastAPI directly, or needs its own Node runtime process. If it needs one, `reelhive ui` starts it locally on 127.0.0.1 with the same token checks; still no Docker. To confirm against the pinned CopilotKit version.
+5. ~~M6: whether CopilotKit can talk to the AG-UI endpoint in FastAPI directly, or needs its own Node runtime process.~~ **Resolved (M6):** it talks to it directly; no extra process.
 
 **Decided:** CLI, CI and README follow the same conventions as SentryHive and CostHive (command style, flags, output messages, workflow files, README section order, badges). The scaffold copies them from those repos.
 

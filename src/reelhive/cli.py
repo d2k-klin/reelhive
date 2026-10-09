@@ -270,6 +270,8 @@ def suggest(
     run_dir: Path = typer.Argument(..., exists=True, file_okay=False, help="Run folder."),
     scene: int = typer.Option(None, "--scene", min=1, help="Scene number (needs spec.json)."),
     beat: int = typer.Option(None, "--beat", min=1, help="Beat number of script.json."),
+    apply: int = typer.Option(None, "--apply", min=1, max=4, help="Apply suggestion N (regenerates that beat/scene)."),
+    more: bool = typer.Option(False, "--more", help="Ask for a fresh set instead of the cached one."),
 ):
     """Suggest 3-4 quick edits for one beat or scene (the same suggestions the UI shows as buttons)."""
     from reelhive.config import Config
@@ -282,13 +284,30 @@ def suggest(
     kind, index = ("scene", scene) if scene is not None else ("beat", beat)
     try:
         config = Config.model_validate_json((run_dir / "config.json").read_text())
-        result = Service(config).suggest(run_dir, kind, index)
+        service = Service(config)
+        result = service.suggest(run_dir, kind, index, fresh=more)
     except (ProviderError, ValueError, FileNotFoundError) as e:
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1) from e
     console.print(f"[bold]Suggestions for {kind} {index}[/bold]")
     for n, s in enumerate(result.suggestions, start=1):
         console.print(f"  [bold]{n}. {s.label}[/bold]  [dim]{s.instruction}[/dim]")
+    if apply is None:
+        console.print(f"[dim]Apply one with --apply N; undo with reelhive undo {run_dir} --{kind} {index}[/dim]")
+        return
+    if apply > len(result.suggestions):
+        console.print(f"[red]There are only {len(result.suggestions)} suggestions.[/red]")
+        raise typer.Exit(2)
+    chosen = result.suggestions[apply - 1]
+    try:
+        if kind == "scene":
+            service.regenerate_scene(run_dir, index, chosen.instruction, suggestion=chosen.label)
+        else:
+            service.regenerate_script(run_dir, chosen.instruction, suggestion=chosen.label, beat=index)
+    except (ProviderError, ValueError) as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1) from e
+    console.print(f"[green]Applied:[/green] {chosen.label}")
 
 
 @app.command()
@@ -401,3 +420,28 @@ def preview(
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1) from e
     console.print(f"[green]Preview:[/green] {out}")
+
+
+@app.command()
+def undo(
+    run_dir: Path = typer.Argument(..., exists=True, file_okay=False, help="Run folder."),
+    scene: int = typer.Option(None, "--scene", min=1, help="Restore this scene's previous version."),
+    script: bool = typer.Option(False, "--script", help="Restore the script before its last regeneration."),
+):
+    """Undo the last regeneration (or applied suggestion) of a scene or the script."""
+    from reelhive.config import Config
+    from reelhive.core.service import Service
+
+    if (scene is None) == (not script):
+        console.print("[red]Pass exactly one of --scene N or --script.[/red]")
+        raise typer.Exit(2)
+    try:
+        service = Service(Config.model_validate_json((run_dir / "config.json").read_text()))
+        if script:
+            service.undo_script(run_dir)
+        else:
+            service.undo_scene(run_dir, scene)
+    except (ValueError, FileNotFoundError) as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1) from e
+    console.print("[green]Restored the previous version.[/green]")

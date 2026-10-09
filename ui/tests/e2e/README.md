@@ -4,5 +4,6 @@
 
 | File | What it is |
 | --- | --- |
-| [`serve.py`](serve.py) | The test server: real app, throwaway workspace, fixed token, loopback only |
+| [`serve.py`](serve.py) | The test server: real app, throwaway workspace, fixed token, loopback only; `--fake` adds fake models and two paused runs |
+| [`quick-actions.e2e.ts`](quick-actions.e2e.ts) | M6 quick actions end to end (fake model) |
 | [`studio.e2e.ts`](studio.e2e.ts) | The studio checks: security, axe in both themes, keyboard |

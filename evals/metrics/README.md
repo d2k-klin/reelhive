@@ -7,7 +7,7 @@
 | File | What it is |
 | --- | --- |
 | [`deterministic.py`](deterministic.py) | `node_stats(events)`: seconds and tokens per node, first-try schema validity, fix iterations, image count and cost. `score_spec(spec, brief, narrated, run_dir)`: the critic's hard checks as scores (duration error, closing match, feature coverage, pace, text overflow, visual coverage, generated product UI). |
-| [`judge.py`](judge.py) | `judge_run(model, brief, script, spec)`: scores the script (hook, clarity, audience fit, storyline, CTA) and every concept image prompt (relevance, style, no product UI) from 1 to 5, using `../rubrics/`. |
+| [`judge.py`](judge.py) | `judge_run(model, brief, script, spec)`: scores the script (hook, clarity, audience fit, storyline, CTA) and every concept image prompt (relevance, style, no product UI) from 1 to 5, using `../rubrics/`. `judge_suggestions(...)` (M6) scores the quick actions offered for beat 1. |
 
 ## Extending: a new metric
 

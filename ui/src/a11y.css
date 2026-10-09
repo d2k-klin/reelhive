@@ -2,3 +2,5 @@ html[data-theme="light"] { --muted: #595d55; }
 .sidebar .version,
 .sidebar .workspace-label,
 .sidebar footer small { color: #949a90; }
+html[data-theme="light"] .connection.online { color: #3a640b; }
+html[data-theme="dark"] .connection.online { color: var(--lime); }

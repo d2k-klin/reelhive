@@ -12,6 +12,7 @@
 | [`api/`](api) | The typed API client and the OpenAPI types generated from the server |
 | [`schemas/`](schemas) | The brief validator generated from the Pydantic model |
 | [`stores/`](stores) | The resumable event store behind the live Run screen |
+| [`revideo-player-fix.ts`](revideo-player-fix.ts) | Shim: gives Revideo's `<revideo-player>` a `variables` setter, which React 19 needs to update the preview |
 | `style.css`, `a11y.css` | Styles, theming and accessibility helpers |
 
 ## Where state lives

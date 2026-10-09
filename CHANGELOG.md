@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-09
+
+M6: AI quick actions with CopilotKit.
+
+### Added
+- **Quick actions in the studio:** the selected beat (Script screen) or scene (Scenes screen) gets 3-4 suggested edits as buttons, rendered by CopilotKit from an AG-UI `propose_suggestions` tool call. One click regenerates only that beat or scene; **Undo** restores the previous version; **More ideas** asks for a fresh set; an on/off switch is in Settings.
+- `POST /api/agui/suggest` (`server/agui.py`): an AG-UI endpoint over the validated, version-cached `suggest` agent, behind the same token, Host and Origin checks. No CopilotKit runtime process is needed.
+- Undo: previous versions are kept in `runs/<run>/versions/`; `POST /api/runs/{id}/script/undo`, `POST /api/runs/{id}/scenes/{n}/undo`, and `reelhive undo <run> --scene N | --script`.
+- `reelhive suggest <run> --beat N --apply K` and `--more`; `suggestion.applied` and `version.restored` events.
+- An eval metric for quick actions (specific, label fidelity, variety, safe) with `evals/rubrics/suggestions.md`.
+- Browser tests for quick actions against the real server with a fake model, including that no request leaves 127.0.0.1; a unit test that malformed tool output is rejected.
+
+### Fixed
+- The Scenes screen went blank whenever the live preview changed: React 19 sets custom-element props as properties, and Revideo's `<revideo-player>` has a getter-only `variables`. A small shim adds the setter, and an error boundary now shows a message instead of a blank page.
+- Colour contrast of the "Live" indicator (WCAG AA).
+
+### Security
+- CopilotKit's `@scarf/scarf` install analytics are disabled (`scarfSettings` in `package.json`).
+
 ## [0.1.0] - 2026-10-09
 
 The first public release: milestones M1 to M5, plus the backend of M6.

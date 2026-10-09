@@ -16,6 +16,7 @@
 | [`test_visuals.py`](test_visuals.py) | The visual source matrix and fallbacks, generation cache and cap, resolution and path gates, theme and logo, catalog shortcuts, cross-origin rejection, opt-in image descriptions |
 | [`test_login.py`](test_login.py) | `reelhive login` saves state with owner-only permissions and closes the browser |
 | [`test_evals.py`](test_evals.py) | The eval dataset covers the plan's matrix; TTS estimate, prompt recorder, fixture site; aggregation, the 5% gate, reports |
+| [`test_agui.py`](test_agui.py) | M6: the AG-UI stream, cache and More ideas, error events, endpoint security, apply with `suggestion.applied`, undo for script and scene |
 | [`test_suggester.py`](test_suggester.py) | M6 suggestions: validation, cache per version, events, scene vs beat, provider limits |
 | [`test_server.py`](test_server.py) | The local API rejects a missing token, a foreign Host and Origin; run files and SSE replay stay inside the workspace; loopback-only binding |
 | [`test_design.py`](test_design.py) | Design prompts compose with the shared style and reference; every node has a role-portrait prompt; dry run |

@@ -4,5 +4,8 @@
   "workspaces": [
     "renderer",
     "ui"
-  ]
+  ],
+  "scarfSettings": {
+    "enabled": false
+  }
 }

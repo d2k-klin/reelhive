@@ -38,6 +38,24 @@ class RunResult:
     report: list[str] = field(default_factory=list)
 
 
+def push_version(run_dir: Path, key: str, content: str, suggestion: str | None = None) -> None:
+    """Keep the previous version of a beat or scene before it changes, so the change can be undone."""
+    folder = run_dir / "versions" / key
+    folder.mkdir(parents=True, exist_ok=True)
+    n = max((int(p.stem) for p in folder.glob("*.json")), default=0) + 1
+    (folder / f"{n:04d}.json").write_text(json.dumps({"content": content, "suggestion": suggestion}))
+
+
+def pop_version(run_dir: Path, key: str) -> tuple[str, str | None]:
+    """The most recent saved version (removed from the stack), or ValueError when there is nothing to undo."""
+    versions = sorted((run_dir / "versions" / key).glob("*.json"))
+    if not versions:
+        raise ValueError(f"nothing to undo for {key.replace('_', ' ')}")
+    data = json.loads(versions[-1].read_text())
+    versions[-1].unlink()
+    return data["content"], data.get("suggestion")
+
+
 def _slug(text: str) -> str:
     return "-".join(re.findall(r"[a-z0-9]+", text.lower())[:4]) or "run"
 
@@ -192,7 +210,14 @@ class Service:
         finally:
             lock.unlink()
 
-    def suggest(self, run_dir: Path, kind: str, index: int, on_event: Callable[[Event], None] | None = None) -> Any:
+    def suggest(
+        self,
+        run_dir: Path,
+        kind: str,
+        index: int,
+        on_event: Callable[[Event], None] | None = None,
+        fresh: bool = False,
+    ) -> Any:
         """3-4 quick-action suggestions for one beat or scene of a run (M6). Read-only; cached per version."""
         from reelhive.agents.suggester import suggest
         from reelhive.providers.factory import ProviderError, build_model
@@ -213,7 +238,7 @@ class Service:
         events = EventBus(run_dir / "run.log.jsonl")
         if on_event:
             events.subscribe(on_event)
-        return asyncio.run(suggest(model, run_dir, kind, index, brief, script, spec, events))  # type: ignore[arg-type]
+        return asyncio.run(suggest(model, run_dir, kind, index, brief, script, spec, events, fresh))  # type: ignore[arg-type]
 
     def load(self, run_dir: Path, on_event: Callable[[Event], None] | None = None) -> RunContext:
         self._dependencies()
@@ -236,14 +261,27 @@ class Service:
             raise ValueError(f"run is {status}; expected {', '.join(sorted(allowed))}")
         return status
 
-    def regenerate_script(self, run_dir: Path, note: str = "") -> RunResult:
+    def regenerate_script(
+        self, run_dir: Path, note: str = "", suggestion: str | None = None, beat: int | None = None
+    ) -> RunResult:
         from reelhive.agents.script_writer import ScriptWriterNode
 
         self.require_status(run_dir, {"awaiting_script"})
         ctx = self.load(run_dir)
-        ctx.note = note
+        push_version(run_dir, "script", (run_dir / "script.json").read_text(), suggestion)
+        ctx.note = f"Change only beat {beat}: {note}" if beat else note
         ctx.completed.discard("script")
         asyncio.run(ScriptWriterNode().invoke_async("Rewrite script", {"ctx": ctx}))
+        if suggestion:
+            ctx.events.emit("suggestion.applied", target="beat", index=beat, label=suggestion, note=note)
+        return RunResult(run_dir, "awaiting_script")
+
+    def undo_script(self, run_dir: Path) -> RunResult:
+        """Restore the script as it was before the last regeneration."""
+        self.require_status(run_dir, {"awaiting_script"})
+        text, suggestion = pop_version(run_dir, "script")
+        self.save_script(run_dir, Script.model_validate_json(text))
+        EventBus(run_dir / "run.log.jsonl").emit("version.restored", target="script", index=None, suggestion=suggestion)
         return RunResult(run_dir, "awaiting_script")
 
     def refresh_scenes(self, ctx: RunContext) -> None:
@@ -296,7 +334,7 @@ class Service:
         ctx.checkpoint()
         return asyncio.run(self.run_async(ctx, approved=True))
 
-    def regenerate_scene(self, run_dir: Path, index: int, note: str = "") -> RunResult:
+    def regenerate_scene(self, run_dir: Path, index: int, note: str = "", suggestion: str | None = None) -> RunResult:
         from reelhive.agents.plan import ScenePlan, brief_block
         from reelhive.agents.scene_planner import ScenePlannerNode
 
@@ -306,6 +344,7 @@ class Service:
         if not 1 <= index <= len(ctx.spec.scenes):
             raise ValueError("scene index is out of range")
         old = ctx.spec.scenes[index - 1]
+        push_version(run_dir, f"scene_{index:02d}", old.model_dump_json(), suggestion)
 
         class Regenerate(ScenePlannerNode):
             def build_prompt(self, ctx):
@@ -328,7 +367,23 @@ class Service:
         self.refresh_scenes(ctx)
         self._status(ctx, "awaiting_scenes")
         ctx.events.emit("spec.edited", scenes=[index], note=note)
+        if suggestion:
+            ctx.events.emit("suggestion.applied", target="scene", index=index, label=suggestion, note=note)
         return RunResult(run_dir, "awaiting_scenes")
+
+    def undo_scene(self, run_dir: Path, index: int) -> RunResult:
+        """Put scene `index` back as it was before its last regeneration (re-voiced and re-timed)."""
+        from pydantic import TypeAdapter
+
+        from reelhive.schemas.scene_spec import Scene
+
+        self.require_status(run_dir, {"awaiting_scenes", "stopped", "done"})
+        text, suggestion = pop_version(run_dir, f"scene_{index:02d}")
+        spec = SceneSpec.model_validate_json((run_dir / "spec.json").read_text())
+        spec.scenes[index - 1] = TypeAdapter(Scene).validate_json(text)
+        result = self.save_spec(run_dir, spec)
+        EventBus(run_dir / "run.log.jsonl").emit("version.restored", target="scene", index=index, suggestion=suggestion)
+        return result
 
     def preview_scene(self, run_dir: Path, index: int) -> Path:
         """Render one scene of spec.json, silent and without the credit, to previews/scene_NN.mp4."""

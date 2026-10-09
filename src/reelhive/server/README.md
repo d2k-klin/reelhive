@@ -6,7 +6,8 @@
 
 | File | What it is |
 | --- | --- |
-| [`app.py`](app.py) | `create_app()`: every `/api/...` route (health, doctor, settings, providers, voices preview, music, brief validate, import and export, runs: create, start, approve, regenerate, edit spec, cancel, resume, events (SSE, resumable by event id), files, bundle, uploads, capture test, login), plus serving the built UI. `serve()` binds 127.0.0.1 on a free port and prints the tokenised URL. |
+| [`app.py`](app.py) | `create_app()`: every `/api/...` route (health, doctor, settings, providers, voices preview, music, brief validate, import and export, runs: create, start, approve, regenerate (with an optional quick-action `suggestion` label), undo, edit spec, cancel, resume, events (SSE, resumable by event id), files, bundle, uploads, capture test, login), plus serving the built UI. `serve()` binds 127.0.0.1 on a free port and prints the tokenised URL. |
+| [`agui.py`](agui.py) | M6: `POST /api/agui/suggest`, an AG-UI endpoint that streams one `propose_suggestions` tool call built from `Service.suggest()` (validated, cached, logged). CopilotKit renders it as buttons. Mounted inside the app, so it gets the same security middleware. |
 | [`security.py`](security.py) | `protect()`: rejects foreign `Host`, requires the launch token (`Authorization: Bearer` or `?token=` for EventSource), requires a same-origin `Origin` on writes, caps request bodies at 11 MB, sets `no-referrer`, `nosniff` and `no-store`. `validate_host()` refuses any bind address but 127.0.0.1. |
 
 ## Extending: a new route

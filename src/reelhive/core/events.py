@@ -23,7 +23,8 @@ EVENT_TYPES = {
     "run.paused",
     "script.approved",
     "suggestion.offered",
-    "suggestion.applied",  # emitted by the regenerate path (M3) when a suggestion's note is used
+    "suggestion.applied",  # a suggestion's instruction was used as a regenerate note
+    "version.restored",  # undo: a beat or scene is back to its previous version
     "run.queued",
     "run.cancelled",
     "spec.edited",

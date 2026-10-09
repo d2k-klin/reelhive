@@ -13,6 +13,14 @@ from reelhive.schemas.brief import Brief
 JUDGE = {
     "ScriptJudgement": {"hook": 4, "clarity": 4, "audience_fit": 4, "storyline": 5, "cta": 4, "notes": "fine"},
     "PromptJudgement": {"scores": [{"scene": 1, "relevance": 4, "style": 5, "no_product_ui": 5}]},
+    "SuggestionJudgement": {"specific": 4, "label_fidelity": 5, "variety": 3, "safe": 5},
+}
+SUGGESTIONS = {
+    "suggestions": [
+        {"label": "Punchier hook", "instruction": "Open with the tension the audience feels, in one sentence."},
+        {"label": "Shorten by ~2s", "instruction": "Cut about five spoken words and keep the product name."},
+        {"label": "Simpler wording", "instruction": "Use the words this audience would say out loud."},
+    ]
 }
 
 
@@ -54,6 +62,7 @@ class BriefAwareFake(FakeModel):
             "ScenePlan": plan_for(brief, len(script["beats"]), self.drop_feature),
             "MusicChoice": {"mood": "tech", "bpm": 110, "reason": "fits"},
             "Verdict": VERDICT_PASS,
+            "Suggestions": SUGGESTIONS,
         }[name]
         self.calls.append(name)
         yield {"messageStart": {"role": "assistant"}}
@@ -87,6 +96,7 @@ def test_smoke_eval_compares_providers_and_gates(tmp_path):
     assert good["product_ui_generated"] == 0
     assert 0 < good["visual_coverage"] <= 1  # the screenshot brief resolves its product UI scene locally
     assert good["image_count"] > 0 and good["judge_prompt_relevance"] == 4  # the generate brief's prompt
+    assert good["judge_suggestion_specific"] == 4 and good["judge_suggestion_variety"] == 3  # M6 metric
     assert good["judge_storyline"] == 5 and good["tokens"] > 0 and "script" in good["node_seconds"]
 
     assert lossy["feature_coverage"] < 1 and lossy["success"] < 1 and lossy["fix_iterations"] == 1

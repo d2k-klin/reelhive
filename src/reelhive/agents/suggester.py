@@ -72,11 +72,12 @@ async def suggest(
     script: Script,
     spec: SceneSpec | None = None,
     events: EventBus | None = None,
+    fresh: bool = False,
 ) -> Suggestions:
     current = target_json(kind, index, script, spec)
     key = hashlib.sha256(current.encode()).hexdigest()[:16]
     cache = run_dir / "suggestions" / f"{kind}_{index:02d}_{key}.json"
-    cached = cache.exists()
+    cached = cache.exists() and not fresh  # "More ideas" asks for a fresh set
     if cached:
         result = Suggestions.model_validate_json(cache.read_text())
         tokens = 0
