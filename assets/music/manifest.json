@@ -132,6 +132,50 @@
       "duration": 39.92,
       "source": "https://opengameart.org/content/dramatic-boss-encounter",
       "license": "CC0-1.0"
+    },
+    {
+      "file": "the-world-is-ours.mp3",
+      "title": "The World Is Ours - Uplifting motivation",
+      "artist": "Zane Little Music",
+      "mood": "inspiring",
+      "bpm": 120,
+      "bpm_estimated": true,
+      "duration": 192.0,
+      "source": "https://opengameart.org/content/the-world-is-ours",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "motivation-to-wake-up.mp3",
+      "title": "Motivation to Wake Up - Positive momentum",
+      "artist": "Pro Sensory / Alex McCulloch",
+      "mood": "upbeat",
+      "bpm": 120,
+      "bpm_estimated": true,
+      "duration": 169.95,
+      "source": "https://opengameart.org/content/motivation-to-wake-up",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "happy-ukulele.mp3",
+      "title": "Happy Ukulele - Bright acoustic",
+      "artist": "Tarush Singhal",
+      "mood": "upbeat",
+      "bpm": 110,
+      "bpm_estimated": true,
+      "duration": 135.81,
+      "source": "https://opengameart.org/content/happy-ukelele-island-surfing-theme",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "piano-acoustic-bass.mp3",
+      "title": "Piano Melody with Acoustic Bass - Light presentation",
+      "artist": "Tozan",
+      "mood": "calm",
+      "bpm": 90,
+      "bpm_estimated": true,
+      "duration": 131.22,
+      "source": "https://opengameart.org/content/piano-melody-with-acoustic-bass",
+      "license": "CC0-1.0"
     }
   ]
 }
