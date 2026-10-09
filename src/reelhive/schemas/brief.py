@@ -66,6 +66,8 @@ class Visuals(Options):
             self.url = None
         if isinstance(self.images, str):
             self.images = Images(dir=self.images)
+        if isinstance(self.images, Images) and not self.images.dir.strip():
+            self.images = None  # a blank folder would otherwise resolve to the working directory
         if self.generate is True:
             self.generate = Generate()
         required = {"screenshots": self.screenshots, "images": self.images, "generate": self.generate}

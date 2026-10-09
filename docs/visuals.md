@@ -38,7 +38,7 @@ dashboard.png: Main dashboard showing the savings summary
 team.webp: Our team working together
 ```
 
-Images remain local by default. `describe_images: true` explicitly sends supplied images to the scenes provider for descriptions; select a vision-capable Strands provider for this option. With Copilot as default, you can set `nodes: {scenes: claude}` (or another supported vision provider).
+Images remain local by default. `describe_images: true` explicitly sends supplied images to the scenes provider for descriptions; select a vision-capable Strands provider for this option. Copilot can't read images, so with Copilot the descriptions are skipped (the run carries on with filenames and captions); set `nodes: {scenes: claude}` (or another vision provider) to use them. A blank image folder means no images.
 
 ## Login and preview
 

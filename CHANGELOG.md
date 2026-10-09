@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- With Copilot, "Let AI describe my images" no longer fails the scenes step: descriptions are skipped and the run
+  matches on filenames and captions.
+- A blank image folder means no images (it used to resolve to the working directory).
+- Research also reads a public App URL when no product website is given (local dev apps are never sent).
+
 ## [0.4.0] - 2026-10-09
 
 Notes in, story out: the brief is raw material and the agents do the storytelling.

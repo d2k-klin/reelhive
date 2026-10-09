@@ -1,14 +1,16 @@
 """`research`: read the product website and turn it into product notes the writers build on.
 
-Runs between `brief` and `script` when the brief has a `website`. The crawl is the screenshot crawler's:
-same origin only, at most 10 pages, masked selectors removed, saved login state honoured. Page text goes
-to the configured provider (it stays local with Ollama). Without a website the step is skipped.
+Runs between `brief` and `script` when the brief has a `website` (or a public screenshot URL). The
+crawl is the screenshot crawler's: same origin only, at most 10 pages, masked selectors removed, saved
+login state honoured. Page text goes to the configured provider (it stays local with Ollama). With
+neither the step is skipped.
 """
 
 from __future__ import annotations
 
 import asyncio
 import json
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field
 from strands.types.event_loop import Usage
@@ -28,12 +30,20 @@ class ProductNotes(BaseModel):
     note_readings: list[str] = Field(default_factory=list, description="One per brief key point, same order")
 
 
-def site_options(ctx: RunContext) -> Screenshots:
-    """Reuse the screenshot settings (login state, masks) when they point at the same site."""
+def site_options(ctx: RunContext) -> Screenshots | None:
+    """The website to read: the brief's `website`, else a public screenshot URL. Reuses the screenshot
+    settings (login state, masks) when they point at the same site. Local dev apps are never sent."""
     shots = ctx.brief.visuals.screenshots
-    if shots and shots.url.rstrip("/") == (ctx.brief.website or "").rstrip("/"):
+    website = ctx.brief.website
+    if not website and shots:
+        host = urlparse(shots.url).hostname or ""
+        if host not in ("localhost", "127.0.0.1", "::1") and not host.endswith((".localhost", ".test", ".local")):
+            website = shots.url
+    if not website:
+        return None
+    if shots and shots.url.rstrip("/") == website.rstrip("/"):
         return shots
-    return Screenshots(url=ctx.brief.website or "")
+    return Screenshots(url=website)
 
 
 class ResearchNode(AgentNode):
@@ -43,14 +53,15 @@ class ResearchNode(AgentNode):
     output = ProductNotes
 
     async def execute(self, ctx: RunContext) -> Usage:
-        if not ctx.brief.website:
+        site = site_options(ctx)
+        if not site:
             ctx.events.emit("node.task", node=self.name, task="No product website given; writing from the brief")
             return _no_usage()
         from reelhive.visuals.capture import discover
 
-        ctx.events.emit("node.task", node=self.name, task=f"Reading {ctx.brief.website}")
+        ctx.events.emit("node.task", node=self.name, task=f"Reading {site.url}")
         try:
-            pages = await asyncio.to_thread(discover, site_options(ctx), ctx.brief.format, True)
+            pages = await asyncio.to_thread(discover, site, ctx.brief.format, True)
         except Exception as error:  # an unreachable site must not stop the video
             ctx.events.emit("node.task", node=self.name, task=f"Could not read the website: {error}")
             return _no_usage()

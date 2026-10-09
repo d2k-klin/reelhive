@@ -46,10 +46,14 @@ async def describe(ctx) -> None:
 
     from strands import Agent
 
-    from reelhive.providers.factory import ProviderError
-
     if ctx.config.provider_for("scenes", "fast") == "copilot":
-        raise ProviderError("Image descriptions require a Strands vision provider; set nodes.scenes to one")
+        # Copilot is locked to text; match on filenames and captions instead of failing the run.
+        ctx.events.emit(
+            "node.task",
+            node="scenes",
+            task="Skipped image descriptions: Copilot can't read images. Set nodes.scenes to a vision provider.",
+        )
+        return
     model = ctx.models.get("scenes", ctx.models.get("fast"))
     agent = Agent(
         model=model, system_prompt="Describe this image in one short factual sentence.", callback_handler=None

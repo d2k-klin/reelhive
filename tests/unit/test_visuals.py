@@ -215,5 +215,12 @@ def test_describe_is_explicit_and_sends_only_catalog_images(ctx, monkeypatch):
     asyncio.run(provided.describe(ctx))
     assert len(calls) == 1 and calls[0][1]["image"]["source"]["bytes"] == file.read_bytes()
     ctx.config.provider = "copilot"
-    with pytest.raises(RuntimeError, match="vision provider"):
-        asyncio.run(provided.describe(ctx))
+    asyncio.run(provided.describe(ctx))
+    assert len(calls) == 1
+
+
+def test_blank_image_folder_means_no_images():
+    from reelhive.schemas.brief import Visuals
+
+    assert Visuals(images={"dir": " ", "describe_images": True}).images is None
+    assert Visuals(images="").images is None

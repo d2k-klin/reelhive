@@ -136,6 +136,17 @@ def test_a_website_becomes_the_screenshot_source_unless_told_otherwise():
         Brief.model_validate({**brief.model_dump(exclude={"visuals"}), "website": "ftp://scancomb.com"})
 
 
+def test_a_public_app_url_is_researched_but_a_local_one_is_not():
+    from types import SimpleNamespace
+
+    from reelhive.agents.researcher import site_options
+
+    for url, expected in (("https://scancomb.com", "https://scancomb.com"), ("http://localhost:3000", None)):
+        brief = rough_brief(None, visuals={"source": "auto", "screenshots": {"url": url}})
+        site = site_options(SimpleNamespace(brief=brief))
+        assert (site.url if site else None) == expected
+
+
 def test_one_scene_can_tell_several_notes(brief):
     spec = SceneSpec(
         duration=60.0,
