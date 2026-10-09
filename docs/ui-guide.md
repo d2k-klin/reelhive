@@ -1,6 +1,6 @@
 # ReelHive UI user guide
 
-The ReelHive studio is a local web interface for turning a brief into a narrated video. It covers the full workflow: brief setup, visual sourcing, script review, scene direction, production monitoring, downloads, and recovery. The browser is the control surface; the agents, Kokoro voice synthesis, Revideo renderer, ffmpeg, and run files remain on your computer.
+The ReelHive studio is a local web interface for turning a brief into a narrated video. It covers the full workflow: brief setup, visual sourcing, script review, scene direction, production monitoring, downloads, and recovery. The browser is the control surface; the workflow, voice preparation, video creation, and run files are managed on your computer. Configured AI services receive the content needed for their tasks.
 
 ## 1. Install and open the studio
 
@@ -27,11 +27,19 @@ uv run reelhive ui --config config.yaml
 
 Keep the terminal open while using the studio. Press **Ctrl+C** there to stop it. A new launch creates a new token, so reopen the newly printed URL instead of reusing an old tab.
 
+## Help as you work
+
+Mr.D’s guide explains what is happening and what to do next. During production it follows actual stage events, including parallel work, review pauses, failures, and completion.
+
+The small **?** icons explain unfamiliar controls and the consequences of actions. Hover or focus one to read it; click or tap to keep it open. Click again, press Escape, or click elsewhere to dismiss it. Only one hint opens at a time. Help beside a disabled action remains available.
+
+![Contextual help in the studio](ui-guide/06-contextual-help.png)
+
 ## 2. Create a video brief
 
 Choose **New video** in the sidebar. The first screen collects the content, format, voice, visual direction, and amount of review you want.
 
-![Populated high-control video brief](ui-guide/01-new-video.png)
+![New video brief and customization choices](ui-guide/01-new-video.png)
 
 The main controls are:
 
@@ -107,7 +115,7 @@ Approval uses the provider configuration saved with the run. Completed work is c
 
 High runs pause again at **Awaiting Scenes**. This is the main creative-control workspace.
 
-![High-control scene editor and live Revideo preview](ui-guide/04-scene-editor.png)
+![High-control scene editor and live preview](ui-guide/04-scene-editor.png)
 
 The proportional timeline at the top shows every scene, its template, duration, and image-approval state. Select a scene to edit it.
 
@@ -116,19 +124,23 @@ The proportional timeline at the top shows every scene, its template, duration, 
 - **Headline** and **Supporting text** control the words shown on screen. Template-specific length limits are enforced.
 - **Narration** changes the spoken text. Saving a change re-synthesizes only the affected audio.
 - **Override voice** lets one scene use another gender, accent, or speed.
-- **Visual kind** tells the resolver whether the scene needs product UI, concept art, or no image. Use **Image or route** for the matching filename, page route, or concept prompt.
+- **Visual kind** tells the resolver whether the scene needs product UI, concept art, or no image. Use **Image or route** for a page route (product UI) or a description (concept). Changing the kind clears the previous request and image approval.
 - **Approve this image** appears when a visual has resolved. Every resolved image must be approved before rendering.
 - **Live preview** uses the same Revideo project as the final render. Play it to check layout, timing, and the selected visual.
 
-Choose **Save scenes** after direct edits. **Regenerate scene** reruns only the selected scene using the regeneration note. Review the result again because regeneration can change narration, text, or the requested visual.
+Choose **Save scenes** after direct edits or image approvals. Rendering, regeneration, and suggested edits remain disabled while scenes have unsaved changes. **Regenerate scene** reruns only the selected scene using the regeneration note. Review the result again because regeneration can change narration, text, or the requested visual.
 
 When every resolved image is approved, **Approve all and render** becomes available. This continues through the critic, any repair pass, and the final renderer.
 
 ## 6. Follow production and quality checks
 
-During production, the run page shows the graph from script through render. Each node reports its state, tasks, elapsed time, and token usage. The connection badge shows whether live server-sent events are connected; temporary disconnects replay missed events after reconnection.
+During production, the run page shows five stages: **Story**, **Create**, **Timing**, **Review**, and **Video**. Research comes before writing; scene design, narration, and music can work in parallel; visuals follow scene design. Timing joins their results, then quality review can request repairs before video creation. Each task shows its real state and elapsed time when available. The connection badge shows whether live server-sent events are connected; temporary disconnects replay missed events after reconnection.
 
-The **Quality gates** section records deterministic checks and the critic verdict, including duration, pace, required feature coverage, closing-message presence, text limits, and visual constraints. If the critic requests a fix, the graph shows the fix and recheck path.
+![Readable production stages and compact run title](ui-guide/07-production-progress.png)
+
+Long story briefs use a compact heading. Choose **Read full story brief** to expand the original text.
+
+The **Quality checks** section records deterministic checks and the critic verdict, including duration, pace, required feature coverage, closing-message presence, text limits, and visual constraints. If the critic requests a fix, the Review stage shows repairs and final checks. Failed checks show “Needs attention”; their technical details remain in **Download run log**.
 
 Only one production job renders at a time. Additional approved jobs show **Queued** with their position. **Cancel at next node** requests a clean stop at the next checkpoint rather than terminating a file write midway.
 
@@ -190,7 +202,7 @@ export AWS_PROFILE=...               # standard AWS credentials also work
 
 For Ollama, start the local server and configure its model names and `ollama_host` in `config.yaml`. Model IDs for providers other than the built-in Claude defaults also belong in that file. See [Providers](providers.md) for complete examples.
 
-The **Defaults** panel sets the initial control level, format, voice, music mood, and credit placement for new briefs. **Storage & readiness** shows the active runs folder, disk use, installed versions, browser/render dependencies, credentials, and credit state. A runs-folder change in `config.yaml` or `--runs-dir` takes effect when the studio is launched again.
+The **Defaults** panel sets the initial control level, format, voice, music mood, and credit placement for new briefs. **Storage & readiness** shows the active runs folder, disk use, plain-language readiness checks for voice, video creation, capture, credentials, and credit. A runs-folder change in `config.yaml` or `--runs-dir` takes effect when the studio is launched again.
 
 The appearance selector at the bottom of the sidebar supports system, light, and dark themes. The UI also provides a skip link, semantic labels, visible focus states, and keyboard-accessible controls.
 
@@ -216,13 +228,13 @@ uv run reelhive ui
 
 **The header says “Connecting to workspace.”** Reopen the complete URL printed by the current `reelhive ui` process. Tokens from earlier launches no longer work.
 
-**A provider says “Not configured.”** Set its environment credentials before launching ReelHive, install its optional dependency if required, and run `uv run reelhive doctor --config config.yaml`. Then restart the UI and use **Test**.
+**A provider says “Test connection.”** Set its environment credentials before launching ReelHive, install its optional dependency if required, and run `uv run reelhive doctor --config config.yaml`. Then restart the UI and use **Test**.
 
 **Image generation is disabled.** Install the OpenAI extra, set `OPENAI_API_KEY`, configure `image_generation.model`, and restart the studio.
 
 **A capture is blank or missing pages.** Confirm the app URL is reachable, provide routes explicitly, finish sign-in when required, and use **Test capture**. Cross-origin navigation is rejected. See [Visuals](visuals.md) for capture sizing and fallback rules.
 
-**Approve all and render is disabled.** Select every timeline scene that has an image and enable **Approve this image**, then save the scenes. Scenes without a resolved visual do not need image approval.
+**Approve all and render is disabled.** Select every timeline scene that has an image and enable **Approve this image**, then save the scenes. Unsaved scene changes also disable rendering. Scenes without a resolved visual do not need image approval.
 
 **A run is stuck after the UI closed.** Launch the studio again, open the run marked **Interrupted**, and choose **Resume from checkpoint**.
 

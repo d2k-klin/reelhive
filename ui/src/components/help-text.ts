@@ -77,6 +77,7 @@ export function actionHelp(label: string): string | undefined {
 }
 
 export const stages: Record<string, {label: string; doing: string; next: string}> = {
+  research: {label:'Research agent', doing:'The research agent is gathering facts and context for your story.', next:'Next, the writing agent turns your notes and research into narration.'},
   script: {label: 'Writing agent', doing: 'The writing agent is drafting the spoken story from your brief.', next: 'Next, review the script or let your chosen control level continue automatically.'},
   scenes: {label: 'Scene agent', doing: 'The scene agent is choosing layouts and on-screen text.', next: 'Next, your visuals, voice, and music come together.'},
   visuals: {label: 'Visual preparation', doing: 'Your requested images and app captures are being prepared.', next: 'Next, check the resolved images when scene review opens.'},

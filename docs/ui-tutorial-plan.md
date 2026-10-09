@@ -19,3 +19,16 @@ Make the existing studio teach its workflow as the user works. Keep provider nam
 - Visible scene edits must be saved before rendering or regeneration.
 - Routine production screens do not display implementation/library names or raw JSON.
 - Existing quick actions and approval workflows continue to pass; new fixes have regression coverage.
+
+## Polish requested from screenshots
+
+- Visual direction: a calm production workspace, compact typography, and the existing lime accent for active work.
+- Content: Mr.D explains the present step; a compact title identifies the run; a five-stage production path shows the parallel work; quality checks and recovery follow.
+- Interaction: help reveals on focus/hover and can be pinned by tap; only active work pulses (reduced motion respected); duration controls stay synchronized on drag, typing, and keyboard input.
+- Replace the zoomable graph and repeated stage cards with an accessible, responsive ordered pipeline. Keep the original full brief available on demand.
+
+## Implemented and verified
+
+The shared help, Mr.D guidance, readable progress and quality checks are implemented. Follow-up review fixed the duration controls, oversized story title, mobile recovery layout, and completed stages being mislabeled after scene approval. Regression coverage also exercises the preview remount fix, save-before-approve flow, image approval reset, login completion contract, draft files, settings, and quick-action undo.
+
+Verification uses local fake agents, stub narration, and a real browser/server with test media. It does not verify paid provider credentials, real external sign-in, image-generation billing, or full-quality voice/video production. Final checks: production build passed; 27 Playwright browser tests passed; 9 frontend unit tests passed; 26 documentation checks passed.

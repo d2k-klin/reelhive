@@ -18,3 +18,41 @@ main a:not(.button){color:var(--ink)}
 label:has(input[type=file]:focus-visible){outline:2px solid var(--ink);outline-offset:4px}
 .upload-zone input.sr-only{display:block}
 .action-help:has(>.cancel){position:fixed;right:22px;bottom:22px;z-index:5;background:var(--surface);border-radius:6px;padding:4px}.action-help>.cancel{position:static}
+
+/* Compact workspace hierarchy; long briefs remain available without dominating the run. */
+.run-heading {margin-bottom:24px;gap:24px}
+.run-heading>div {min-width:0;flex:1}
+.run-heading h1 {font-size:clamp(1.4rem,2.1vw,2rem);line-height:1.25;letter-spacing:-.025em;max-width:900px;margin:10px 0 16px}
+.run-heading>.mascot {display:none}
+.full-brief {font-size:.9rem;line-height:1.6;margin:0 0 16px;max-width:850px}
+.full-brief summary {cursor:pointer;color:var(--muted);width:fit-content}
+.full-brief p {margin-top:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+input[type=range] {accent-color:var(--ink);padding:0;min-height:32px;cursor:pointer;border:0;background:transparent;box-shadow:none}
+.help-trigger {width:24px;height:24px;min-width:24px;border:0;background:transparent;padding:4px;border-radius:4px;opacity:.8}
+.help-trigger:hover,.help-trigger:focus-visible,.help-trigger[aria-expanded=true] {opacity:1;background:color-mix(in srgb,var(--muted) 12%,transparent)}
+.help-tooltip {width:min(300px,calc(100vw - 24px));max-height:min(280px,calc(100dvh - 24px));font-size:13px;line-height:1.55;padding:14px 16px;box-shadow:0 6px 24px #0002}
+.help-tooltip>strong {display:block;font-size:12px;margin-bottom:6px}
+.help-tooltip>span {display:block;color:var(--muted)}
+.production-path {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));list-style:none;padding:0;margin:0;gap:0}
+.production-phase {min-width:0;border-top:2px solid var(--line);padding:20px 16px 0 0;position:relative}
+.production-phase:not(:first-child) {padding-left:16px}
+.production-phase:not(:last-child)::after {content:'›';position:absolute;top:-16px;right:2px;font-size:22px;background:var(--surface);padding:0 5px;color:var(--muted)}
+.production-phase header {display:flex;align-items:center;gap:8px}
+.phase-number {color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.production-phase h3 {font-size:16px;margin:0;letter-spacing:-.02em}
+.phase-note {font-size:12px;color:var(--muted);line-height:1.45;min-height:36px;margin:8px 0 16px}
+.production-phase ul {list-style:none;margin:0;padding:0}
+.production-task {display:flex;align-items:flex-start;gap:8px;min-height:68px;padding:10px 0;border-top:1px solid var(--line)}
+.production-task>div {min-width:0;flex:1}
+.production-task strong {display:block;font-size:13px;font-weight:600;line-height:1.4}
+.production-task small {display:block;color:var(--muted);font-size:11px;line-height:1.5;margin-top:3px}
+.production-task .help-trigger {margin:-3px -4px 0 0}
+.node-dot {width:7px;height:7px;flex:none;margin-top:6px;border-radius:50%;background:var(--muted)}
+.node-dot.running {background:var(--lime);outline:1px solid var(--muted);animation:pulse 1.3s infinite}
+.node-dot.done {background:var(--ink)}
+.node-dot.skipped {background:transparent;border:1px solid var(--muted)}
+.node-dot.failed {background:var(--danger)}
+.production-task.running {background:color-mix(in srgb,var(--lime) 8%,transparent)}
+@media(max-width:1100px){.production-path{grid-template-columns:1fr}.production-phase,.production-phase:not(:first-child){padding:18px 0 8px 22px;border-top:0;border-left:2px solid var(--line)}.production-phase:not(:last-child)::after{content:none}.production-phase header:before{content:'';position:absolute;left:-5px;width:8px;height:8px;border-radius:50%;background:var(--ink)}.phase-note{min-height:0;margin:6px 0 14px}.production-phase ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}}
+@media(max-width:500px){.production-phase ul{grid-template-columns:1fr}.help-trigger{width:28px;height:28px;min-width:28px}.production-task .help-trigger{margin-top:-5px}}
+@media(max-width:900px){.failure,.empty{flex-direction:column;align-items:flex-start;gap:20px;min-height:0;padding:24px 0}.failure>.mascot,.empty>.mascot{width:100px}.failure>div,.empty>div{min-width:0;max-width:100%}}

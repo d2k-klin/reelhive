@@ -177,3 +177,58 @@ test('clear form starts a new brief and the notes-first fields are there',async(
   await page.reload();
   await expect(page.getByLabel('Who is this for?',{exact:true})).toHaveValue('');
 });
+
+test('duration slider and seconds stay synchronized through pointer, keyboard, and reload',async({page})=>{
+  const slider=page.getByRole('slider',{name:/Duration/});
+  const seconds=page.getByLabel('Seconds',{exact:true});
+  await slider.scrollIntoViewIfNeeded();
+  const box=(await slider.boundingBox())!;
+  await page.mouse.click(box.x+box.width*.72,box.y+box.height/2);
+  const dragged=await slider.inputValue();
+  expect(Number(dragged)).toBeGreaterThan(100);
+  await expect(seconds).toHaveValue(dragged);
+  await slider.focus();await page.keyboard.press('ArrowRight');
+  await expect(seconds).toHaveValue(String(Number(dragged)+1));
+  await seconds.fill('90');
+  await expect(slider).toHaveValue('90');
+  await page.reload();
+  await expect(slider).toHaveValue('90');
+  await expect(seconds).toHaveValue('90');
+});
+
+test('help cleans up after hover and keeps only one pinned hint',async({page})=>{
+  const first=page.getByRole('button',{name:'Help: Customization level',exact:true});
+  await first.hover();
+  await expect(page.getByRole('tooltip')).toBeVisible();
+  await page.getByRole('heading',{level:1}).hover();
+  await expect(page.getByRole('tooltip')).toBeHidden();
+  await first.click();
+  await page.getByRole('heading',{level:1}).hover();
+  await expect(page.getByRole('tooltip')).toBeVisible();
+  await page.getByRole('button',{name:'Help: Who is this for?',exact:true}).hover();
+  await expect(page.getByRole('tooltip')).toHaveCount(1);
+  await expect(page.getByRole('tooltip')).toContainText('Name the audience');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('tooltip')).toBeHidden();
+});
+
+for(const width of [390,1440]) test(`production path and long briefs stay readable at ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:1000});
+  const story='I want a promotion video about what is offered, the features and services, why we built the product, and why compliance matters in the era of AI. '.repeat(3);
+  await page.route('**/api/runs/tutorial-failed',async route=>{
+    const response=await route.fetch();const data=await response.json();
+    await route.fulfill({json:{...data,brief:{...data.brief,storyline:story}}});
+  });
+  await page.goto('/runs/tutorial-failed');
+  const title=page.getByRole('heading',{level:1});
+  await expect(title).toBeVisible();
+  expect(await title.evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeLessThanOrEqual(32);
+  expect((await title.textContent())!.length).toBeLessThanOrEqual(140); // trimmed, never the entire brief as a hero
+  await page.getByText('Read full story brief',{exact:true}).click();
+  await expect(page.locator('.full-brief p')).toHaveText(story.trim());
+  const path=page.getByRole('region',{name:'Production progress',exact:true});
+  await expect(path.getByRole('heading',{level:3})).toHaveCount(5);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze();
+  expect(axe.violations.map(v=>`${v.id}: ${v.nodes[0]?.target}`)).toEqual([]);
+});
