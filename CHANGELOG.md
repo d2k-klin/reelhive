@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Field help tooltips closed as soon as opening them scrolled the page (keyboard focus, taps near the edge, small screens); they now follow their button. This made the tutorial UI tests fail on Linux CI.
+- Downloading a live run's `run.log.jsonl` (or another JSON state file) could abort when the run appended to it mid-download; the server now sends a consistent snapshot.
 - The image-approval UI test fixture used an invalid brief (`visuals.source: images` without its folder).
 - Rendering failed at the very end with `spawn .../ffprobe EACCES` when `node_modules` was installed without install scripts (`npm ci --ignore-scripts` skips the `chmod u+x` of Revideo's bundled ffprobe). The render bridge now restores the execute bit itself, `reelhive doctor` checks it, and the error explains the fix.
 - Render progress is logged per percent instead of per frame (a 90 s video wrote about 2,700 events per render attempt into `run.log.jsonl`).

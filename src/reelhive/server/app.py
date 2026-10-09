@@ -287,7 +287,12 @@ def create_app(
 
     @app.get("/api/runs/{run_id}/files/{name:path}")
     def download(run_id: str, name: str):
-        return FileResponse(ws.file(run_id, name))
+        path = ws.file(run_id, name)
+        if path.suffix in {".jsonl", ".json"}:
+            # Logs and state files can grow while a run is active; a streamed FileResponse fixes Content-Length
+            # up front and aborts when the file changes mid-download. Send a consistent snapshot instead.
+            return Response(path.read_bytes(), media_type="application/json")
+        return FileResponse(path)
 
     @app.get("/api/runs/{run_id}/bundle.zip")
     def bundle(run_id: str):

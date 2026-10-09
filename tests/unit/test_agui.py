@@ -159,3 +159,10 @@ def test_scene_apply_and_undo_round_trip(tmp_path, brief):
     assert restored["text"] == before["text"] and restored["narration"] == before["narration"]
     with pytest.raises(ValueError, match="nothing to undo"):
         svc.undo_scene(run_dir, 3)
+
+
+def test_live_log_downloads_as_a_complete_snapshot(studio):
+    client, run_dir, _, _ = studio
+    response = client.get(f"/api/runs/{run_dir.name}/files/run.log.jsonl", headers={"Authorization": f"Bearer {TOKEN}"})
+    assert response.status_code == 200
+    assert response.content == (run_dir / "run.log.jsonl").read_bytes()

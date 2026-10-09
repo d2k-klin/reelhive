@@ -33,10 +33,10 @@ test('script quick actions: suggest, apply, undo, nothing leaves the machine', a
   await page.getByRole('button', {name: 'Undo last change', exact:true}).click();
   await expect(page.getByLabel('Narration 1')).toHaveValue(before, {timeout: 15_000});
 
-  const log = await (await request.get(`${BASE}/api/runs/${id}/files/run.log.jsonl?token=${TOKEN}`)).text();
-  expect(log).toContain('"suggestion.offered"');
-  expect(log).toContain('"suggestion.applied"');
-  expect(log).toContain('"version.restored"');
+  await expect.poll(async () => {
+    const log = await (await request.get(`${BASE}/api/runs/${id}/files/run.log.jsonl?token=${TOKEN}`)).text();
+    return ['"suggestion.offered"', '"suggestion.applied"', '"version.restored"'].every(event => log.includes(event));
+  }).toBe(true);
   expect(outside, outside.join('\n')).toEqual([]);
 
   const results = await new AxeBuilder({page}).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
