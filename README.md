@@ -13,7 +13,7 @@
 
 *Made with ReelHive from [assets/demo/brief.yaml](assets/demo/brief.yaml). With sound: [demo.mp4](assets/demo/demo.mp4).*
 
-**Status:** v0.2.0: all three levels, five providers, three visual sources, the local editing studio, evals, and AI quick actions with CopilotKit. See [docs/plan.md](docs/plan.md).
+**Status:** v0.3.0: all three levels, five providers, three visual sources, the local editing studio, evals, and AI quick actions with CopilotKit. See [docs/plan.md](docs/plan.md).
 
 ## Quickstart
 

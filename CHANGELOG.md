@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-09
+
+The studio teaches its own workflow, plus fixes found by the first real productions.
+
+### Added
+- **Guided studio:** Mr.D's guide on every page and run state says what is happening, what comes next and when you need to act, based on the real run state.
+- **Field and action help:** a keyboard-, mouse- and touch-accessible help button beside unfamiliar settings and actions, explaining consequences, saving, cost, privacy and approvals. It follows its button when the page scrolls.
+- **Readable production progress:** the run screen shows stages and quality results in plain language instead of raw events and infrastructure names; diagnostic logs stay downloadable.
+- **Illustrated UI guide:** [`docs/ui-guide.md`](docs/ui-guide.md) walks through the studio screen by screen with screenshots; [`docs/ui-tutorial-plan.md`](docs/ui-tutorial-plan.md) records the approach.
+- UI tests for the guided flows (field help, brief import and export, sign-in completion, saving scene edits before approval, script approval, run library keyboard access, image approval, settings), with axe at 390 px and 1440 px in both themes.
+- The `graphify` project skill for coding agents.
+
 ### Changed
 - Studio: the brief file actions now share one name, **Import brief file** (top of the page) and **Export brief file**. Export moved to the bottom of the last step, next to the final button, so you export a completed brief.
 

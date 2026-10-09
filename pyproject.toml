@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "reelhive"
-version = "0.2.0"
+version = "0.3.0"
 description = "Brief in, video out: a local-first Strands Graph that turns a short brief into a narrated, scored video."
 readme = "README.md"
 requires-python = ">=3.11,<3.13"  # Kokoro supports 3.11-3.12
