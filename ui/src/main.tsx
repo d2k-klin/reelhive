@@ -13,6 +13,7 @@ import {SettingsPage} from './pages/Settings';
 import './style.css';
 import './a11y.css';
 import './tutorial.css';
+import './forms.css';
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {error: Error | null}> {
  state = {error: null as Error | null};
  static getDerivedStateFromError(error: Error) { return {error}; }

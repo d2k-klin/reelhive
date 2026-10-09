@@ -1,0 +1,59 @@
+/* Shared control geometry for the studio's forms and filters. */
+:root { --control-height: 44px; }
+
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not(.sr-only),
+select {
+  height: var(--control-height);
+  min-height: var(--control-height);
+  line-height: 1.4;
+}
+
+select {
+  appearance: none;
+  padding: 0 36px 0 12px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.theme-switch select { padding: 0 30px 0 10px; }
+.field input[type=range] { height: var(--control-height); min-height: var(--control-height); margin: 0; }
+input[type=color] { padding: 6px; }
+input[type=checkbox], input[type=radio] { flex: none; margin: 0; }
+
+.row { align-items: flex-start; }
+.row > label { display: grid; gap: 8px; line-height: 28px; min-width: 0; }
+.field-heading { line-height: 1.4; }
+.field-heading > .help-trigger { flex: none; }
+.check:has(+ .help-trigger) { display: inline-flex; vertical-align: middle; max-width: calc(100% - 32px); margin-right: 4px; }
+
+.toolbar button:not(.help-trigger):not(.icon),
+.form-actions button:not(.help-trigger) {
+  min-height: var(--control-height);
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 1.4;
+}
+
+.feature-row {
+  grid-template-columns: 34px minmax(0, 1fr) repeat(3, max-content);
+  align-items: center;
+  column-gap: 8px;
+}
+.feature-row .icon { height: var(--control-height); }
+.filters { align-items: center; }
+.search svg { top: 50%; transform: translateY(-50%); }
+
+@media (max-width: 900px) {
+  .feature-row { grid-template-columns: 24px minmax(0, 1fr) repeat(3, 28px); column-gap: 4px; }
+  .row > .field { flex-basis: 160px; }
+  .node-settings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filters > .search { flex-basis: 100%; max-width: none; }
+  .filters > select { flex: 1; min-width: 0; }
+}
+
+@media (max-width: 500px) {
+  .node-settings { grid-template-columns: 1fr; }
+}

@@ -156,14 +156,49 @@ for(const theme of ['light','dark']) for(const width of [390,1440]) {
   test(`tutorial, scenes, and settings are accessible at ${width}px in ${theme}`,async({page})=>{
     await page.setViewportSize({width,height:1000});
     await page.evaluate(value=>localStorage.setItem('reelhive-theme',value),theme);
-    for(const path of ['/','/runs/tutorial-stopped','/settings']){
+    for(const path of ['/','/runs','/runs/tutorial-stopped','/settings']){
       await page.goto(path);
       await expect(page.getByRole('heading',{level:1})).toBeVisible();
-      if(path==='/settings') await expect(page.getByLabel('Strong tier',{exact:true})).toBeVisible();
-      if(path.includes('stopped')) await expect(page.getByLabel('Headline',{exact:true})).toBeVisible();
+      if(path==='/') await page.getByRole('button',{name:'High You direct every scene',exact:true}).click();
+      if(path==='/settings') {
+        await expect(page.getByLabel('Strong tier',{exact:true})).toBeVisible();
+        await page.getByRole('checkbox',{name:'Per-agent overrides',exact:true}).check();
+      }
+      if(path.includes('stopped')) {
+        await expect(page.getByLabel('Headline',{exact:true})).toBeVisible();
+        await page.getByRole('checkbox',{name:'Override voice',exact:true}).check();
+      }
       expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),path).toBe(true);
+      const geometry=await page.evaluate(()=>{
+        const rects=(selector:string)=>Array.from(document.querySelectorAll<HTMLElement>(selector))
+          .filter(el=>el.getClientRects().length&&el.getBoundingClientRect().width>0)
+          .map(el=>el.getBoundingClientRect());
+        const controls=rects('main .field input:not([type=checkbox]):not([type=file]), main select, main .filters input');
+        const crowdedFeatures=Array.from(document.querySelectorAll('.feature-row')).filter(row=>{
+          const boxes=Array.from(row.querySelectorAll<HTMLElement>('input,.action-help')).map(el=>el.getBoundingClientRect());
+          return boxes.some((box,i)=>i>0&&box.left<boxes[i-1].right-1);
+        }).length;
+        const misalignedRows=Array.from(document.querySelectorAll('.row')).filter(row=>{
+          const fields=Array.from(row.children).filter(el=>el.matches('.field'));
+          return fields.some((field,i)=>fields.slice(i+1).some(other=>{
+            const a=field.querySelector(':scope > input,:scope > select');
+            const b=other.querySelector(':scope > input,:scope > select');
+            return a&&b&&Math.abs(field.getBoundingClientRect().top-other.getBoundingClientRect().top)<1
+              &&Math.abs(a.getBoundingClientRect().top-b.getBoundingClientRect().top)>1;
+          }));
+        }).map(row=>Array.from(row.querySelectorAll(':scope > .field .field-heading')).map(heading=>heading.textContent));
+        return {heights:Array.from(new Set(controls.map(r=>Math.round(r.height)))),crowdedFeatures,misalignedRows};
+      });
+      expect(geometry.heights.length,`${path}: inconsistent control heights ${geometry.heights}`).toBeLessThanOrEqual(1);
+      expect(geometry.crowdedFeatures,`${path}: overlapping feature actions`).toBe(0);
+      expect(geometry.misalignedRows,`${path}: uneven controls in the same row`).toEqual([]);
       const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze();
       expect(axe.violations.map(v=>`${v.id}: ${v.nodes[0]?.target}`),path).toEqual([]);
+      if(theme==='dark'&&width===1440){
+        const anchor=path==='/'?page.getByLabel('Voice',{exact:true}):path==='/settings'?page.getByLabel('Credit placement',{exact:true}):path==='/runs'?page.getByLabel('Filter by status',{exact:true}):page.getByLabel('Headline',{exact:true});
+        await anchor.scrollIntoViewIfNeeded();
+        await page.screenshot({path:`/private/tmp/reelhive-aligned-${path==='/'?'brief':path==='/settings'?'settings':path==='/runs'?'runs':'scenes'}.png`});
+      }
     }
     await page.getByRole('button',{name:'Help: Strong tier',exact:true}).click();
     await expect(page.getByRole('tooltip')).toBeVisible();
