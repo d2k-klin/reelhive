@@ -1,8 +1,13 @@
 import {Mascot} from './common';
 import {stages} from './help-text';
-import type {NodeState} from '../stores/events';
+import type {NodeState, RunEvent} from '../stores/events';
+import {latestQualityResults, qualitySummary} from './ProductionProgress';
 
-export function runGuidance(status: string, nodes: Record<string, NodeState> = {}, queue?: number | null): [string, string] {
+export function runGuidance(status: string, nodes: Record<string, NodeState> = {}, queue?: number | null, events:RunEvent[]=[]): [string, string] {
+  if(status==='stopped') {
+    const failures=latestQualityResults(events).map(qualitySummary).filter(result=>!result.passed);
+    if(failures.length) return [failures.length===1 ? `${failures[0].label} is holding up video creation.` : `${failures.length} quality checks need attention.`, failures.map(result=>result.detail).join(' ')];
+  }
   switch (status) {
     case 'editing': return ['Your brief is waiting for you.', 'Choose New video or duplicate this brief from Runs to finish setup and start writing.'];
     case 'awaiting_script': return ['Your story is ready for a read-through.', 'Edit the spoken words, then approve the script. Next, the scene agent will design the visuals while narration and music are prepared.'];

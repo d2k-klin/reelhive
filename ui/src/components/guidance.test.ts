@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {runGuidance} from './Guide';
-import {qualitySummary} from './ProductionProgress';
+import {latestQualityResults, qualitySummary} from './ProductionProgress';
 
 describe('tutorial progress reflects the real run state',()=>{
   it('explains simultaneous work without inventing progress percentages',()=>{
@@ -19,5 +19,24 @@ describe('tutorial progress reflects the real run state',()=>{
     const event={id:1,ts:1,type:'gate.result',data:{check:'voice_fit',passed:false,value:false}};
     expect(qualitySummary(event)).toMatchObject({label:'Voice fits the scene',passed:false});
     expect(qualitySummary(event).detail).toContain('Needs attention');
+  });
+  it('explains the logged duration blocker using measured values and allowed limits',()=>{
+    const event={id:62,ts:1,type:'gate.result',data:{check:'duration',passed:false,value:98.6,threshold:'92s ±5%'}};
+    const result=qualitySummary(event);
+    expect(result.detail).toContain('98.6s produced; target 92s (allowed 87.4–96.6s)');
+    expect(result.detail).toContain('save scenes and approve again');
+    expect(runGuidance('stopped',{},null,[event])).toEqual(['Video length is holding up video creation.',result.detail]);
+  });
+  it('shows the recheck instead of stale failures from before the repair',()=>{
+    const events=[
+      {id:41,ts:1,type:'gate.result',data:{check:'duration',passed:false,value:111.37,threshold:'92s ±5%'}},
+      {id:42,ts:1,type:'gate.result',data:{check:'audio',passed:false}},
+      {id:62,ts:2,type:'gate.result',data:{check:'duration',passed:false,value:98.6,threshold:'92s ±5%'}},
+      {id:66,ts:2,type:'gate.result',data:{check:'audio',passed:true}},
+    ];
+    expect(latestQualityResults(events).map(event=>event.id)).toEqual([62,66]);
+    const [now,next]=runGuidance('stopped',{},null,events);
+    expect(now).toBe('Video length is holding up video creation.');
+    expect(next).not.toContain('111.4');
   });
 });
