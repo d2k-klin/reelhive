@@ -32,7 +32,7 @@ with tempfile.TemporaryDirectory() as runs:
 
         from reelhive.schemas.brief import Brief
 
-        brief = Brief.model_validate(yaml.safe_load((REPO_ROOT / "examples/briefs/small.yaml").read_text()))
+        brief = Brief.model_validate(yaml.safe_load((REPO_ROOT / "examples/briefs/low.yaml").read_text()))
         suggestions = {
             "suggestions": [
                 {"label": "Punchier hook", "instruction": "Open with the monthly cost number and cut the warm-up."},

@@ -35,7 +35,7 @@ CLI: `reelhive` · Python package: `reelhive` · Renderer: `renderer/` (a privat
 
 ## 2. Goals and non-goals
 
-**Goals** - One command: `reelhive run brief.yaml`, producing an MP4 with narration, background music and ducking. - A local web UI (`reelhive ui`) that does everything the CLI does, for people who'd rather not write YAML. Fully specified in **`reelhive-ui-plan.md`**. - Runs locally with no Docker. Only LLM and image-generation calls leave the machine, and Ollama mode with no image generation is fully offline. - Three customization levels: small, medium and high. - Male or female voice, US or UK accent. - Five agent providers: Claude (default), Bedrock, OpenAI, Ollama, and GitHub Copilot through the Copilot SDK. - Three image sources: screenshots of the user's tool, the user's own images, and OpenAI image generation. - A small "Made with ReelHive by Mr.D" credit in every video by default (see 3.7). - A clean Strands Graph that is also a learning reference: parallel branches, conditional edges, and custom non-LLM nodes. - A learning project overall: Strands Graph, the GitHub Copilot SDK and, in a later phase, CopilotKit working together (see 3.10). - Tests, evals and docs good enough for public open source.
+**Goals** - One command: `reelhive run brief.yaml`, producing an MP4 with narration, background music and ducking. - A local web UI (`reelhive ui`) that does everything the CLI does, for people who'd rather not write YAML. Fully specified in **`reelhive-ui-plan.md`**. - Runs locally with no Docker. Only LLM and image-generation calls leave the machine, and Ollama mode with no image generation is fully offline. - Three customization levels: low, medium and high (low: the agents own more of the work; high: the user directs more). - Male or female voice, US or UK accent. - Five agent providers: Claude (default), Bedrock, OpenAI, Ollama, and GitHub Copilot through the Copilot SDK. - Three image sources: screenshots of the user's tool, the user's own images, and OpenAI image generation. - A small "Made with ReelHive by Mr.D" credit in every video by default (see 3.7). - A clean Strands Graph that is also a learning reference: parallel branches, conditional edges, and custom non-LLM nodes. - A learning project overall: Strands Graph, the GitHub Copilot SDK and, in a later phase, CopilotKit working together (see 3.10). - Tests, evals and docs good enough for public open source.
 
 **Non-goals (v1)** - No hosted web app or accounts; the UI runs only on the user's machine. - No chat box in the UI. AI quick-action buttons come later (3.10), and conversational editing is only an idea. - No generated music; we ship a curated CC0 library. - No free-form LLM-written Revideo code; agents fill a validated scene spec. - No generated images of the user's product UI (see 3.4). - No hosting of any kind: no SaaS, website, domain, PyPI or npm publishing.
 
@@ -48,7 +48,7 @@ A graph runs to completion, so human approval points sit *between* graph runs.
 **Draft graph** (always runs):
 
 ```
-brief ──► script
+brief ──► research ──► script
 ```
 
 **Production graph** (runs after script approval, or straight away at `small`):
@@ -69,7 +69,8 @@ script ───┼─► narrate ───────────┼─► tim
 | Node | Type | Job |
 | --- | --- | --- |
 | `brief` | deterministic | Validate input and fill defaults for the chosen level |
-| `script` | **agent** (strong model) | Write the narration, already split into beats (one beat per scene) |
+| `research` | **agent** (fast) + crawl | Read the product website when the brief gives one (same origin, ≤10 pages) and write product notes: what it is, correct names, offerings, facts, what each note refers to *(added after v0.3.0)* |
+| `script` | **agent** (strong model) | Turn the brief's notes and the research into a story: narration split into beats (one beat per scene); each beat lists the key-point notes it tells (`covers`) |
 | `scenes` | **agent** (fast model) | Map each beat to a template and on-screen text, and write each scene's image request (kind, route, matching image, or generation prompt) |
 | `visuals` | deterministic | Resolve each image request: match a provided image, capture a screenshot, or generate one (see 3.4) |
 | `narrate` | deterministic | Run Kokoro TTS per beat, producing WAVs and real durations |
@@ -85,8 +86,7 @@ Deterministic nodes are custom `MultiAgentBase` subclasses, so TTS, screenshots,
 ### 3.3 Hard checks run by `critic` before it calls the LLM
 
 - Total duration within ±5% of the target.
-- The closing message is present verbatim in the final scene's narration or on screen.
-- Every listed feature is covered by at least one scene.
+- Every key-point note is told by at least one scene (`covers`). *Changed after v0.3.0: the brief is notes, not copy, so wording is free and the closing is an idea the agents polish; the critic's rubric judges the call to action instead of a verbatim match.*
 - Narration pace is 130–170 words per minute.
 - On-screen text fits each template's character limits.
 - Every image file exists and meets the minimum resolution for the format.
@@ -233,13 +233,13 @@ Screens, components and tests for this phase are in `reelhive-ui-plan.md`, secti
 
 | Level | You provide | Approval stops | Graph runs |
 | --- | --- | --- | --- |
-| **small** | audience, storyline, features, duration, format, closing, voice gender; optionally one of `url`, `images` or `generate: true` | none | draft and production back to back |
+| **low** (was `small`) | audience, storyline, features, duration, format, closing, voice gender; optionally one of `url`, `images` or `generate: true` | none | draft and production back to back |
 | **medium** | + tone, pacing, brand colors and logo, music mood, theme, CTA URL, accent, full `visuals` block (routes, masks, style) | script | draft → *approve* → production |
 | **high** | + a per-scene spec: template, text, narration, duration, voice, pinned image or prompt per scene; music track and volume | script, scene spec, images | draft → *approve* → production; `reelhive regen --scene 3` |
 
-The graph is the same at every level. Levels only change what `brief` fills from defaults and where the CLI pauses.
+The graph is the same at every level. Levels only change what `brief` fills from defaults and where the CLI pauses. *After v0.3.0: `small` was renamed `low` (still accepted), and every brief field is treated as notes the agents interpret, with an optional `website` for research and screenshots.*
 
-**Example: small, with screenshots of a running tool**
+**Example: low, with screenshots of a running tool**
 
 ```yaml
 level: small
@@ -597,6 +597,12 @@ Every section of this plan and of `reelhive-ui-plan.md` was checked against the 
   - **Needs API keys or quota:** the first real cross-provider eval report and the committed Claude baseline (M4), and live paid-provider runs.
   - **Needs the owner:** branch protection on `main`, and a social preview image. The repository was made public on 2026-10-09 after a secrets scan of the full history, with the §9 topics set.
   - **M6:** the AG-UI endpoint, the CopilotKit buttons, one-click apply with undo, and the suggestions eval metric, for v0.2.0.
+
+**After v0.3.0: notes in, story out** (released as v0.4.0)
+- The brief is notes, not copy. A new `research` step reads the product website (optional `website` field) and writes product notes that the writer, planner, critic and fixer build on. Key points can be merged, split and reordered (scenes record what they tell in `covers`). The closing is an idea the agents polish; there is no verbatim gate. The prompts were rewritten for storytelling.
+- The customization levels are now **Low / Medium / High** (`small` is accepted as `low`). The studio got a Product website field, "Key points" and "Closing idea" labels, a Frame that no longer shows raw notes, and a **Clear form** button. "Run bundle" became **Download all files (.zip)**.
+- Fixes from real runs: a job-queue race that failed low-level runs (`list.remove(x): x not in list`); approving a stopped run now re-checks instead of replaying the stop; the pace floor follows the voice's measured rate, and the fixer gets a word budget at that rate (a 125-wpm voice made duration and pace impossible to satisfy together).
+- Still open: a real-model check of story quality on a real brief (needs an API key).
 
 `core/service.py` exists from M1, so the UI in M3 is a new front end on finished logic, not a rewrite. M6 adds a feature on top of a released product, so it can't delay v0.1.0.
 

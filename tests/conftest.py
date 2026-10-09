@@ -103,7 +103,7 @@ def stub_renderer(spec: Path, out: Path, on_progress: Callable[[float], None]) -
 
 @pytest.fixture
 def brief() -> Brief:
-    return Brief.model_validate(yaml.safe_load((REPO_ROOT / "examples/briefs/small.yaml").read_text()))
+    return Brief.model_validate(yaml.safe_load((REPO_ROOT / "examples/briefs/low.yaml").read_text()))
 
 
 def words(n: int, prefix: str = "") -> str:

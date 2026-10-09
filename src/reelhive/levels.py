@@ -14,14 +14,14 @@ class Level:
     approval_stops: tuple[str, ...]
 
     def defaults(self, brief: Brief) -> dict[str, Any]:
-        # `small` exposes only voice gender; accent and speed are fixed to the defaults.
-        if self.name == "small":
+        # `low` exposes only voice gender; accent and speed are fixed to the defaults.
+        if self.name == "low":
             return {"voice": brief.voice.model_copy(update={"accent": "us", "speed": 1.0})}
         return {}
 
 
 LEVELS = {
-    "small": Level("small", approval_stops=()),
+    "low": Level("low", approval_stops=()),
     "medium": Level("medium", approval_stops=("script",)),
     "high": Level("high", approval_stops=("script", "scenes")),
 }

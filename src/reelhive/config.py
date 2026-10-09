@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from reelhive.schemas.voice import Voice
 
@@ -31,7 +31,13 @@ class ImageGeneration(BaseModel):
 
 class Defaults(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    level: Literal["small", "medium", "high"] = "small"
+    level: Literal["low", "medium", "high"] = "low"
+
+    @field_validator("level", mode="before")
+    @classmethod
+    def legacy_level(cls, value: object) -> object:
+        return "low" if value == "small" else value
+
     format: Literal["16:9", "9:16", "1:1"] = "16:9"
     voice: Voice = Voice()
     music_mood: Literal["calm", "upbeat", "tech", "dramatic", "inspiring"] | None = None

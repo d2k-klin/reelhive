@@ -13,7 +13,7 @@ UI (React) ─► server/ ─► core/workspace.py ┴─► core/service.py ─
 A Strands graph runs to completion, so human approval points sit between graph runs.
 
 ```
-draft:        brief ─► script
+draft:        brief ─► research ─► script
 
 production:   ┌─► scenes ─► visuals ─┐
               ├─► narrate ───────────┼─► timing ─► critic ─┬─(pass)─────────────────────► render
@@ -23,6 +23,7 @@ production:   ┌─► scenes ─► visuals ─┐
 | Node | Kind | Job | Code |
 | --- | --- | --- | --- |
 | `brief` | deterministic | Validate, fill the level's defaults, make paths absolute, save `brief.yaml` | `nodes/brief_node.py` |
+| `research` | agent, fast + crawl | Read the product website (same origin, ≤10 pages, masks honoured) and write `research.json`: what it is, correct names, offerings, pains, facts, what each note refers to. Skipped without a website | `agents/researcher.py` |
 | `script` | agent, strong | Narration as beats, sized to the target duration | `agents/script_writer.py` |
 | `scenes` | agent, fast | A template, on-screen text and a visual request per beat | `agents/scene_planner.py` |
 | `visuals` | deterministic | Resolve each visual request: provided image, screenshot or generated image, else a text fallback | `visuals/resolver.py` |
@@ -36,14 +37,17 @@ production:   ┌─► scenes ─► visuals ─┐
 
 Deterministic nodes never call an LLM. Agent nodes return Pydantic-validated structured output; the image prompts are written by `scenes`, and `visuals` only executes them.
 
+## Notes in, story out
+
+The brief is raw material. The writers get the notes numbered, the product research when there is a website, and the closing as an idea to polish. They decide how to tell the notes and write their own copy. The critic's rubric judges the story, spelling of names, invented facts and whether the call to action is finished; the hard checks below only verify structure.
+
 ## Hard checks
 
 `critic` runs these before it spends a token, and `recheck` runs them again after `fix`:
 
 - total duration within ±5% of the target;
-- the closing message verbatim in the final scene's narration or on screen;
-- every feature covered by a scene;
-- narration pace of 130-170 words per minute of video;
+- every key-point note told by at least one scene (scenes record the notes they tell in `covers`; wording is free);
+- narration pace of 130-170 words per minute of video (the floor follows the voice's measured rate, so a slow voice isn't asked for the impossible);
 - on-screen text within each template's limits;
 - every scene voiced with its current narration;
 - every image present, inside the run folder and at the format's minimum resolution;

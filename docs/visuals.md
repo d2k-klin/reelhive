@@ -44,7 +44,7 @@ Images remain local by default. `describe_images: true` explicitly sends supplie
 
 ```bash
 uv run reelhive login http://localhost:3000 --output auth.json
-uv run reelhive capture examples/briefs/small-screenshots.yaml --output runs/capture
+uv run reelhive capture examples/briefs/low-screenshots.yaml --output runs/capture
 ```
 
 Sign in in the opened browser, then press Enter in the terminal. ReelHive saves session cookies/storage with owner-only file permissions. The default `auth.json` is gitignored; keep any custom filename out of Git too. Reference it in `visuals.screenshots.storage_state`. Passwords are not collected. `mask` selectors are blacked out in the screenshot. Review captures before rendering. Cross-origin screenshot navigation is rejected; external resources needed by the page can still load.

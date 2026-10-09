@@ -1,23 +1,24 @@
 # Brief reference
 
-A brief is a YAML file. Unknown keys are rejected, so typos fail early with a clear message. Examples are in [examples/briefs](../examples/briefs).
+A brief is a YAML file of **notes**, not copy. Write the audience, story, key points and closing idea roughly; the agents research, interpret and write the actual wording (they fix typos and product names too). Unknown keys are rejected, so typos in field names fail early with a clear message. Examples are in [examples/briefs](../examples/briefs).
 
 ## Every level
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `level` | `small` \| `medium` \| `high` | `small` | |
+| `level` | `low` \| `medium` \| `high` | `low` | Customization level: low = the agents decide most, high = you direct every scene. `small` is still accepted as `low` |
 | `audience` | text | required | Who the video is for |
 | `storyline` | text | required | The arc in a sentence or two |
-| `features` | list, 1-8 | required | One feature beat (and usually one card) each |
+| `features` | list, 1-8 | required | Key points as rough notes. The agents may merge, split or reorder them and write their own wording; the gate only checks that each note is told by some scene |
+| `website` | URL | none | Product website: the `research` step reads up to 10 same-origin pages for facts and correct names, and it becomes the screenshot source unless `visuals` says otherwise. Its text goes to your agent provider |
 | `duration` | seconds, 15-180 | `60` | The end credit counts toward it |
 | `format` | `16:9` \| `9:16` \| `1:1` | `16:9` | 1920×1080, 1080×1920, 1080×1080 |
 | `voice.gender` | `female` \| `male` | `female` | |
-| `closing` | text, ≤60 | required | Must appear verbatim at the end; checked |
+| `closing` | text, ≤200 | required | The idea of the closing call to action. The agents polish it into a finished line; it is never copied verbatim |
 | `credit` | `end` \| `corner` | `end` | Hide with `REELHIVE_DISABLE_CREDIT=true` (env only) |
 | `visuals` | block | none | See [visuals.md](visuals.md) |
 
-At `small`, accent and speed are fixed to `us` and `1.0`, and production starts straight after the script.
+At `low`, accent and speed are fixed to `us` and `1.0`, and production starts straight after the script.
 
 ## Medium adds
 
@@ -48,7 +49,7 @@ High pauses twice: after the script (`reelhive approve runs/<run>`), and after t
 ## Example
 
 ```yaml
-level: small
+level: low
 audience: Platform engineers at mid-size SaaS companies
 storyline: Cloud bills grow silently. CostHive finds the waste in minutes.
 features:

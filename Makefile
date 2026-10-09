@@ -31,7 +31,7 @@ schema:  ## regenerate renderer/src/spec.schema.json from the Pydantic models
 	uv run python scripts/generate_ui.py
 
 demo:
-	uv run reelhive run examples/briefs/small.yaml
+	uv run reelhive run examples/briefs/low.yaml
 
 eval:  ## compare providers on the core set (spec only: no video, no paid images); PROVIDERS=claude,bedrock
 	uv run reelhive eval --providers $(or $(PROVIDERS),claude) --set core

@@ -1,10 +1,11 @@
 /** Product explanations, kept separate from provider and rendering implementation details. */
 export const fieldHelp: Record<string, string> = {
-  'Control level': 'Small creates a video automatically. Medium asks you to review the script. High also pauses so you can edit scenes and approve their images.',
+  'Customization level': 'How much you decide. Low: the agents research, write and produce the whole video. Medium: you review and edit the script first. High: you also direct every scene and approve its images.',
   'Who is this for?': 'Name the audience and what they already know. The writing agent uses this to choose vocabulary and examples.',
   'What’s the story?': 'Describe the problem, what changes, and why it matters. The writing agent turns this into a spoken story.',
-  'Features to cover': 'Add one clear point per row, up to eight. Order them by importance; the quality review checks their coverage.',
-  'Closing message': 'Up to 60 characters that must appear exactly at the end. Use one memorable message or invitation.',
+  'Key points': 'Rough notes are fine, one per row, up to eight. The agents research them, decide the order and write the wording; the quality review checks each one is told.',
+  'Product website': 'Optional. The research agent reads up to ten pages of this site (its text goes to your AI provider) for facts and correct names, and screenshots come from it unless you choose other visuals.',
+  'Closing idea': 'What viewers should do at the end. Rough is fine: the agents polish it into a finished call to action and fix typos.',
   Seconds: 'Choose 15–180 seconds, including the end credit. More features need more speaking time.',
   Format: 'Landscape suits presentations, portrait suits phone feeds, and square suits mixed feeds. This also changes the image dimensions needed.',
   Voice: 'Choose the voice for the spoken narration. Preview it before starting; a scene can have its own voice in High mode.',

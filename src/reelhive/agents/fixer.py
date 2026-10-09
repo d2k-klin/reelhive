@@ -1,10 +1,19 @@
 from __future__ import annotations
 
-from reelhive.agents.critic import scenes_block
+from reelhive.agents.critic import scenes_block, voice_wpm
 from reelhive.agents.plan import ScenePlan, brief_block, notes_block, research_block
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode
-from reelhive.nodes.timing_node import target_words
+from reelhive.nodes.timing_node import LEAD, TAIL_MIN, available_seconds, target_words
+
+
+def fit_words(ctx: RunContext) -> int:
+    """Words that fit the target at the voice's measured rate, leaving each scene its minimum padding."""
+    assert ctx.spec
+    if not ctx.narrated:
+        return target_words(ctx.brief)
+    speech = available_seconds(ctx.brief) - len(ctx.spec.scenes) * (LEAD + TAIL_MIN)
+    return max(10, round(min(speech * voice_wpm(ctx.spec, ctx.narrated) / 60, target_words(ctx.brief) * 1.15)))
 
 
 class FixerNode(AgentNode):
@@ -18,7 +27,8 @@ class FixerNode(AgentNode):
         failures = "\n".join(f"- {f}" for f in ctx.failures)
         return (
             f"{brief_block(ctx.brief)}\n\n"
-            f"Target: about {target_words(ctx.brief)} narration words in total.\n"
+            f"Target: about {fit_words(ctx)} narration words in total "
+            f"(this voice speaks about {round(voice_wpm(ctx.spec, ctx.narrated))} words per minute).\n"
             f"Idea for the closing call to action: {ctx.brief.closing}\n"
             f"{notes_block(ctx.brief)}{research_block(ctx)}\n\n"
             f"Current scenes:\n{scenes_block(ctx.spec, ctx.narrated)}\n\nFailures:\n{failures}"

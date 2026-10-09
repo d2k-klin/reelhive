@@ -34,9 +34,9 @@ def test_config_defaults_and_file(tmp_path, monkeypatch):
 
 def test_small_level_pins_accent_and_speed(brief):
     voice = brief.voice.model_copy(update={"accent": "uk", "speed": 1.2})
-    filled = LEVELS["small"].defaults(brief.model_copy(update={"voice": voice}))
+    filled = LEVELS["low"].defaults(brief.model_copy(update={"voice": voice}))
     assert (filled["voice"].accent, filled["voice"].speed, filled["voice"].gender) == ("us", 1.0, "female")
-    assert LEVELS["small"].approval_stops == ()
+    assert LEVELS["low"].approval_stops == ()
 
 
 def test_factory_builds_claude_tiers():

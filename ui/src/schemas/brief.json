@@ -2,9 +2,10 @@
   "additionalProperties": false,
   "properties": {
     "level": {
-      "default": "small",
+      "default": "low",
+      "description": "Customization level: low = agents decide most, high = you direct every scene",
       "enum": [
-        "small",
+        "low",
         "medium",
         "high"
       ],

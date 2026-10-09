@@ -75,7 +75,9 @@ class Visuals(Options):
 
 
 class Brief(Options):
-    level: Literal["small", "medium", "high"] = "small"
+    level: Literal["low", "medium", "high"] = Field(
+        "low", description="Customization level: low = agents decide most, high = you direct every scene"
+    )
     audience: str = Field(min_length=3)
     storyline: str = Field(min_length=3)
     features: list[str] = Field(
@@ -104,6 +106,11 @@ class Brief(Options):
     scenes: list[Scene] | None = Field(None, min_length=1, max_length=12)
     music_track: str | None = None
     music_volume: float = Field(0.3, ge=0, le=1)
+
+    @field_validator("level", mode="before")
+    @classmethod
+    def legacy_level(cls, value: Any) -> Any:
+        return "low" if value == "small" else value  # briefs written before 0.4 said "small"
 
     @field_validator("website")
     @classmethod

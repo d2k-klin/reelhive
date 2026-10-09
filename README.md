@@ -13,7 +13,7 @@
 
 *Made with ReelHive from [assets/demo/brief.yaml](assets/demo/brief.yaml). With sound: [demo.mp4](assets/demo/demo.mp4).*
 
-**Status:** v0.3.0: all three levels, five providers, three visual sources, the local editing studio, evals, and AI quick actions with CopilotKit. See [docs/plan.md](docs/plan.md).
+**Status:** v0.4.0: all three levels, five providers, three visual sources, the local editing studio, evals, and AI quick actions with CopilotKit. See [docs/plan.md](docs/plan.md).
 
 ## Quickstart
 
@@ -26,7 +26,7 @@ export ANTHROPIC_API_KEY=...                      # or configure another provide
 uv run reelhive doctor                            # checks every dependency and key
 uv run reelhive ui                                # the local editing studio, in your browser
 # or, without the UI:
-uv run reelhive run examples/briefs/small.yaml
+uv run reelhive run examples/briefs/low.yaml
 ```
 
 ![The ReelHive studio: brief, script and scene editing, live production graph](docs/m3-ui.png)
@@ -35,10 +35,10 @@ The video lands in `runs/<timestamp>_<slug>/video.mp4`, next to the script, the 
 
 ## How it works
 
-Two Strands graphs. The draft graph writes the script; the production graph turns it into a video:
+You give ReelHive notes: who it's for, the story, a few key points, a closing idea and, optionally, your product's website. The agents do the storytelling: they research the site, decide how to tell your points, write the narration and on-screen copy, take screenshots and produce the video. Two Strands graphs do the work. The draft graph researches and writes; the production graph turns the script into a video:
 
 ```
-brief ─► script                       (draft graph)
+brief ─► research ─► script           (draft graph)
 
     ┌─► scenes ─► visuals ─┐
     ├─► narrate ┼─► timing ─► critic ─┬─(pass)──────────────────────► render
@@ -48,23 +48,26 @@ brief ─► script                       (draft graph)
 | Node | Type | Job |
 | --- | --- | --- |
 | `brief` | deterministic | Validate the brief and fill the level's defaults |
-| `script` | agent (strong) | Narration split into beats, sized to the target duration |
+| `research` | agent (fast) + crawl | Reads the product website (if given) and writes product notes: what it is, correct names, offerings, facts |
+| `script` | agent (strong) | Turns your notes and the research into a story: narration split into beats, sized to the target duration |
 | `scenes` | agent (fast) | A template and on-screen text per beat |
 | `visuals` | deterministic | Provided images, masked screenshots or concept generation, with text fallbacks |
 | `narrate` | deterministic | Kokoro TTS per beat, with real durations |
 | `music` | agent (fast) + lookup | Mood and tempo, then a track from the CC0 library |
 | `timing` | deterministic | Scene lengths from the real audio |
-| `critic` | hard checks + agent | Duration, pace, closing message, feature coverage, text limits; then a rubric review |
+| `critic` | hard checks + agent | Duration, pace, every key point told, text limits; then a rubric review (story, names, facts, a finished call to action) |
 | `fix` / `recheck` | agent / deterministic | Repair the spec, re-voice what changed, check again or stop with a report |
 | `render` | deterministic | Revideo renders the frames; ffmpeg mixes, ducks the music under the voice and muxes |
 
 See [docs/architecture.md](docs/architecture.md) for the full picture, and [docs/strands-graph.md](docs/strands-graph.md) for what building it taught us about Strands graphs.
 
-## Approval levels, formats and brand
+## Customization levels, formats and brand
+
+Low means the agents own more of the work; High means you direct more of it.
 
 | Level | You provide | Stops for approval | Example |
 | --- | --- | --- | --- |
-| `small` | audience, storyline, features, duration, format, closing, voice gender; optionally a visual source | none | [small.yaml](examples/briefs/small.yaml), [small-screenshots.yaml](examples/briefs/small-screenshots.yaml) |
+| `low` | audience, story, key points, closing idea, duration, format, voice gender; optionally a website or other visual source | none |  [low.yaml](examples/briefs/low.yaml), [low-screenshots.yaml](examples/briefs/low-screenshots.yaml) |
 | `medium` | + tone, pacing, brand colors and logo, theme, music mood, CTA URL, accent and speed, full `visuals` block | script | [medium.yaml](examples/briefs/medium.yaml) |
 | `high` | + every scene yourself (template, text, narration, duration, voice, image), music track and volume | script, scenes, images | [high.yaml](examples/briefs/high.yaml), or the studio |
 
@@ -76,7 +79,7 @@ uv run reelhive approve runs/<run-folder>
 
 Every field is in [docs/brief-reference.md](docs/brief-reference.md).
 
-Medium pauses before narration, visual capture/generation and rendering. High pauses again after planning so every scene, voice, duration, visual, and image approval can be edited before rendering. Approval uses the saved provider configuration and never repeats completed nodes. `small` continues automatically. Formats are `16:9` (1920×1080), `9:16` (1080×1920) and `1:1` (1080×1080).
+Medium pauses before narration, visual capture/generation and rendering. High pauses again after planning so every scene, voice, duration, visual, and image approval can be edited before rendering. Approval uses the saved provider configuration and never repeats completed nodes. `low` continues automatically. Formats are `16:9` (1920×1080), `9:16` (1080×1920) and `1:1` (1080×1080).
 
 The local studio includes YAML import/export, uploads and test captures, script and scene editors, the same Revideo scene preview used for final output, live graph and gate events, runs history, downloads, resume/cancel controls, and non-secret provider settings. CLI users can edit `spec.json`, run `reelhive regen <run-folder> --scene N`, then `reelhive approve-scenes <run-folder>`.
 
@@ -133,6 +136,7 @@ Copilot sessions are locked down to a single submit tool; shell and file-write r
 | Data | Leaves your machine? |
 | --- | --- |
 | Brief text, script, image filenames and captions, page titles | Yes, to your agent provider (Claude, Bedrock, OpenAI or GitHub Copilot); no, with Ollama |
+| Product website text (when you give a website) | Yes, the research step sends the readable text of up to 10 pages to your agent provider; no, with Ollama |
 | Screenshots | No |
 | Your images | No, unless `describe_images: true` |
 | Image prompts | Yes, to OpenAI, only when `generate` is on |

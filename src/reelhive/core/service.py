@@ -331,6 +331,9 @@ class Service:
         if any(s.visual and not s.image_approved for s in ctx.spec.scenes):
             raise ValueError("approve every scene image before rendering")
         ctx.stage = "finish"
+        # Approving again (after edits, or a stopped run) must re-check, not replay the old gate results.
+        ctx.completed.difference_update({"critic", "fix", "recheck", "render"})
+        ctx.critic_passed = ctx.recheck_passed = False
         ctx.checkpoint()
         return asyncio.run(self.run_async(ctx, approved=True))
 

@@ -6,7 +6,8 @@ from reelhive.schemas.brief import Brief
 
 
 def test_example_brief_is_valid(brief):
-    assert brief.level == "small"
+    assert brief.level == "low"
+    assert Brief.model_validate({**brief.model_dump(), "level": "small"}).level == "low"  # legacy alias
     assert brief.voice.gender == "female"
     assert brief.credit == "end"
 

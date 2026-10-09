@@ -55,3 +55,11 @@ def test_each_check_can_fail(brief):
 def test_pace_bounds(brief):
     spec, narrated = good_spec(brief, per_scene_words=8)
     assert not by_name(hard_checks(spec, brief, narrated))["pace"].passed
+
+
+def test_pace_floor_follows_a_slow_voice(brief):
+    spec, narrated = good_spec(brief)
+    slow = {i: (text, len(text.split()) / 2.0) for i, (text, _) in narrated.items()}  # 120 wpm voice
+    spec = apply_timing(spec, slow, brief)
+    pace = by_name(hard_checks(spec, brief, slow))["pace"]
+    assert pace.passed and pace.threshold.startswith("102-")

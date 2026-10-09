@@ -33,6 +33,13 @@ def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
+def voice_wpm(spec: SceneSpec, narrated: dict[int, tuple[str, float]]) -> float:
+    """How fast this voice actually speaks this script: spoken words per minute of speech."""
+    words = sum(len(narrated[s.index][0].split()) for s in spec.scenes if s.index in narrated)
+    seconds = sum(narrated[s.index][1] for s in spec.scenes if s.index in narrated)
+    return words / seconds * 60 if seconds > 0 else WPM_RANGE[0]
+
+
 def hard_checks(
     spec: SceneSpec, brief: Brief, narrated: dict[int, tuple[str, float]], run_dir: Path | None = None
 ) -> list[Check]:
@@ -65,12 +72,16 @@ def hard_checks(
     words = sum(len(s.narration.split()) for s in spec.scenes)
     minutes = (spec.duration - (spec.credit.duration if spec.credit else 0)) / 60
     wpm = round(words / minutes) if minutes > 0 else 0
+    # The floor catches scripts that leave long silences. A slow voice can't reach 130 wpm of video
+    # however the script is cut, so the floor follows the voice's measured rate (a 125-wpm voice once
+    # made duration and pace impossible to satisfy together).
+    low = min(WPM_RANGE[0], round(0.85 * voice_wpm(spec, narrated))) if narrated else WPM_RANGE[0]
     checks.append(
         Check(
             "pace",
             wpm,
-            f"{WPM_RANGE[0]}-{WPM_RANGE[1]} wpm",
-            WPM_RANGE[0] <= wpm <= WPM_RANGE[1],
+            f"{low}-{WPM_RANGE[1]} wpm",
+            low <= wpm <= WPM_RANGE[1],
             f"{words} words over {minutes * 60:.0f}s is {wpm} words per minute",
         )
     )

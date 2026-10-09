@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-09
+
+Notes in, story out: the brief is raw material and the agents do the storytelling.
+
+### Added
+- **Research step** (`research`, between brief and script): reads the product website (optional `website` field; same origin, up to 10 pages, masked selectors removed) and writes `research.json` product notes (what it is, correct names, offerings, pains, facts, what each note refers to). The writer, scene planner, critic and fixer build on it. Skipped without a website or when the site can't be read.
+- `website` in the brief: researched, and used as the screenshot source unless `visuals` says otherwise.
+- Studio: Product website field, **Clear form** button (back to your saved defaults), notes-first labels and help.
+
+### Changed
+- **Key points are notes, not copy.** The agents may merge, split and reorder them and write their own wording; beats and scenes record the notes they tell (`covers`), and the gate checks only that every note is told.
+- **The closing is an idea.** It is always polished into a finished call to action (typos and names fixed) and no longer checked verbatim; the critic judges it, together with misspelled names, invented facts and broken text. The closing may be up to 200 characters. The eval metric "closing exact match" was removed.
+- Prompts for the writer, planner, fixer, critic and suggester were rewritten for storytelling from rough notes.
+- **Customization level** (was "control level") is now **Low / Medium / High**: low means the agents own more of the work. `small` is still accepted as `low`. Example briefs are now `low.yaml` and `low-screenshots.yaml`.
+- "Run bundle" is now **Download all files (.zip)**, with help explaining what is inside.
+- The Frame preview no longer shows your first note as a headline.
+
+### Fixed
+- Low-level runs could fail right after the script with `list.remove(x): x not in list` (a race between the draft job and the production job it queues).
+- Approving a stopped run replayed the old stop instead of re-checking; approving again now re-runs the quality gates.
+- A slow voice could make the duration and pace gates impossible to satisfy together: the pace floor now follows the voice's measured rate, and the fixer gets a word budget at that rate.
+
 ## [0.3.0] - 2026-10-09
 
 The studio teaches its own workflow, plus fixes found by the first real productions.

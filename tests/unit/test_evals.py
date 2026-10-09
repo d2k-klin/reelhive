@@ -18,7 +18,7 @@ def test_dataset_covers_the_plan_matrix():
     assert {b.format for b in briefs.values()} == {"16:9", "9:16", "1:1"}
     assert min(b.duration for b in briefs.values()) == 15 and max(b.duration for b in briefs.values()) == 180
     assert {len(b.features) for b in briefs.values()} >= {1, 8}
-    assert {b.level for b in briefs.values()} == {"small", "medium"}
+    assert {b.level for b in briefs.values()} == {"low", "medium"}
     assert any("/" in b.closing or "." in b.closing.rstrip(".") for b in briefs.values())  # URLs
     assert any(any(c.isdigit() for c in b.closing) for b in briefs.values())  # numbers
 

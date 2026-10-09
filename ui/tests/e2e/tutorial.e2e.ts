@@ -12,9 +12,9 @@ test.beforeEach(async ({page})=>{
 test('field help works on hover, focus and tap, closes with Escape and never submits the form',async({page})=>{
   let writes=0;
   page.on('request',r=>{if(r.method()==='POST') writes++;});
-  const help=page.getByRole('button',{name:'Help: Control level',exact:true});
+  const help=page.getByRole('button',{name:'Help: Customization level',exact:true});
   await help.hover();
-  await expect(page.getByRole('tooltip')).toContainText('Small creates a video automatically');
+  await expect(page.getByRole('tooltip')).toContainText('Low: the agents research');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('tooltip')).toBeHidden();
   await help.focus();
@@ -105,7 +105,7 @@ test('run library keyboard links, failure help, and completed downloads',async({
   await expect(page.getByRole('button',{name:'Resume from checkpoint',exact:true})).toBeVisible();
   await page.goto('/runs/tutorial-done');
   const downloaded=page.waitForEvent('download');
-  await page.getByRole('link',{name:'Run bundle',exact:true}).click();
+  await page.getByRole('link',{name:'Download all files (.zip)',exact:true}).click();
   expect(await(await downloaded).failure()).toBeNull();
   await expect(page.locator('main')).not.toContainText(/Revideo|Kokoro|ffmpeg|React Flow|CopilotKit|gate\.result/);
 });
@@ -150,16 +150,30 @@ test('image approval must be saved and changing its request resets approval',asy
 
 test('settings save persists defaults and per-agent inheritance',async({page})=>{
   await page.goto('/settings');
-  await page.getByLabel('Control level',{exact:true}).selectOption('high');
+  await page.getByLabel('Customization level',{exact:true}).selectOption('high');
   await page.getByRole('checkbox',{name:'Per-agent overrides',exact:true}).check();
   await page.getByLabel('Writing agent',{exact:true}).selectOption('openai');
   await page.getByRole('button',{name:'Save settings',exact:true}).click();
   await expect(page.getByText('Settings saved. Existing productions keep their original configuration.')).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel('Control level',{exact:true})).toHaveValue('high');
+  await expect(page.getByLabel('Customization level',{exact:true})).toHaveValue('high');
   await page.getByRole('checkbox',{name:'Per-agent overrides',exact:true}).check();
   await expect(page.getByLabel('Writing agent',{exact:true})).toHaveValue('openai');
   await page.getByLabel('Writing agent',{exact:true}).selectOption('');
   await page.getByRole('button',{name:'Save settings',exact:true}).click();
   await expect(page.getByText('Settings saved. Existing productions keep their original configuration.')).toBeVisible();
+});
+
+test('clear form starts a new brief and the notes-first fields are there',async({page})=>{
+  await page.getByLabel('Who is this for?',{exact:true}).fill('Users of scancomb.com');
+  await page.getByLabel('Product website',{exact:true}).fill('https://scancomb.com');
+  await expect(page.getByLabel('Closing idea',{exact:true})).toBeVisible();
+  await expect(page.locator('.sample-frame')).toContainText('scancomb.com');
+  await expect(page.locator('.sample-frame')).not.toContainText(brief.features[0]); // notes are never shown as headlines
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'Clear form',exact:true}).click();
+  await expect(page.getByLabel('Who is this for?',{exact:true})).toHaveValue('');
+  await expect(page.getByLabel('Product website',{exact:true})).toHaveValue('');
+  await page.reload();
+  await expect(page.getByLabel('Who is this for?',{exact:true})).toHaveValue('');
 });

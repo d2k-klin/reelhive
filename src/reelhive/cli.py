@@ -378,7 +378,7 @@ def init(
 
     folder.mkdir(parents=True, exist_ok=True)
     for source, name in (
-        (REPO_ROOT / "examples/briefs/small.yaml", "brief.yaml"),
+        (REPO_ROOT / "examples/briefs/low.yaml", "brief.yaml"),
         (REPO_ROOT / "config.example.yaml", "config.yaml"),
     ):
         target = folder / name

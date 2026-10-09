@@ -6,7 +6,8 @@
 
 | File | Used by |
 | --- | --- |
-| [`script_writer.md`](script_writer.md) | `script`: beats, roles, verbatim closing, word target |
+| [`researcher.md`](researcher.md) | `research`: product notes from the website (facts and names only, no copy) |
+| [`script_writer.md`](script_writer.md) | `script`: turn rough notes and research into a story; notes told via `covers`; closing polished |
 | [`scene_planner.md`](scene_planner.md) | `scenes`: template choice, on-screen text, visual requests |
 | [`music_director.md`](music_director.md) | `music`: mood and tempo |
 | [`critic.md`](critic.md) | `critic`: the 1-5 rubric review after the hard checks pass |

@@ -35,25 +35,26 @@ Choose **New video** in the sidebar. The first screen collects the content, form
 
 The main controls are:
 
-1. **Control level** decides where ReelHive pauses.
+1. **Customization level** decides how much you direct and how much the agents decide.
 
-   | Level | Review points | Best for |
-   | --- | --- | --- |
-   | **Small** | No approval stop | Fast drafts with sensible defaults |
-   | **Medium** | Script approval | Reviewing the spoken story before production |
-   | **High** | Script, scenes, and resolved images | Directing each scene before the final render |
+   | Level | You decide | The agents decide | Review points |
+   | --- | --- | --- | --- |
+   | **Low** | The brief | Research, story, wording, scenes, visuals, music | None: brief in, video out |
+   | **Medium** | The brief and the script | Scenes, visuals, music | Script approval |
+   | **High** | The brief, the script and every scene | Only what you leave open | Script, scenes and resolved images |
 
-2. **Who is this for?** describes the audience. Be concrete about role, experience, or need: “Platform engineers managing multi-account AWS” is more useful than “developers.”
-3. **What’s the story?** describes the change the viewer should understand. State the problem, the shift, and the outcome.
-4. **Features to cover** lists the points that the script and quality gates must include. Add up to eight, use the arrows to set priority, and remove anything that does not deserve screen time.
-5. **Closing message** is exact text. ReelHive checks that it appears in the final scene, so keep it short and write it exactly as it should appear.
-6. **Duration** accepts 15–180 seconds. More features need more time; a useful starting point is 30 seconds for one or two points and 60 seconds for three or four.
-7. **Format** controls the render dimensions: landscape `16:9`, portrait `9:16`, or square `1:1`.
-8. **Voice** selects gender, US/UK accent, and speed from 0.8 to 1.2. **Preview voice** speaks a fixed sample locally with Kokoro.
+2. **Who is this for?** describes the audience. Rough is fine; concrete is better: "Platform engineers managing multi-account AWS" helps more than "developers."
+3. **What's the story?** says what viewers should understand. Notes are enough ("what Scancomb is, what it offers, why it exists"); the agents turn them into a story.
+4. **Product website** (optional) is researched before writing: the agents read up to ten pages for facts and correctly spelled names, and screenshots are taken from it unless you choose other visuals. Its text goes to your AI provider (it stays local with Ollama).
+5. **Key points** are rough notes, one per row, up to eight. The agents decide how to tell them (merging, splitting or reordering) and write their own wording; the quality review only checks that each note is told somewhere.
+6. **Closing idea** is what viewers should do at the end. Rough is fine: the agents polish it into a finished call to action and fix typos.
+7. **Duration** accepts 15–180 seconds. More features need more time; a useful starting point is 30 seconds for one or two points and 60 seconds for three or four.
+8. **Format** controls the render dimensions: landscape `16:9`, portrait `9:16`, or square `1:1`.
+9. **Voice** selects gender, US/UK accent, and speed from 0.8 to 1.2. **Preview voice** speaks a fixed sample locally with Kokoro.
 
-Medium and High add tone, pacing, brand colors, a logo, theme, CTA URL, music mood, and music level. High also lets you choose an exact music track. The frame on the right is a live summary of the first visual idea, brand palette, duration, voice, and estimated scene count.
+Medium and High add tone, pacing, brand colors, a logo, theme, CTA URL, music mood, and music level. High also lets you choose an exact music track. The frame on the right previews the brand palette, duration, voice and estimated scene count; the actual headlines are written by the agents.
 
-The draft is saved in this browser as you type. **Import brief file** (top of the page) loads a YAML brief; **Export brief file** (bottom of the last step, next to the final button) downloads the completed form so it can be reviewed, versioned, or used with the CLI. Importing validates the same schema used by production.
+The draft is saved in this browser as you type. **Clear form** (top of the page) starts a new brief from your saved defaults. **Import brief file** (top of the page) loads a YAML brief; **Export brief file** (bottom of the last step, next to the final button) downloads the completed form so it can be reviewed, versioned, or used with the CLI. Importing validates the same schema used by production.
 
 ## 3. Choose visual sources
 
@@ -137,7 +138,7 @@ When the status reaches **Done**, the final section provides:
 
 - an inline video player;
 - **Download MP4** for the finished video;
-- **Run bundle** for the brief, approved script, scene spec, log, and allowed media artifacts;
+- **Download all files (.zip)**: everything the production made (brief, product research, script, scene plan, audio, video and run log), to archive, re-run from the CLI, or share for troubleshooting;
 - **Reveal folder** to open the local run directory.
 
 ## 7. Manage the run library

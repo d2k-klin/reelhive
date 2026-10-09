@@ -166,3 +166,60 @@ def test_live_log_downloads_as_a_complete_snapshot(studio):
     response = client.get(f"/api/runs/{run_dir.name}/files/run.log.jsonl", headers={"Authorization": f"Bearer {TOKEN}"})
     assert response.status_code == 200
     assert response.content == (run_dir / "run.log.jsonl").read_bytes()
+
+
+def test_low_level_start_runs_through_without_a_queue_race(tmp_path, brief):
+    """The draft job queues production itself; its cleanup must not remove that entry (list.remove crash)."""
+    import time
+
+    config = Config(runs_dir=tmp_path / "runs")
+    model = FakeModel(
+        {
+            "Script": make_script(brief),
+            "ScenePlan": make_plan(brief),
+            "MusicChoice": {"mood": "tech", "bpm": 110, "reason": "x"},
+            "Verdict": VERDICT_PASS,
+        }
+    )
+    ws = Workspace(
+        config, service_factory=lambda c: Service(c, {"strong": model, "fast": model}, StubTTS(), stub_renderer)
+    )
+    try:
+        ws.production.acquire()  # hold production so the draft job's cleanup runs first (the losing interleaving)
+        view = ws.create(brief.model_copy(update={"level": "low"}))
+        for _ in range(200):
+            if json.loads((ws.path(view.id) / "status.json").read_text())["status"] == "queued":
+                break
+            time.sleep(0.05)
+        time.sleep(0.3)  # let the draft job finish and clean up
+        ws.production.release()
+        for _ in range(200):
+            status = json.loads((ws.path(view.id) / "status.json").read_text())
+            if status["status"] in {"done", "failed", "stopped"}:
+                break
+            time.sleep(0.05)
+        assert status["status"] == "done", status
+    finally:
+        ws.close()
+
+
+def test_approving_a_stopped_run_rechecks_instead_of_replaying(tmp_path, brief):
+    brief.level = "high"
+    config = Config(runs_dir=tmp_path / "runs")
+    plan = make_plan(brief, drop_feature=1)
+    model = FakeModel(
+        {
+            "Script": make_script(brief, drop=1),
+            "ScenePlan": [plan, plan, make_plan(brief)],
+            "MusicChoice": {"mood": "tech", "bpm": 110, "reason": "x"},
+            "Verdict": [VERDICT_PASS] * 3,
+        }
+    )
+    svc = Service(config, {"strong": model, "fast": model}, StubTTS(), stub_renderer)
+    run_dir = svc.run(brief).run_dir
+    svc.approve(run_dir)
+    assert svc.approve_scenes(run_dir).status == "stopped"  # the fixer couldn't tell key point 1
+    spec = json.loads((run_dir / "spec.json").read_text())
+    spec["scenes"][2]["covers"] = [1]  # the user tells it in scene 3 and approves again
+    (run_dir / "spec.json").write_text(json.dumps(spec))
+    assert svc.approve_scenes(run_dir).status == "done"

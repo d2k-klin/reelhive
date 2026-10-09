@@ -161,15 +161,19 @@ class Workspace:
                                 return
                         acquired = True
                         with self.lock:
-                            self.queue.remove(run_id)
+                            if run_id in self.queue:
+                                self.queue.remove(run_id)
                     if not (path / "cancel.requested").exists():
                         operation()
                 except Exception as error:
                     self._write_status(path, "failed", [str(error)])
                     EventBus(path / "run.log.jsonl").emit("run.finished", status="failed", report=[str(error)])
                 finally:
+                    # Only a production job that never started owns a queue entry here. A draft job must not
+                    # touch the queue: at the low level it queues production itself, and removing that entry
+                    # made production fail with "list.remove(x): x not in list".
                     with self.lock:
-                        if run_id in self.queue:
+                        if production and not acquired and run_id in self.queue:
                             self.queue.remove(run_id)
                     if acquired:
                         self.production.release()
@@ -190,7 +194,7 @@ class Workspace:
             svc = self.service(run_id)
             ctx = svc.load(path)
             asyncio.run(build_draft_graph().invoke_async("Write the script", {"ctx": ctx}))
-            if brief.level == "small":
+            if brief.level == "low":
                 # Enqueue production only after releasing this draft job's slot.
                 self._write_status(path, "awaiting_script")
                 with self.lock:

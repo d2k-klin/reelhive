@@ -6,6 +6,7 @@
 
 | File | Agent | Tier | Output |
 | --- | --- | --- | --- |
+| [`researcher.py`](researcher.py) | `research`: reads the product website (via the screenshot crawler, text only) and writes product notes | fast | `ProductNotes` |
 | [`script_writer.py`](script_writer.py) | `script`: narration as beats, sized to the target word count | strong | `Script` |
 | [`scene_planner.py`](scene_planner.py) | `scenes`: template, on-screen text and visual request per beat; builds the `SceneSpec` and theme. At `high`, the brief's own scenes are used as is (no LLM call). | fast | `ScenePlan` |
 | [`music_director.py`](music_director.py) | `music`: mood and BPM, then a library track | fast | `MusicChoice` |

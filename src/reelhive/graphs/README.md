@@ -6,7 +6,7 @@
 
 | File | Graph |
 | --- | --- |
-| [`draft.py`](draft.py) | `brief ─► script`. Always runs. Approval stops (medium) happen after it. |
+| [`draft.py`](draft.py) | `brief ─► research ─► script`. Always runs. Approval stops (medium) happen after it. |
 | [`production.py`](production.py) | `scenes ─► visuals`, `narrate` and `music` in parallel, fan-in to `timing`, then `critic` with a conditional `fix ─► recheck` path, and `render`. Also exports `NODES` (used to report skipped nodes) and the edge conditions. `build_production_graph(stage)` builds the whole graph (`"all"`), or for `high` just the preparation half (`"prepare"`: up to `timing`, then the scene stop) and the finishing half (`"finish"`: `critic` onward, after `approve-scenes`). |
 
 ```

@@ -9,18 +9,18 @@ export function Help({label, children}: {label: string; children: ReactNode}) {
   const panel = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({left: 0, top: 0});
-  const show = () => {
+  const place = () => {
     const rect = anchor.current?.getBoundingClientRect();
     if (rect) setPosition({left: Math.max(12, Math.min(rect.left, innerWidth - 312)), top: Math.min(rect.bottom + 8, innerHeight - 180)});
-    setOpen(true);
   };
+  const show = () => { place(); setOpen(true); };
   useEffect(() => {
     if (!open) return;
     const key = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
     const outside = (event: PointerEvent) => { if (!anchor.current?.contains(event.target as Node) && !panel.current?.contains(event.target as Node)) setOpen(false); };
     // Follow the button when the page scrolls or resizes. Closing here made the tooltip vanish whenever
     // opening it scrolled the button into view (keyboard focus, a tap near the screen edge, small screens).
-    const follow = () => { if (anchor.current) show(); };
+    const follow = () => place(); // reposition only: a scroll must never reopen a tooltip that was just closed
     document.addEventListener('keydown', key);
     document.addEventListener('pointerdown', outside);
     window.addEventListener('scroll', follow, true);

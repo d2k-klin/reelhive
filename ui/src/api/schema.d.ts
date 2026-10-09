@@ -639,10 +639,11 @@ export interface components {
         Brief: {
             /**
              * Level
-             * @default small
+             * @description Customization level: low = agents decide most, high = you direct every scene
+             * @default low
              * @enum {string}
              */
-            level: "small" | "medium" | "high";
+            level: "low" | "medium" | "high";
             /** Audience */
             audience: string;
             /** Storyline */
@@ -819,7 +820,7 @@ export interface components {
             };
             /**
              * @default {
-             *       "level": "small",
+             *       "level": "low",
              *       "format": "16:9",
              *       "voice": {
              *         "accent": "us",
@@ -934,10 +935,10 @@ export interface components {
         Defaults: {
             /**
              * Level
-             * @default small
+             * @default low
              * @enum {string}
              */
-            level: "small" | "medium" | "high";
+            level: "low" | "medium" | "high";
             /**
              * Format
              * @default 16:9
