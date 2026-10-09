@@ -76,7 +76,7 @@ class StatText(BaseModel):
 class _SceneBase(BaseModel):
     index: int = Field(ge=1)
     narration: str
-    feature: str | None = None
+    covers: list[int] = Field(default_factory=list, description="Brief key-point notes (1-based) this scene tells")
     duration_override: float | None = Field(None, ge=0.5, le=180)
     voice_override: Voice | None = None
     image_approved: bool = False

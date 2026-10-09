@@ -31,7 +31,6 @@ METRICS: list[tuple[str, str, bool | None]] = [
     ("fix_iterations", "Fix iterations (mean)", None),
     ("duration_ok", "Duration within ±5%", True),
     ("duration_error_pct", "Duration error % (mean)", None),
-    ("closing_match", "Closing message exact match", True),
     ("feature_coverage", "Feature coverage", True),
     ("pace_ok", "Pace 130-170 wpm", True),
     ("wpm", "Words per minute (mean)", None),

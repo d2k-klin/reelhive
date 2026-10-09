@@ -45,9 +45,9 @@ def test_pass_path_renders_a_video(config, brief):
     assert len(tts.calls) == 6
 
     started = [d["node"] for d in of_type(events, "node.started")]
-    assert started[:2] == ["brief", "script"]
-    assert set(started[2:5]) == {"scenes", "narrate", "music"}  # parallel branches
-    assert started[5:] == ["visuals", "timing", "critic", "render"]
+    assert started[:3] == ["brief", "research", "script"]  # research is skipped without a website
+    assert set(started[3:6]) == {"scenes", "narrate", "music"}  # parallel branches
+    assert started[6:] == ["visuals", "timing", "critic", "render"]
     assert [d["node"] for d in of_type(events, "node.skipped")] == ["fix", "recheck"]
     assert all(d["passed"] for d in of_type(events, "gate.result"))
     assert of_type(events, "critic.verdict")[0]["passed"]
@@ -64,9 +64,9 @@ def test_pass_path_renders_a_video(config, brief):
 
 
 def test_hard_check_failure_takes_the_fix_path(config, brief):
-    script = make_script(brief)
+    script = make_script(brief, drop=1)  # the writer forgot key point 1
     fixed_narration = [b["narration"] for b in script["beats"]]
-    fixed_narration[2] = words(23, brief.features[0])  # fixer rewords the uncovered feature's beat
+    fixed_narration[2] = words(23, "now telling the first key point")  # the fixer weaves it into scene 3
     svc, model, tts = service(
         config,
         {
@@ -91,12 +91,13 @@ def test_hard_check_failure_takes_the_fix_path(config, brief):
 def test_recheck_failure_stops_with_a_report(config, brief):
     broken = make_plan(brief, drop_feature=2)
     svc, _, _ = service(
-        config, {"Script": make_script(brief), "ScenePlan": [broken, copy.deepcopy(broken)], "MusicChoice": MUSIC}
+        config,
+        {"Script": make_script(brief, drop=2), "ScenePlan": [broken, copy.deepcopy(broken)], "MusicChoice": MUSIC},
     )
     result, events = run(svc, brief)
 
     assert result.status == "stopped" and result.video is None
-    assert any("features not covered" in line and brief.features[1] in line for line in result.report)
+    assert any("key points not told" in line and brief.features[1] in line for line in result.report)
     assert [d["node"] for d in of_type(events, "node.skipped")] == ["render"]
     assert of_type(events, "run.finished")[0]["status"] == "stopped"
 

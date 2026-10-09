@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Literal
+import json
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
@@ -53,7 +54,9 @@ class PlannedScene(BaseModel):
         None, description="hook/cta: subline (80/60 chars); feature-card: body (110 chars). Optional"
     )
     label: str | None = Field(None, description="feature-card only: a short marker such as 01 (max 4 chars)")
-    feature: str | None = Field(None, description="The brief feature this scene covers, verbatim, if any")
+    covers: list[int] = Field(
+        default_factory=list, description="Numbers (1-based) of the brief's key-point notes this scene tells"
+    )
     narration: str | None = Field(None, description="Spoken text for this scene; set it only when asked to")
 
     visual_request: VisualRequest = VisualRequest()
@@ -80,7 +83,7 @@ class PlannedScene(BaseModel):
 
     def to_scene(self, index: int, narration: str) -> SceneT:
         scene = SCENE_MODELS[self.template](
-            index=index, narration=narration, feature=self.feature, text=self.text(), visual_request=self.visual_request
+            index=index, narration=narration, covers=self.covers, text=self.text(), visual_request=self.visual_request
         )
         return scene  # type: ignore[return-value]
 
@@ -90,4 +93,24 @@ class ScenePlan(BaseModel):
 
 
 def brief_block(ctx_brief: BaseModel) -> str:
-    return "Brief:\n" + ctx_brief.model_dump_json(indent=2)
+    return (
+        "Brief (the user's notes: `features` are numbered key points, `closing` is the idea for the call to"
+        " action; treat both as rough input, not as copy):\n" + ctx_brief.model_dump_json(indent=2)
+    )
+
+
+def notes_block(brief: BaseModel) -> str:
+    return "Key points:\n" + "\n".join(f"{i}. {note}" for i, note in enumerate(getattr(brief, "features", []), 1))
+
+
+def research_block(ctx: Any) -> str:
+    """Product notes from the `research` step, if it ran (also read back from research.json after a pause)."""
+    research = getattr(ctx, "research", None)
+    path = ctx.run_dir / "research.json"
+    if research is None and path.exists():
+        research = json.loads(path.read_text())
+    if not research:
+        return ""
+    return "\n\nProduct research from the website (facts and correct names to build on):\n" + json.dumps(
+        research, indent=2
+    )

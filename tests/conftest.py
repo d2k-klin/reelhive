@@ -110,16 +110,14 @@ def words(n: int, prefix: str = "") -> str:
     return " ".join([*prefix.split(), *(["word"] * (n - len(prefix.split())))])
 
 
-def make_script(brief: Brief, total_words: int = 141) -> dict[str, Any]:
+def make_script(brief: Brief, total_words: int = 141, drop: int | None = None) -> dict[str, Any]:
+    """One beat per key point (note numbers in `covers`); `drop` leaves that note untold."""
     roles = ["hook", "problem", *(["feature"] * len(brief.features)), "cta"]
     per = total_words // len(roles)
     beats = []
     for i, role in enumerate(roles):
-        feature = brief.features[i - 2] if role == "feature" else None
-        text = words(per, brief.closing if role == "cta" else "")
-        if role == "cta":
-            text = words(per - len(brief.closing.split())) + " " + brief.closing
-        beats.append({"role": role, "narration": text, "feature": feature})
+        note = i - 1 if role == "feature" else None
+        beats.append({"role": role, "narration": words(per), "covers": [note] if note and note != drop else []})
     return {"title": "CostHive launch", "beats": beats}
 
 
@@ -135,10 +133,12 @@ def make_plan(brief: Brief, drop_feature: int | None = None, narration: list[str
                 "label": f"0{i}",
                 "headline": f[:40],
                 "secondary": f,
-                "feature": None if i == drop_feature else f,
+                "covers": [] if i == drop_feature else [i],
             }
         )
-    scenes.append({"template": "cta", "headline": brief.closing, "secondary": "github.com/d2k-klin/costhive"})
+    scenes.append(
+        {"template": "cta", "headline": "Try CostHive free on GitHub", "secondary": "github.com/d2k-klin/costhive"}
+    )
     if narration:
         for s, n in zip(scenes, narration, strict=True):
             s["narration"] = n

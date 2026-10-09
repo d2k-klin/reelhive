@@ -16,7 +16,6 @@ def _fmt(key: str, value: Any) -> str:
         "success",
         "schema_first_try",
         "duration_ok",
-        "closing_match",
         "feature_coverage",
         "pace_ok",
         "text_fit",

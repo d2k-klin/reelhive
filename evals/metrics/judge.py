@@ -64,7 +64,7 @@ async def judge_run(model: Model, brief: Brief, script: Script, spec: SceneSpec 
         model,
         "script.md",
         f"Audience: {brief.audience}\nStoryline: {brief.storyline}\nTone: {brief.tone}\n"
-        f"Closing message: {brief.closing}\n\nScript:\n{beats}",
+        f"Closing idea (the writers polish it): {brief.closing}\n\nScript:\n{beats}",
         ScriptJudgement,
     )
     scores: dict[str, Any] = {f"judge_{k}": v for k, v in verdict.model_dump(exclude={"notes"}).items()}
@@ -89,7 +89,7 @@ async def judge_suggestions(model: Model, brief: Brief, script: Script, suggesti
     verdict, tokens = await _ask(
         model,
         "suggestions.md",
-        f"Audience: {brief.audience}\nStoryline: {brief.storyline}\nClosing message: {brief.closing}\n\n"
+        f"Audience: {brief.audience}\nStoryline: {brief.storyline}\nClosing idea: {brief.closing}\n\n"
         f"Script:\n{beats}\n\nSuggestions for beat 1:\n{listed}",
         SuggestionJudgement,
     )

@@ -15,12 +15,13 @@ from reelhive.schemas.scene_spec import (
 
 def good_spec(brief, per_scene_words=28):
     scenes = [HookScene(index=1, narration=words(per_scene_words), text=HookText(headline="Hook"))]
-    for i, f in enumerate(brief.features, start=2):
+    for i in range(2, len(brief.features) + 2):
         scenes.append(
-            FeatureCardScene(index=i, narration=words(per_scene_words), feature=f, text=FeatureCardText(headline="F"))
+            FeatureCardScene(
+                index=i, narration=words(per_scene_words), covers=[i - 1], text=FeatureCardText(headline="F")
+            )
         )
-    closing = words(per_scene_words - len(brief.closing.split())) + " " + brief.closing
-    scenes.append(CtaScene(index=len(scenes) + 1, narration=closing, text=CtaText(headline="Go")))
+    scenes.append(CtaScene(index=len(scenes) + 1, narration=words(per_scene_words), text=CtaText(headline="Go")))
     spec = SceneSpec(scenes=scenes)
     narrated = {s.index: (s.narration, len(s.narration.split()) / 2.6) for s in spec.scenes}
     return apply_timing(spec, narrated, brief), narrated
@@ -41,11 +42,11 @@ def test_each_check_can_fail(brief):
     spec.duration = 40.0
     spec.scenes[-1].narration = "Something else entirely."
     spec.scenes[-1].text.headline = "Different"
-    spec.scenes[1].feature = None
+    spec.scenes[1].covers = []
     spec.scenes[0].text.headline = "x" * 60  # assignment skips validation, like a hand-edited spec
     checks = by_name(hard_checks(spec, brief, narrated))
     assert not checks["duration"].passed and "40.0s" in checks["duration"].message
-    assert not checks["closing"].passed
+    assert "closing" not in checks  # the closing is an idea the writers polish; the critic judges it
     assert not checks["features"].passed and brief.features[0] in checks["features"].message
     assert not checks["text_limits"].passed
     assert not checks["audio"].passed and "[5]" in checks["audio"].message

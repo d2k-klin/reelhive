@@ -7,7 +7,14 @@ from strands.models.model import Model
 from reelhive.config import Config
 
 TIERS = ("strong", "fast")
-NODE_TIERS = {"script": "strong", "scenes": "fast", "music": "fast", "critic": "strong", "fix": "strong"}
+NODE_TIERS = {
+    "research": "fast",
+    "script": "strong",
+    "scenes": "fast",
+    "music": "fast",
+    "critic": "strong",
+    "fix": "strong",
+}
 
 
 class ProviderError(RuntimeError):

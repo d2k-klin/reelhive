@@ -39,6 +39,8 @@ class RunContext:
     spec_only: bool = False  # evals: stop at the render contract, no video
     image_generator: Any = None  # visuals/generators/base.py ImageGenerator; None means configured OpenAI
     visual_catalog: list[dict[str, Any]] = field(default_factory=list)
+    site_pages: list[dict[str, str]] = field(default_factory=list)  # research: pages read from the website
+    research: dict[str, Any] | None = None  # research: product notes (also saved as research.json)
     script: Script | None = None
     spec: SceneSpec | None = None
     narrated: dict[int, tuple[str, float]] = field(default_factory=dict)  # scene index -> (text, seconds)
@@ -64,6 +66,7 @@ class RunContext:
                 "voiced": self.voiced,
                 "music": self.music,
                 "visual_catalog": self.visual_catalog,
+                "research": self.research,
                 "failures": self.failures,
                 "critic_passed": self.critic_passed,
                 "recheck_passed": self.recheck_passed,
@@ -88,7 +91,7 @@ class RunContext:
         self.spec = SceneSpec.model_validate(data["spec"]) if data.get("spec") else None
         self.narrated = {int(k): tuple(v) for k, v in data.get("narrated", {}).items()}
         self.voiced = {int(k): v for k, v in data.get("voiced", {}).items()}
-        for key in ("music", "visual_catalog", "failures", "critic_passed", "recheck_passed"):
+        for key in ("music", "visual_catalog", "research", "failures", "critic_passed", "recheck_passed"):
             if key in data:
                 setattr(self, key, data[key])
         video = self.path(data["video"]) if data.get("video") else self.path("video.mp4")

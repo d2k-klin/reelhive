@@ -54,7 +54,6 @@ def score_spec(spec: SceneSpec, brief: Brief, narrated: dict[int, tuple[str, flo
     return {
         "duration_error_pct": round(abs(spec.duration - brief.duration) / brief.duration * 100, 2),
         "duration_ok": checks["duration"].passed,
-        "closing_match": checks["closing"].passed,
         "feature_coverage": covered / total,
         "wpm": checks["pace"].value,
         "pace_ok": checks["pace"].passed,

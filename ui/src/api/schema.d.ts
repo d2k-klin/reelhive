@@ -603,10 +603,10 @@ export interface components {
              */
             narration: string;
             /**
-             * Feature
-             * @description For feature beats: the brief feature this beat covers, verbatim
+             * Covers
+             * @description Numbers (1-based) of the brief's key-point notes this beat tells; a beat may cover several
              */
-            feature?: string | null;
+            covers?: number[];
         };
         /** Body_upload_api_uploads_post */
         Body_upload_api_uploads_post: {
@@ -647,7 +647,10 @@ export interface components {
             audience: string;
             /** Storyline */
             storyline: string;
-            /** Features */
+            /**
+             * Features
+             * @description Key points as rough notes; the agents research them and write the copy
+             */
             features: string[];
             /**
              * Duration
@@ -668,8 +671,16 @@ export interface components {
              *     }
              */
             voice: components["schemas"]["Voice"];
-            /** Closing */
+            /**
+             * Closing
+             * @description The idea of the closing call to action; the agents polish the wording
+             */
             closing: string;
+            /**
+             * Website
+             * @description Product website: researched for the story and used for screenshots
+             */
+            website?: string | null;
             /**
              * Credit
              * @default end
@@ -726,8 +737,11 @@ export interface components {
             index: number;
             /** Narration */
             narration: string;
-            /** Feature */
-            feature?: string | null;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
             /** Duration Override */
             duration_override?: number | null;
             voice_override?: components["schemas"]["Voice"] | null;
@@ -867,8 +881,11 @@ export interface components {
             index: number;
             /** Narration */
             narration: string;
-            /** Feature */
-            feature?: string | null;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
             /** Duration Override */
             duration_override?: number | null;
             voice_override?: components["schemas"]["Voice"] | null;
@@ -950,8 +967,11 @@ export interface components {
             index: number;
             /** Narration */
             narration: string;
-            /** Feature */
-            feature?: string | null;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
             /** Duration Override */
             duration_override?: number | null;
             voice_override?: components["schemas"]["Voice"] | null;
@@ -1031,8 +1051,11 @@ export interface components {
             index: number;
             /** Narration */
             narration: string;
-            /** Feature */
-            feature?: string | null;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
             /** Duration Override */
             duration_override?: number | null;
             voice_override?: components["schemas"]["Voice"] | null;
@@ -1093,8 +1116,11 @@ export interface components {
             index: number;
             /** Narration */
             narration: string;
-            /** Feature */
-            feature?: string | null;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
             /** Duration Override */
             duration_override?: number | null;
             voice_override?: components["schemas"]["Voice"] | null;
@@ -1175,8 +1201,11 @@ export interface components {
             index: number;
             /** Narration */
             narration: string;
-            /** Feature */
-            feature?: string | null;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
             /** Duration Override */
             duration_override?: number | null;
             voice_override?: components["schemas"]["Voice"] | null;
@@ -1303,8 +1332,11 @@ export interface components {
             index: number;
             /** Narration */
             narration: string;
-            /** Feature */
-            feature?: string | null;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
             /** Duration Override */
             duration_override?: number | null;
             voice_override?: components["schemas"]["Voice"] | null;
@@ -1372,8 +1404,11 @@ export interface components {
             index: number;
             /** Narration */
             narration: string;
-            /** Feature */
-            feature?: string | null;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
             /** Duration Override */
             duration_override?: number | null;
             voice_override?: components["schemas"]["Voice"] | null;

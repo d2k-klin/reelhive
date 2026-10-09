@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -78,11 +78,20 @@ class Brief(Options):
     level: Literal["small", "medium", "high"] = "small"
     audience: str = Field(min_length=3)
     storyline: str = Field(min_length=3)
-    features: list[str] = Field(min_length=1, max_length=8)
+    features: list[str] = Field(
+        min_length=1, max_length=8, description="Key points as rough notes; the agents research them and write the copy"
+    )
     duration: int = Field(60, ge=15, le=180)
     format: Literal["16:9", "9:16", "1:1"] = "16:9"
     voice: Voice = Voice()
-    closing: str = Field(min_length=3, max_length=60)
+    closing: str = Field(
+        min_length=3,
+        max_length=200,
+        description="The idea of the closing call to action; the agents polish the wording",
+    )
+    website: str | None = Field(
+        None, max_length=300, description="Product website: researched for the story and used for screenshots"
+    )
     credit: Literal["end", "corner"] = "end"
     tone: str = "clear and direct"
     pacing: Literal["slow", "balanced", "fast"] = "balanced"
@@ -95,3 +104,23 @@ class Brief(Options):
     scenes: list[Scene] | None = Field(None, min_length=1, max_length=12)
     music_track: str | None = None
     music_volume: float = Field(0.3, ge=0, le=1)
+
+    @field_validator("website")
+    @classmethod
+    def website_url(cls, value: str | None) -> str | None:
+        if value:
+            Screenshots(url=value)  # same rule: http(s), no embedded credentials
+        return value or None
+
+    @model_validator(mode="before")
+    @classmethod
+    def screenshots_from_website(cls, data: Any) -> Any:
+        """A product website doubles as the screenshot source unless the brief says otherwise."""
+        if isinstance(data, dict) and data.get("website"):
+            visuals = dict(data.get("visuals") or {})
+            if visuals.get("source", "auto") in ("auto", "screenshots") and not (
+                visuals.get("url") or visuals.get("screenshots")
+            ):
+                visuals["url"] = data["website"]
+                data = {**data, "visuals": visuals}
+        return data

@@ -5,7 +5,7 @@ import json
 
 from strands.types.event_loop import Usage
 
-from reelhive.agents.plan import ScenePlan, brief_block
+from reelhive.agents.plan import ScenePlan, brief_block, notes_block, research_block
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode
 from reelhive.schemas.scene_spec import FORMATS, SceneSpec
@@ -42,12 +42,13 @@ class ScenePlannerNode(AgentNode):
     def build_prompt(self, ctx: RunContext) -> str:
         assert ctx.script
         beats = "\n".join(
-            f"{i}. [{b.role}] {b.narration}" + (f" (feature: {b.feature})" if b.feature else "")
+            f"{i}. [{b.role}] {b.narration}" + (f" (covers key points {b.covers})" if b.covers else "")
             for i, b in enumerate(ctx.script.beats, start=1)
         )
         entries = [{k: v for k, v in entry.items() if k != "file"} for entry in ctx.visual_catalog]
         return (
-            f"{brief_block(ctx.brief)}\n\nBeats ({len(ctx.script.beats)}):\n{beats}"
+            f"{brief_block(ctx.brief)}\n\n{notes_block(ctx.brief)}{research_block(ctx)}\n\n"
+            f"Beats ({len(ctx.script.beats)}):\n{beats}"
             f"\nVisual catalog: {json.dumps(entries)}"
         )
 
@@ -63,6 +64,9 @@ class ScenePlannerNode(AgentNode):
             format=ctx.brief.format,
             width=width,
             height=height,
-            scenes=[p.to_scene(i, b.narration) for i, (p, b) in enumerate(zip(out.scenes, beats, strict=True), 1)],
+            scenes=[
+                p.to_scene(i, b.narration).model_copy(update={"covers": p.covers or b.covers})
+                for i, (p, b) in enumerate(zip(out.scenes, beats, strict=True), 1)
+            ],
         )
         ctx.events.emit("node.task", node=self.name, task=f"{len(out.scenes)} scenes planned")

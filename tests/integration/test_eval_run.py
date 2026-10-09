@@ -24,15 +24,14 @@ SUGGESTIONS = {
 }
 
 
-def script_for(brief: Brief) -> dict:
+def script_for(brief: Brief, drop_feature: bool = False) -> dict:
     roles = ["hook", *([] if brief.duration < 30 else ["problem"]), *(["feature"] * len(brief.features)), "cta"]
     per = target_words(brief) // len(roles)
+    notes = [None] * (len(roles) - len(brief.features) - 1) + list(range(1, len(brief.features) + 1)) + [None]
     beats = []
-    for role, feature in zip(
-        roles, [None] * (len(roles) - len(brief.features) - 1) + brief.features + [None], strict=True
-    ):
-        text = words(per - len(brief.closing.split())) + " " + brief.closing if role == "cta" else words(per)
-        beats.append({"role": role, "narration": text, "feature": feature})
+    for role, note in zip(roles, notes, strict=True):
+        covers = [note] if note and not (drop_feature and note == 1) else []
+        beats.append({"role": role, "narration": words(per), "covers": covers})
     return {"title": "eval", "beats": beats}
 
 
@@ -55,8 +54,9 @@ class BriefAwareFake(FakeModel):
     async def stream(self, messages, tool_specs=None, system_prompt=None, **kwargs):
         name = tool_specs[0]["name"]
         text = " ".join(c.get("text", "") for m in messages if m["role"] == "user" for c in m["content"])
-        brief = Brief.model_validate(json.JSONDecoder().raw_decode(text[text.index("Brief:\n") + 7 :])[0])
-        script = script_for(brief)
+        start = text.index("{", text.index("Brief ("))
+        brief = Brief.model_validate(json.JSONDecoder().raw_decode(text[start:])[0])
+        script = script_for(brief, self.drop_feature)
         payload = {
             "Script": script,
             "ScenePlan": plan_for(brief, len(script["beats"]), self.drop_feature),
@@ -92,7 +92,7 @@ def test_smoke_eval_compares_providers_and_gates(tmp_path):
     assert good["success"] == 1.0 and good["schema_first_try"] == 1.0, [
         (r["brief"], r["outcome"], r.get("error")) for r in report["records"] if r["provider"] == "good"
     ]
-    assert good["closing_match"] == good["feature_coverage"] == good["duration_ok"] == good["pace_ok"] == 1.0
+    assert good["feature_coverage"] == good["duration_ok"] == good["pace_ok"] == 1.0
     assert good["product_ui_generated"] == 0
     assert 0 < good["visual_coverage"] <= 1  # the screenshot brief resolves its product UI scene locally
     assert good["image_count"] > 0 and good["judge_prompt_relevance"] == 4  # the generate brief's prompt

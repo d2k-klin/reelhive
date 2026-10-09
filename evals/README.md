@@ -43,7 +43,6 @@ One table, one row per metric, one column per provider.
 | Schema valid on first try | No agent needed the extra repair round for invalid structured output |
 | Fix iterations | How often the `fix` path ran (0 or 1 per brief) |
 | Duration within ±5%, duration error | Final spec length against the brief's target |
-| Closing message exact match | The closing appears verbatim in the final scene |
 | Feature coverage | Share of the brief's features covered by a scene |
 | Pace 130-170 wpm | Narration density over the video's length |
 | No text overflow | Every scene's on-screen text fits its template |

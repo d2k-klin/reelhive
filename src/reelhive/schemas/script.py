@@ -10,7 +10,10 @@ from pydantic import BaseModel, Field
 class Beat(BaseModel):
     role: Literal["hook", "problem", "feature", "cta"] = Field(description="What this beat does in the story")
     narration: str = Field(min_length=1, description="Exactly what the voice says in this beat")
-    feature: str | None = Field(None, description="For feature beats: the brief feature this beat covers, verbatim")
+    covers: list[int] = Field(
+        default_factory=list,
+        description="Numbers (1-based) of the brief's key-point notes this beat tells; a beat may cover several",
+    )
 
 
 class Script(BaseModel):

@@ -10,7 +10,7 @@ from typing import Any
 from pydantic import BaseModel, Field, ValidationError
 from strands.types.event_loop import Usage
 
-from reelhive.agents.plan import brief_block
+from reelhive.agents.plan import brief_block, research_block
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode, _no_usage
 from reelhive.schemas.brief import Brief
@@ -49,33 +49,16 @@ def hard_checks(
         )
     )
 
-    last = spec.scenes[-1]
-    on_screen = [str(v) for v in last.text.model_dump().values() if v]
-    closing = _norm(brief.closing)
-    found = any(closing in _norm(t) for t in [last.narration, *on_screen])
-    checks.append(
-        Check(
-            "closing",
-            found,
-            "verbatim in final scene",
-            found,
-            f"final scene must contain the closing message verbatim: {brief.closing!r}",
-        )
-    )
-
-    def covered(feature: str) -> bool:
-        return any(
-            _norm(s.feature or "") == _norm(feature) or _norm(feature) in _norm(s.narration) for s in spec.scenes
-        )
-
-    missing = [f for f in brief.features if not covered(f)]
+    # Notes are topics, not copy: a note counts as covered when some scene says it tells it (`covers`).
+    told = {n for s in spec.scenes for n in s.covers}
+    missing = [f"{i}. {note}" for i, note in enumerate(brief.features, start=1) if i not in told]
     checks.append(
         Check(
             "features",
             f"{len(brief.features) - len(missing)}/{len(brief.features)}",
             "all covered",
             not missing,
-            f"features not covered by any scene: {missing}",
+            f"key points not told by any scene (set `covers` on the scene that tells each): {missing}",
         )
     )
 
@@ -171,7 +154,7 @@ def scenes_block(spec: SceneSpec, narrated: dict[int, tuple[str, float]]) -> str
         speech = narrated.get(s.index, ("", 0.0))[1]
         lines.append(
             f"Scene {s.index} [{s.template}] {s.duration:.1f}s (speech {speech:.1f}s), "
-            f"feature={s.feature!r}\n  text: {s.text.model_dump_json(exclude_none=True)}\n"
+            f"covers={s.covers}\n  text: {s.text.model_dump_json(exclude_none=True)}\n"
             f"  narration: {s.narration}\n  visual request: {s.visual_request.model_dump_json()}"
         )
     return "\n".join(lines)
@@ -202,7 +185,7 @@ class CriticNode(AgentNode):
 
     def build_prompt(self, ctx: RunContext) -> str:
         assert ctx.spec
-        return f"{brief_block(ctx.brief)}\n\nScenes:\n{scenes_block(ctx.spec, ctx.narrated)}"
+        return f"{brief_block(ctx.brief)}{research_block(ctx)}\n\nScenes:\n{scenes_block(ctx.spec, ctx.narrated)}"
 
     def apply(self, ctx: RunContext, out: Verdict) -> None:
         scores = out.model_dump(exclude={"passed", "reasons"})

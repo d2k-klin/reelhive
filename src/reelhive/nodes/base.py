@@ -77,7 +77,7 @@ def load_prompt(name: str) -> str:
 class AgentNode(FunctionNode):
     """An LLM node: builds a prompt from the run, gets validated structured output, applies it."""
 
-    name: ClassVar[Literal["script", "scenes", "music", "critic", "fix"]]
+    name: ClassVar[Literal["research", "script", "scenes", "music", "critic", "fix"]]
     tier: ClassVar[str] = "strong"  # "strong" | "fast"
     prompt: ClassVar[str]  # agents/prompts/<prompt>.md
     output: ClassVar[type[BaseModel]]

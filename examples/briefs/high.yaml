@@ -31,18 +31,18 @@ scenes:
   - index: 3
     template: bullets
     narration: CostHive scans every region in one command and flags idle and oversized resources.
-    feature: Scans every region in one command
+    covers: [1]
     text:
       headline: One scan, every region
       items: [Every region in one command, Idle and oversized resources flagged]
   - index: 4
     template: feature-card
     narration: Then it exports a fix-it report your engineers can act on today.
-    feature: Exports a fix-it report
+    covers: [3]
     text: {label: "03", headline: A fix-it report, body: The exact resources and the savings next to each one.}
     voice_override: {gender: male, accent: uk, speed: 1.0}   # a second voice for one scene
   - index: 5
     template: cta
     narration: Flags idle and oversized resources, every week. Try CostHive free on GitHub.
-    feature: Flags idle and oversized resources
+    covers: [2]
     text: {headline: Try CostHive free on GitHub., subline: github.com/d2k-klin/costhive}

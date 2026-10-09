@@ -66,7 +66,10 @@ def browser_context(options: Screenshots, format: str):
             browser.close()
 
 
-def discover(options: Screenshots, format: str) -> list[dict[str, str]]:
+TEXT_PER_PAGE = 3000  # research reads this much visible text per page
+
+
+def discover(options: Screenshots, format: str, with_text: bool = False) -> list[dict[str, str]]:
     queue = [same_origin(options.url, route) for route in (options.routes or [options.url])]
     seen: set[str] = set()
     pages: list[dict[str, str]] = []
@@ -96,6 +99,7 @@ def discover(options: Screenshots, format: str) -> list[dict[str, str]]:
                             options.mask,
                         )
                     )[:1000],
+                    **({"text": _visible_text(page, options.mask)} if with_text else {}),
                 }
             )
             if not options.routes:
@@ -107,6 +111,16 @@ def discover(options: Screenshots, format: str) -> list[dict[str, str]]:
                     if link not in seen and link not in queue:
                         queue.append(link)
     return pages
+
+
+def _visible_text(page, masks: list[str]) -> str:
+    """The page's readable text for research, without masked elements, collapsed and capped."""
+    text = page.evaluate(
+        """masks => { masks.forEach(s => document.querySelectorAll(s).forEach(n => n.remove()));
+                     return document.body ? document.body.innerText : ''; }""",
+        masks,
+    )
+    return " ".join(str(text).split())[:TEXT_PER_PAGE]
 
 
 def capture(options: Screenshots, format: str, route: str, output: Path) -> None:

@@ -52,7 +52,7 @@ def target_json(kind: Target, index: int, script: Script, spec: SceneSpec | None
     scene = next((s for s in spec.scenes if s.index == index), None)
     if scene is None:
         raise ValueError(f"scene {index} does not exist (1-{len(spec.scenes)})")
-    return scene.model_dump_json(include={"template", "text", "narration", "feature", "duration", "visual_request"})
+    return scene.model_dump_json(include={"template", "text", "narration", "covers", "duration", "visual_request"})
 
 
 def build_prompt(kind: Target, index: int, brief: Brief, script: Script, current: str) -> str:

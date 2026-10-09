@@ -22,6 +22,7 @@
       "type": "string"
     },
     "features": {
+      "description": "Key points as rough notes; the agents research them and write the copy",
       "items": {
         "type": "string"
       },
@@ -80,10 +81,25 @@
       "type": "object"
     },
     "closing": {
-      "maxLength": 60,
+      "description": "The idea of the closing call to action; the agents polish the wording",
+      "maxLength": 200,
       "minLength": 3,
       "title": "Closing",
       "type": "string"
+    },
+    "website": {
+      "anyOf": [
+        {
+          "maxLength": 300,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Product website: researched for the story and used for screenshots",
+      "title": "Website"
     },
     "credit": {
       "default": "end",
@@ -376,17 +392,13 @@
                     "title": "Narration",
                     "type": "string"
                   },
-                  "feature": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "default": null,
-                    "title": "Feature"
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
                   },
                   "duration_override": {
                     "anyOf": [
@@ -619,17 +631,13 @@
                     "title": "Narration",
                     "type": "string"
                   },
-                  "feature": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "default": null,
-                    "title": "Feature"
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
                   },
                   "duration_override": {
                     "anyOf": [
@@ -876,17 +884,13 @@
                     "title": "Narration",
                     "type": "string"
                   },
-                  "feature": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "default": null,
-                    "title": "Feature"
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
                   },
                   "duration_override": {
                     "anyOf": [
@@ -1119,17 +1123,13 @@
                     "title": "Narration",
                     "type": "string"
                   },
-                  "feature": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "default": null,
-                    "title": "Feature"
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
                   },
                   "duration_override": {
                     "anyOf": [
@@ -1362,17 +1362,13 @@
                     "title": "Narration",
                     "type": "string"
                   },
-                  "feature": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "default": null,
-                    "title": "Feature"
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
                   },
                   "duration_override": {
                     "anyOf": [
@@ -1605,17 +1601,13 @@
                     "title": "Narration",
                     "type": "string"
                   },
-                  "feature": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "default": null,
-                    "title": "Feature"
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
                   },
                   "duration_override": {
                     "anyOf": [
@@ -1848,17 +1840,13 @@
                     "title": "Narration",
                     "type": "string"
                   },
-                  "feature": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "default": null,
-                    "title": "Feature"
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
                   },
                   "duration_override": {
                     "anyOf": [
@@ -2091,17 +2079,13 @@
                     "title": "Narration",
                     "type": "string"
                   },
-                  "feature": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ],
-                    "default": null,
-                    "title": "Feature"
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
                   },
                   "duration_override": {
                     "anyOf": [

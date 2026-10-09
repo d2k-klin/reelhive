@@ -37,9 +37,9 @@ def test_high_brief_is_available_in_m3(brief):
 
 def test_planned_scene_maps_secondary_to_template_field():
     card = PlannedScene(
-        template="feature-card", headline="Scans", secondary="Every region", label="01", feature="f"
+        template="feature-card", headline="Scans", secondary="Every region", label="01", covers=[2]
     ).to_scene(3, "spoken")
     assert card.text.model_dump() == {"label": "01", "headline": "Scans", "body": "Every region"}
-    assert (card.index, card.narration, card.feature) == (3, "spoken", "f")
+    assert (card.index, card.narration, card.covers) == (3, "spoken", [2])
     hook = PlannedScene(template="hook", headline="Hi", secondary="there").to_scene(1, "x")
     assert hook.text.model_dump() == {"headline": "Hi", "subline": "there"}
