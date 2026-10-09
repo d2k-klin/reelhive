@@ -175,4 +175,6 @@ def test_render_progress_is_logged_per_percent_not_per_frame(config, brief):
     svc = Service(config, models={"strong": model, "fast": model}, tts=StubTTS(), renderer=chatty_renderer)
     result, events = run(svc, brief)
     frames = [d for d in of_type(events, "node.task") if d["task"] == "Rendering frames"]
-    assert result.status == "done" and len(frames) == 101  # 0% .. 100%
+    assert result.status == "done" and len(frames) == 100  # 0% .. 99%
+    finalized = [d for d in of_type(events, "node.task") if d["task"] == "Finalizing video frames"]
+    assert len(finalized) == 1 and finalized[0]["progress"] == 1.0

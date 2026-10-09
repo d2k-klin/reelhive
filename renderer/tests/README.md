@@ -8,6 +8,7 @@
 | --- | --- |
 | [`spec.test.ts`](spec.test.ts) | Limits are read from the generated schema; overflowing text and unknown templates are rejected; `TEMPLATES` has a component for every template in the schema |
 | [`assets.test.ts`](assets.test.ts) | Images and the logo are embedded as data URLs without changing the saved spec; `..` traversal and symlinks out of the run folder are refused |
+| [`browser-shutdown.test.ts`](browser-shutdown.test.ts) | Normal closure leaves the browser alone; stalled closure terminates its own browser after five seconds; errors and timer cleanup are preserved |
 
 ```bash
 npm test -w renderer

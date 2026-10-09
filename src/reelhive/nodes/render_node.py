@@ -25,7 +25,8 @@ class RenderNode(FunctionNode):
             percent = int(p * 100)
             if percent != last["percent"]:
                 last["percent"] = percent
-                ctx.events.emit("node.task", node=self.name, task="Rendering frames", progress=round(p, 3))
+                task = "Finalizing video frames" if p >= 1 else "Rendering frames"
+                ctx.events.emit("node.task", node=self.name, task=task, progress=round(p, 3))
 
         silent = ctx.path("render", "silent.mp4")
         ctx.renderer(spec_path, silent, progress)
