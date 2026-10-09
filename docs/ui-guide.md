@@ -73,14 +73,14 @@ For Medium or High, choose **Continue to visuals** after the brief is valid. Ree
 | Visual source | What ReelHive does |
 | --- | --- |
 | **none** | Uses text and motion only |
-| **auto** | Tries suitable supplied images or captures, then concept generation when enabled, then falls back to text |
+| **auto** | Uses the product website for captures and tries suitable supplied images, then concept generation when enabled, then falls back to text |
 | **screenshots** | Captures the configured application routes with Playwright |
 | **images** | Uses uploaded images or a local image directory |
 | **generate** | Generates concept art with the configured OpenAI image model |
 
 ### Capture an application
 
-1. Enter the **App URL**. It must be reachable from this computer.
+1. **Auto** uses your **Product website** for screenshots automatically. Choose **Use another app URL** only when you want to show a separate app, such as a signed-in dashboard. Without a product website, enter an **App URL** if you want captures. The address must be reachable from this computer. In **screenshots** mode, leaving **App URL** blank also uses your product website.
 2. Add one route per line. Leave the list empty to let ReelHive discover up to ten same-origin pages.
 3. Add sensitive elements under **Mask selectors**, one CSS selector per line. Matching elements are blacked out before capture.
 4. Choose a browser, phone, or frameless presentation.

@@ -62,6 +62,48 @@ test('sign-in completion uses the supported route',async({page})=>{
   expect(finished).toBe(true);
 });
 
+test('auto visuals inherit the website for capture, export and production, with an optional override',async({page})=>{
+  const captures: {url:string;routes:string[]}[]=[];
+  let exported:any, started:any;
+  await page.route('**/api/capture/test',r=>{
+    captures.push(r.request().postDataJSON().screenshots);
+    return r.fulfill({json:[]});
+  });
+  await page.route('**/api/briefs/export',r=>{exported=r.request().postDataJSON();return r.continue();});
+  await page.route('**/api/runs/*/start',r=>{started=r.request().postDataJSON();return r.fulfill({json:{status:'producing'}});});
+  await page.getByLabel('Who is this for?',{exact:true}).fill('Product teams');
+  await page.getByLabel('What’s the story?',{exact:true}).fill('Show our product in action');
+  await page.getByLabel('Feature 1',{exact:true}).fill('Clear dashboard');
+  await page.getByLabel('Closing idea',{exact:true}).fill('Try the product');
+  await page.getByLabel('Product website',{exact:true}).fill('https://product.example');
+  await page.getByLabel('Visual source',{exact:true}).selectOption('auto');
+  await expect(page.getByLabel('App URL',{exact:true})).toBeHidden();
+  await expect(page.getByText('Screenshots use your product website:')).toContainText('https://product.example');
+  await page.getByLabel('Routes',{exact:true}).fill('/dashboard');
+  await page.getByRole('button',{name:'Test capture',exact:true}).click();
+  await expect.poll(()=>captures.length).toBe(1);
+  expect(captures[0]).toMatchObject({url:'https://product.example',routes:['/dashboard']});
+  await page.locator('section').filter({has:page.getByRole('heading',{name:'Your visuals',exact:true})})
+    .screenshot({path:'/private/tmp/reelhive-auto-visuals.png'});
+
+  await page.getByRole('button',{name:'Use another app URL',exact:true}).click();
+  await page.getByLabel('App URL',{exact:true}).fill('https://app.example');
+  await page.reload();
+  await expect(page.getByLabel('App URL',{exact:true})).toHaveValue('https://app.example');
+  await page.getByRole('button',{name:'Test capture',exact:true}).click();
+  await expect.poll(()=>captures.length).toBe(2);
+  expect(captures[1].url).toBe('https://app.example');
+  await page.getByRole('button',{name:'Use product website',exact:true}).click();
+  await page.getByLabel('Product website',{exact:true}).fill('https://new-product.example');
+  await expect(page.getByLabel('App URL',{exact:true})).toBeHidden();
+  const downloaded=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Export brief file',exact:true}).click();
+  await downloaded;
+  expect(exported.visuals.screenshots).toMatchObject({url:'https://new-product.example',routes:['/dashboard']});
+  await page.getByRole('button',{name:'Make my video',exact:true}).click();
+  await expect.poll(()=>started?.visuals?.screenshots?.url).toBe('https://new-product.example');
+});
+
 test('scene edits persist through polling and must be saved before approval',async({page,request})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('/runs/tutorial-scenes');
