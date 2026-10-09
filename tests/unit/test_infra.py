@@ -1,9 +1,11 @@
 """Events, config, levels, provider factory, music library, doctor."""
 
 import json
+from types import SimpleNamespace
 
 import pytest
 
+from reelhive.agents.music_director import MusicChoice, MusicDirectorNode
 from reelhive.audio.music_library import MOODS, MUSIC_DIR, load_manifest, pick_track
 from reelhive.config import Config, load_config
 from reelhive.core.events import EventBus, replay
@@ -66,6 +68,20 @@ def test_pick_track_prefers_mood_then_nearest_bpm():
     assert pick_track("calm", 150)["mood"] == "calm"
     assert pick_track("polka", 118)["bpm"] == 120
     assert pick_track("tech", 110)["file"].endswith("tech-110.mp3")
+
+
+@pytest.mark.parametrize("level", ["low", "medium", "high"])
+def test_music_director_honors_selected_track_at_every_level(brief, level):
+    track = load_manifest()[0]
+    ctx = SimpleNamespace(brief=brief.model_copy(update={"level": level, "music_track": track["file"]}))
+    MusicDirectorNode().apply(ctx, MusicChoice(mood="calm", bpm=150, reason="Test"))
+    assert ctx.music == {**track, "file": str(MUSIC_DIR / track["file"])}
+
+
+def test_music_director_rejects_invalid_track_at_low_level(brief):
+    ctx = SimpleNamespace(brief=brief.model_copy(update={"level": "low", "music_track": "missing.mp3"}))
+    with pytest.raises(ValueError, match="CC0 library"):
+        MusicDirectorNode().apply(ctx, MusicChoice(mood="calm", bpm=150, reason="Test"))
 
 
 def test_doctor_reports_credit_state(monkeypatch):

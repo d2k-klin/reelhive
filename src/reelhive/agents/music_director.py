@@ -24,7 +24,7 @@ class MusicDirectorNode(AgentNode):
         return f"{brief_block(ctx.brief)}\n\nAllowed moods: {', '.join(MOODS)}"
 
     def apply(self, ctx: RunContext, out: MusicChoice) -> None:
-        if ctx.brief.level == "high" and ctx.brief.music_track:
+        if ctx.brief.music_track:
             from reelhive.audio.music_library import MUSIC_DIR, load_manifest
 
             track = next((t for t in load_manifest() if t["file"] == ctx.brief.music_track), None)
