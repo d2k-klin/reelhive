@@ -120,7 +120,7 @@ High runs pause again at **Awaiting Scenes**. This is the main creative-control 
 The proportional timeline at the top shows every scene, its template, duration, and image-approval state. Select a scene to edit it.
 
 - **Template** changes the composition. Available layouts include hook, problem, feature card, stat, bullets, full image, screenshot pan, and CTA.
-- **Duration override** pins a scene to a specific length. Leave it empty to let ReelHive fit timing around the narration and target duration.
+- **Duration (s)** pins a scene to a specific length. Leave it empty to let ReelHive fit timing around the narration and target duration.
 - **Headline** and **Supporting text** control the words shown on screen. Template-specific length limits are enforced.
 - **Narration** changes the spoken text. Saving a change re-synthesizes only the affected audio.
 - **Override voice** lets one scene use another gender, accent, or speed.

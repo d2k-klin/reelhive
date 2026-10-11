@@ -32,7 +32,7 @@ export const fieldHelp: Record<string, string> = {
   'Maximum images': 'A per-run limit on generation attempts, including failed attempts. Generation can incur image-provider charges.',
   'Regeneration note': 'Tell the agent what to change. Regeneration replaces the saved version; save or approve your manual edits first when you want to keep them.',
   Template: 'A scene layout: opening hook, problem, feature card, statistic, bullets, image, moving screenshot, or closing invitation. Switching layouts may shorten or replace text fields.',
-  'Duration override': 'Optional seconds for this scene. Leave blank for automatic timing. A short override may not fit the narration and can fail quality review.',
+  'Duration (s)': 'Optional seconds for this scene. Leave blank for automatic timing. A short override may not fit the narration and can fail quality review.',
   Headline: 'The main text displayed in this scene. Keep it short enough to read at a glance.',
   'Supporting text': 'Secondary on-screen text. It should support the headline rather than repeat the entire narration.',
   Bullets: 'One short point per line. Keep the list readable at the selected video size.',

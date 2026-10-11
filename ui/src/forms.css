@@ -27,6 +27,9 @@ input[type=checkbox], input[type=radio] { flex: none; margin: 0; }
 .row > label { display: grid; gap: 8px; line-height: 28px; min-width: 0; }
 .field-heading { line-height: 1.4; }
 .field-heading > .help-trigger { flex: none; }
+/* Side-by-side fields: a label that would wrap (narrow screens, wider fallback fonts) would push its control below its neighbour's. */
+.row > .field > .field-heading { min-width: 0; }
+.row > .field > .field-heading > :first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .check:has(+ .help-trigger) { display: inline-flex; vertical-align: middle; max-width: calc(100% - 32px); margin-right: 4px; }
 
 .toolbar button:not(.help-trigger):not(.icon),
