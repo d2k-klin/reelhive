@@ -20,6 +20,7 @@ class BriefNode(FunctionNode):
         # Persist absolute source paths so approval can resume from another directory.
         if ctx.brief.brand.logo:
             ctx.brief.brand.logo = str(Path(ctx.brief.brand.logo).resolve())
+        ctx.brief.documents = [str(Path(name).resolve()) for name in ctx.brief.documents]
         sources = ctx.brief.visuals
         if sources.screenshots and sources.screenshots.storage_state:
             sources.screenshots.storage_state = str(Path(sources.screenshots.storage_state).resolve())

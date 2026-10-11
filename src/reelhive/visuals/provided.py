@@ -33,6 +33,8 @@ def match(entries: list[dict[str, str]], filename: str | None, text: str) -> dic
     images = [entry for entry in entries if "image" in entry]
     if filename:
         return next((e for e in images if e["image"] == filename), None)
+    # ponytail: document pages only by name; their captions are page text and would win every keyword match
+    images = [e for e in images if "document" not in e]
     terms = set(re.findall(r"[a-z0-9]+", text.lower()))
     scored = [
         (len(terms & set(re.findall(r"[a-z0-9]+", (e["image"] + " " + e["caption"]).lower()))), e) for e in images

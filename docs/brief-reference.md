@@ -11,6 +11,8 @@ A brief is a YAML file of **notes**, not copy. Write the audience, story, key po
 | `storyline` | text | required | The arc in a sentence or two |
 | `features` | list, 1-8 | required | Key points as rough notes. The agents may merge, split or reorder them and write their own wording; the gate only checks that each note is told by some scene |
 | `website` | URL | none | Product website: the `research` step reads up to 10 same-origin pages for facts and correct names, and it becomes the screenshot source unless `visuals` says otherwise. Its text goes to your agent provider. Shown small, without `https://` or `www.`, on the intro screen |
+| `documents` | list of paths, ≤5 | none | PDFs or slide decks (`.pptx`, `.ppt`, `.odp`). `research` reads up to 30 pages each, and the pages join the visual catalog so the scene planner can show a slide or chart by name. Decks need LibreOffice; otherwise export them as PDF. Page text goes to your agent provider; the pages themselves stay local. See [Visuals](visuals.md#documents) |
+| `context` | text, ≤4000 | none | Extra info for the agents: facts, pricing, release notes. Every agent sees it, and `research` treats it as a source |
 | `duration` | seconds, 15-180 | `60` | The 3-second intro and the end credit count toward it |
 | `format` | `16:9` \| `9:16` \| `1:1` | `16:9` | 1920×1080, 1080×1920, 1080×1080 |
 | `voice.gender` | `female` \| `male` | `female` | |

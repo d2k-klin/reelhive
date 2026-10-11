@@ -117,6 +117,6 @@ def research_block(ctx: Any) -> str:
         research = json.loads(path.read_text())
     if not research:
         return ""
-    return "\n\nProduct research from the website (facts and correct names to build on):\n" + json.dumps(
+    return "\n\nProduct research from the website and documents (facts and correct names to build on):\n" + json.dumps(
         research, indent=2
     )

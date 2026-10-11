@@ -41,6 +41,7 @@ dependencies = [
     "uvicorn>=0.34",
     "python-multipart>=0.0.20",
     "ag-ui-protocol==0.1.22",
+    "pypdfium2>=5.14.0",
 ]
 
 [project.optional-dependencies]

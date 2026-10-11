@@ -318,7 +318,7 @@ def create_app(
         caption: Annotated[str, Form()] = "",
         logo: Annotated[bool, Form()] = False,
     ):
-        data = await file.read(10 * 1024 * 1024 + 1)
+        data = await file.read(50 * 1024 * 1024 + 1)  # documents; images are held to 10 MB
         return await asyncio.to_thread(ws.upload, run_id, data, file.filename or "", caption, logo)
 
     @app.post("/api/capture/test", response_model=list[str])

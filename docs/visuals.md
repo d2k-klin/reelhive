@@ -42,6 +42,10 @@ team.webp: Our team working together
 
 Images remain local by default. `describe_images: true` explicitly sends supplied images to the scenes provider for descriptions; select a vision-capable Strands provider for this option. Copilot can't read images, so with Copilot the descriptions are skipped (the run carries on with filenames and captions); set `nodes: {scenes: claude}` (or another vision provider) to use them. A blank image folder means no images.
 
+## Documents
+
+`documents: [./deck.pptx, ./whitepaper.pdf]` (top level of the brief, up to five) adds PDFs and slide decks. Each page is rendered into the run folder's `documents/` at a size that meets every format's minimum, and joins the catalog with its text as the caption. The scene planner picks a page only by its exact name, for a chart, diagram or product slide; keyword matching never picks a document page, so text-heavy pages don't end up on screen by accident. Pages count as provided images, so `source: auto` or `images` uses them and `none` doesn't. Decks are converted with LibreOffice (`soffice`) when it is installed; without it, export the deck as PDF. In the studio, drop the file on **Documents** under the product website.
+
 ## Login and preview
 
 ```bash

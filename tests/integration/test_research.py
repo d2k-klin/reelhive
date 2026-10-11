@@ -5,7 +5,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
-from conftest import VERDICT_PASS, FakeModel, StubTTS, make_plan, make_script, stub_renderer
+from conftest import VERDICT_PASS, FakeModel, StubTTS, make_plan, make_script, pdf, stub_renderer
 
 from reelhive.agents.critic import hard_checks
 from reelhive.core.service import Service
@@ -104,7 +104,10 @@ def test_research_reads_the_site_and_the_writers_build_on_it(config, site):
 
 
 def test_research_skips_without_a_website_or_when_the_site_is_down(config):
-    for website, expected in ((None, "No product website"), ("http://127.0.0.1:9", "Could not read the website")):
+    for website, expected in (
+        (None, "Nothing readable to research"),
+        ("http://127.0.0.1:9", "Could not read the website"),
+    ):
         brief = rough_brief(website)
         model = FakeModel({"Script": make_script(brief)})
         events = []
@@ -114,6 +117,19 @@ def test_research_skips_without_a_website_or_when_the_site_is_down(config):
         assert result.status == "awaiting_script"  # the video carries on from the brief alone
         assert "ProductNotes" not in model.calls and not (result.run_dir / "research.json").exists()
         assert any(expected in e.data.get("task", "") for e in events if e.type == "node.task")
+
+
+def test_research_combines_the_site_with_a_pdf_and_extra_info(config, site, tmp_path):
+    deck = tmp_path / "roadmap.pdf"
+    deck.write_bytes(pdf("WardBee 2.0 adds evidence collection"))
+    brief = rough_brief(site, documents=[str(deck)], context="Free plan for up to 3 users")
+    model = RecordingModel({"ProductNotes": NOTES, "Script": make_script(brief)})
+    Service(config, {"strong": model, "fast": model}, StubTTS(), stub_renderer).run(
+        brief.model_copy(update={"level": "medium"})
+    )
+    prompt = model.prompts["ProductNotes"]
+    assert "Compliance for builders" in prompt and "roadmap.pdf, page 1" in prompt
+    assert "evidence collection" in prompt and "Free plan for up to 3 users" in prompt
 
 
 def test_masked_text_never_reaches_the_research_prompt(config, site):

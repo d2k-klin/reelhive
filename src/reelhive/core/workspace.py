@@ -6,6 +6,7 @@ import asyncio
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -30,6 +31,8 @@ from reelhive.schemas.scene_spec import SceneSpec
 from reelhive.schemas.script import Script
 
 BUSY = {"drafting", "producing", "queued", "regenerating", "capturing"}
+# The first bytes of each accepted document type: PDF, then Office/OpenDocument zip, then legacy Office.
+DOCUMENT_MAGIC = {".pdf": b"%PDF-", ".pptx": b"PK\x03\x04", ".odp": b"PK\x03\x04", ".ppt": b"\xd0\xcf\x11\xe0"}
 DOWNLOADS = {"video.mp4", "brief.yaml", "script.json", "spec.json", "run.log.jsonl", "script.approved.json"}
 
 
@@ -342,6 +345,8 @@ class Workspace:
     def upload(self, run_id: str, data: bytes, filename: str, caption: str = "", logo: bool = False) -> dict:
         path = self.path(run_id)
         Service.require_status(path, {"editing", "awaiting_script", "awaiting_scenes"})
+        if Path(filename).suffix.lower() in DOCUMENT_MAGIC:
+            return self.upload_document(path, data, filename)
         if len(data) > 10 * 1024 * 1024:
             raise ValueError("image exceeds the 10 MB limit")
         if Path(filename).suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}:
@@ -363,6 +368,23 @@ class Workspace:
             captions_path.write_text(yaml.safe_dump(captions))
         (path / "brief.yaml").write_text(yaml.safe_dump(brief.model_dump(mode="json"), sort_keys=False))
         return {"name": output.name, "file": str(output), "caption": caption, "brief": brief.model_dump(mode="json")}
+
+    def upload_document(self, path: Path, data: bytes, filename: str) -> dict:
+        suffix = Path(filename).suffix.lower()
+        if len(data) > 50 * 1024 * 1024:
+            raise ValueError("document exceeds the 50 MB limit")
+        if not data.startswith(DOCUMENT_MAGIC[suffix]):
+            raise ValueError(f"the file is not a valid {suffix} document")
+        brief = Brief.model_validate(yaml.safe_load((path / "brief.yaml").read_text()))
+        if len(brief.documents) >= 5:
+            raise ValueError("a brief takes at most 5 documents")
+        stem = re.sub(r"[^A-Za-z0-9_-]+", "-", Path(filename).stem).strip("-")[:40] or "document"
+        output = path / "uploads" / "documents" / f"{stem}-{uuid.uuid4().hex[:8]}{suffix}"
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_bytes(data)
+        brief.documents.append(str(output))
+        (path / "brief.yaml").write_text(yaml.safe_dump(brief.model_dump(mode="json"), sort_keys=False))
+        return {"name": output.name, "file": str(output), "caption": "", "brief": brief.model_dump(mode="json")}
 
     def test_capture(self, run_id: str, options: Screenshots, format: str) -> list[str]:
         from reelhive.visuals.capture import capture, discover

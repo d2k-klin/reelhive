@@ -28,6 +28,7 @@ Copy:
 Visuals:
 - For every scene set visual_request.kind to product_ui, concept or none.
 - Product UI: when the catalog has screenshots of the product, show the product: pick the page whose title and headings best match the scene and use its exact route. You can also choose a provided image by its exact filename. Never request generation for product UI.
+- Document pages (catalog entries with `document` and `page`) are slides or pages from the user's PDF or deck; the caption is the page's text. Pick one by its exact `image` filename when that page shows what the scene says, such as a chart, diagram or product slide. Skip pages that are mostly text.
 - Concepts: prefer a fitting provided image; otherwise write an illustration prompt when generation is enabled.
 - Never invent a file name or route. When no source fits, use a text template.
 - Keep images consistent with the brief's brand and style.

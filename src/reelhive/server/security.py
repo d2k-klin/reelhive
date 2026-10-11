@@ -32,11 +32,12 @@ async def protect(request: Request, call_next, token: str):
         if (origin and origin not in allowed) or (request.method in {"POST", "PUT", "DELETE", "PATCH"} and not origin):
             return JSONResponse({"detail": "Invalid Origin"}, status_code=403)
         if request.method in {"POST", "PUT", "PATCH"}:
-            limit, data = 11 * 1024 * 1024, bytearray()
+            megabytes = 51 if request.url.path == "/api/uploads" else 11  # documents may be up to 50 MB
+            limit, data = megabytes * 1024 * 1024, bytearray()
             async for chunk in request.stream():
                 data.extend(chunk)
                 if len(data) > limit:
-                    return JSONResponse({"detail": "Request exceeds 11 MB"}, status_code=413)
+                    return JSONResponse({"detail": f"Request exceeds {megabytes} MB"}, status_code=413)
             request._body = bytes(data)
     response = await call_next(request)
     response.headers["Referrer-Policy"] = "no-referrer"

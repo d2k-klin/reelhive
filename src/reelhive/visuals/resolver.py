@@ -12,7 +12,7 @@ from PIL import Image
 from reelhive.core.context import RunContext
 from reelhive.schemas.brief import Generate, Images
 from reelhive.schemas.scene_spec import HookScene, HookText, Theme, VisualAsset
-from reelhive.visuals import capture, provided
+from reelhive.visuals import capture, documents, provided
 
 MINIMUM_SIZE = {"16:9": (1280, 720), "9:16": (720, 1280), "1:1": (720, 720)}
 GENERATION_SIZE = {"16:9": "1536x1024", "9:16": "1024x1536", "1:1": "1024x1024"}
@@ -41,6 +41,12 @@ def catalog(ctx: RunContext) -> list[dict[str, str]]:
     entries = []
     if options.source in ("auto", "images") and isinstance(options.images, Images):
         entries += provided.catalog(options.images)
+    if options.source in ("auto", "images") and ctx.brief.documents:
+        try:
+            pages = documents.pages(ctx.brief.documents, ctx.run_dir / "documents")
+            entries += [{k: v for k, v in page.items() if k != "text"} for page in pages]
+        except Exception as e:
+            ctx.events.emit("node.task", node="scenes", task=f"Document pages unavailable: {e}")
     if options.source in ("auto", "screenshots") and options.screenshots:
         try:
             entries += capture.discover(options.screenshots, ctx.brief.format)

@@ -1,9 +1,9 @@
-"""`research`: read the product website and turn it into product notes the writers build on.
+"""`research`: read the product website and documents and turn them into product notes the writers build on.
 
-Runs between `brief` and `script` when the brief has a `website` (or a public screenshot URL). The
-crawl is the screenshot crawler's: same origin only, at most 10 pages, masked selectors removed, saved
-login state honoured. Page text goes to the configured provider (it stays local with Ollama). With
-neither the step is skipped.
+Runs between `brief` and `script` when the brief has a `website` (or a public screenshot URL) or
+`documents`. The crawl is the screenshot crawler's: same origin only, at most 10 pages, masked selectors
+removed, saved login state honoured. Documents are PDFs or decks, read page by page. Page text goes to
+the configured provider (it stays local with Ollama). With none of them the step is skipped.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ class ProductNotes(BaseModel):
     names: list[str] = Field(default_factory=list, description="Names exactly as the website spells them")
     offerings: list[str] = Field(default_factory=list)
     audience_pains: list[str] = Field(default_factory=list)
-    proof_points: list[str] = Field(default_factory=list, description="Facts from the website only")
+    proof_points: list[str] = Field(default_factory=list, description="Facts from the sources only")
     note_readings: list[str] = Field(default_factory=list, description="One per brief key point, same order")
 
 
@@ -54,27 +54,38 @@ class ResearchNode(AgentNode):
 
     async def execute(self, ctx: RunContext) -> Usage:
         site = site_options(ctx)
-        if not site:
-            ctx.events.emit("node.task", node=self.name, task="No product website given; writing from the brief")
-            return _no_usage()
-        from reelhive.visuals.capture import discover
+        ctx.site_pages = []
+        if site:
+            from reelhive.visuals.capture import discover
 
-        ctx.events.emit("node.task", node=self.name, task=f"Reading {site.url}")
-        try:
-            pages = await asyncio.to_thread(discover, site, ctx.brief.format, True)
-        except Exception as error:  # an unreachable site must not stop the video
-            ctx.events.emit("node.task", node=self.name, task=f"Could not read the website: {error}")
-            return _no_usage()
-        ctx.site_pages = [p for p in pages if p.get("text")]
+            ctx.events.emit("node.task", node=self.name, task=f"Reading {site.url}")
+            try:
+                pages = await asyncio.to_thread(discover, site, ctx.brief.format, True)
+                ctx.site_pages += [p for p in pages if p.get("text")]
+            except Exception as error:  # an unreachable site must not stop the video
+                ctx.events.emit("node.task", node=self.name, task=f"Could not read the website: {error}")
+        if ctx.brief.documents:
+            from reelhive.visuals.documents import pages as document_pages
+
+            ctx.events.emit("node.task", node=self.name, task=f"Reading {len(ctx.brief.documents)} documents")
+            try:
+                found = await asyncio.to_thread(document_pages, ctx.brief.documents, ctx.run_dir / "documents")
+                ctx.site_pages += [
+                    {"title": f"{p['document']}, page {p['page']}", "route": p["document"], "text": p["text"]}
+                    for p in found
+                    if p["text"]
+                ]
+            except Exception as error:  # a broken file must not stop the video either
+                ctx.events.emit("node.task", node=self.name, task=f"Could not read the documents: {error}")
         if not ctx.site_pages:
-            ctx.events.emit("node.task", node=self.name, task="The website had no readable text")
+            ctx.events.emit("node.task", node=self.name, task="Nothing readable to research; writing from the brief")
             return _no_usage()
         ctx.events.emit("node.task", node=self.name, task=f"Read {len(ctx.site_pages)} pages")
         return await super().execute(ctx)
 
     def build_prompt(self, ctx: RunContext) -> str:
         pages = "\n\n".join(f"## {p['title']} ({p['route']})\n{p['text']}" for p in ctx.site_pages)
-        return f"{brief_block(ctx.brief)}\n\nWebsite pages:\n{pages}"
+        return f"{brief_block(ctx.brief)}\n\nSource pages (the product website and the user's documents):\n{pages}"
 
     def apply(self, ctx: RunContext, out: ProductNotes) -> None:
         ctx.research = out.model_dump()

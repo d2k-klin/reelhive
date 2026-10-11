@@ -96,6 +96,14 @@ class Brief(Options):
     website: str | None = Field(
         None, max_length=300, description="Product website: researched for the story and used for screenshots"
     )
+    documents: list[str] = Field(
+        default_factory=list,
+        max_length=5,
+        description="PDFs or slide decks (.pptx, .ppt, .odp): read for the story, their pages usable as scene images",
+    )
+    context: str | None = Field(
+        None, max_length=4000, description="Extra info for the agents: facts, pricing, release notes, anything to use"
+    )
     credit: Literal["end", "corner"] = "end"
     tone: str = "clear and direct"
     pacing: Literal["slow", "balanced", "fast"] = "balanced"
@@ -125,6 +133,16 @@ class Brief(Options):
         if value:
             Screenshots(url=value)  # same rule: http(s), no embedded credentials
         return value or None
+
+    @field_validator("documents")
+    @classmethod
+    def document_types(cls, value: list[str]) -> list[str]:
+        from reelhive.visuals.documents import SUFFIXES
+
+        for name in value:
+            if not name.lower().endswith(tuple(SUFFIXES)):
+                raise ValueError(f"documents must be PDF, .pptx, .ppt or .odp files: {name}")
+        return value
 
     @model_validator(mode="before")
     @classmethod

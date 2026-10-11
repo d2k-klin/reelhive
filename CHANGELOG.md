@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `documents`: PDFs and slide decks as sources. Research reads their text; their pages become scene images the
+  planner can pick by name. Upload them in the studio (up to 50 MB each).
+- `context`: free-text extra info (facts, pricing, release notes) for every agent and for research.
+
+### Changed
+- The studio's visual source now defaults to `auto`, so the website's screenshots, uploaded images, documents and
+  generated images combine out of the box.
+
 ### Fixed
 - With Copilot, "Let AI describe my images" no longer fails the scenes step: descriptions are skipped and the run
   matches on filenames and captions.

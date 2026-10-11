@@ -683,6 +683,16 @@ export interface components {
              */
             website?: string | null;
             /**
+             * Documents
+             * @description PDFs or slide decks (.pptx, .ppt, .odp): read for the story, their pages usable as scene images
+             */
+            documents?: string[];
+            /**
+             * Context
+             * @description Extra info for the agents: facts, pricing, release notes, anything to use
+             */
+            context?: string | null;
+            /**
              * Credit
              * @default end
              * @enum {string}

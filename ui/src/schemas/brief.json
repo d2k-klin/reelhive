@@ -102,6 +102,29 @@
       "description": "Product website: researched for the story and used for screenshots",
       "title": "Website"
     },
+    "documents": {
+      "description": "PDFs or slide decks (.pptx, .ppt, .odp): read for the story, their pages usable as scene images",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 5,
+      "title": "Documents",
+      "type": "array"
+    },
+    "context": {
+      "anyOf": [
+        {
+          "maxLength": 4000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Extra info for the agents: facts, pricing, release notes, anything to use",
+      "title": "Context"
+    },
     "credit": {
       "default": "end",
       "enum": [
