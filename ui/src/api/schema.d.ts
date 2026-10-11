@@ -733,6 +733,18 @@ export interface components {
              * @default 0.3
              */
             music_volume: number;
+            /**
+             * Narration
+             * @description Mix the voice-over into the video
+             * @default true
+             */
+            narration: boolean;
+            /**
+             * Music
+             * @description Add background music
+             * @default true
+             */
+            music: boolean;
         };
         /** BulletsScene */
         BulletsScene: {

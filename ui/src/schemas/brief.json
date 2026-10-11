@@ -2390,6 +2390,18 @@
       "minimum": 0,
       "title": "Music Volume",
       "type": "number"
+    },
+    "narration": {
+      "default": true,
+      "description": "Mix the voice-over into the video",
+      "title": "Narration",
+      "type": "boolean"
+    },
+    "music": {
+      "default": true,
+      "description": "Add background music",
+      "title": "Music",
+      "type": "boolean"
     }
   },
   "required": [

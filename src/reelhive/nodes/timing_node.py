@@ -88,7 +88,7 @@ class TimingNode(FunctionNode):
 
     def run(self, ctx: RunContext) -> None:
         assert ctx.spec
-        if ctx.music:
+        if ctx.music and ctx.brief.music:
             ctx.spec.music = ctx.music["file"]
         apply_timing(ctx.spec, ctx.narrated, ctx.brief)
         ctx.events.emit(

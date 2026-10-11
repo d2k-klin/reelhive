@@ -111,6 +111,8 @@ class Brief(Options):
     scenes: list[Scene] | None = Field(None, min_length=1, max_length=12)
     music_track: str | None = None
     music_volume: float = Field(0.3, ge=0, le=1)
+    narration: bool = Field(True, description="Mix the voice-over into the video")
+    music: bool = Field(True, description="Add background music")
 
     @field_validator("level", mode="before")
     @classmethod

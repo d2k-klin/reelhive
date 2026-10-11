@@ -36,11 +36,11 @@ def _run(args: list[str]) -> None:
         raise RuntimeError(f"ffmpeg failed: {proc.stderr.strip()[-2000:]}")
 
 
-def narration_track(run_dir: Path, spec: SceneSpec, out: Path) -> Path:
-    """Place each scene's voice at its scene start + LEAD on one silent timeline."""
+def narration_track(run_dir: Path, spec: SceneSpec, out: Path, voice_on: bool = True) -> Path:
+    """Place each scene's voice at its scene start + LEAD on one silent timeline (left silent when voice is off)."""
     track = np.zeros(int(spec.duration * SAMPLE_RATE) + SAMPLE_RATE, dtype=np.float32)
     for scene in spec.scenes:
-        if not scene.audio:
+        if not scene.audio or not voice_on:
             continue
         voice, sr = sf.read(run_dir / scene.audio, dtype="float32")
         if sr != SAMPLE_RATE:
@@ -84,10 +84,10 @@ def mix_args(
     ]
 
 
-def mix(run_dir: Path, spec: SceneSpec) -> Path:
+def mix(run_dir: Path, spec: SceneSpec, narration: bool = True) -> Path:
     audio = run_dir / "audio"
     audio.mkdir(exist_ok=True)
-    narration = narration_track(run_dir, spec, audio / "narration.wav")
+    narration = narration_track(run_dir, spec, audio / "narration.wav", narration)
     out = audio / "mix.wav"
     _run(mix_args(narration, Path(spec.music) if spec.music else None, spec.duration, out, spec.music_volume))
     return out

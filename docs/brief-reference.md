@@ -46,6 +46,8 @@ Medium pauses after the script. Edit `runs/<run>/script.json` if you like, then 
 | `scenes` | list of 1-12 scenes | planned by the `scenes` agent | Each scene: `index`, `template`, `text` (per template, see [templates.md](templates.md)), `narration`, optional `feature`, `duration_override` (0.5-180 s), `voice_override` (gender, accent, speed), `visual_request` (`kind`, `image`, `route`, `prompt`) |
 | `music_track` | file name | chosen by the music agent | A track listed in `assets/music/manifest.json` |
 | `music_volume` | 0-1 | `0.3` | Music level under the voice, before ducking |
+| `narration` | true/false | `true` | Mix the voice-over in. Off still voices each scene to time it, but the video has no voice |
+| `music` | true/false | `true` | Add background music. Off skips the music agent |
 
 High pauses twice: after the script (`reelhive approve runs/<run>`), and after the scenes are prepared, so you can review and approve every image (`reelhive approve-scenes runs/<run>`). In between, `reelhive regen runs/<run> --scene 3 --note "..."` redoes one scene and `reelhive preview runs/<run> --scene 3` renders it alone. The UI does the same with buttons. See [examples/briefs/high.yaml](../examples/briefs/high.yaml).
 
