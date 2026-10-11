@@ -5,7 +5,7 @@ import json
 
 from strands.types.event_loop import Usage
 
-from reelhive.agents.plan import ScenePlan, brief_block, notes_block, research_block
+from reelhive.agents.plan import ScenePlan, brief_block, intro_position, notes_block, research_block
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode
 from reelhive.nodes.timing_node import place_urls
@@ -36,6 +36,7 @@ class ScenePlannerNode(AgentNode):
                 width=width,
                 height=height,
                 intro=opening_for(ctx, None),
+                intro_at=intro_position(ctx.brief.scenes),
                 scenes=[s.model_copy(deep=True) for s in ctx.brief.scenes],
                 theme=theme_for(ctx),
                 music_volume=ctx.brief.music_volume,
@@ -74,6 +75,7 @@ class ScenePlannerNode(AgentNode):
             width=width,
             height=height,
             intro=opening_for(ctx, out.intro),
+            intro_at=intro_position(out.scenes),
             scenes=[
                 p.to_scene(i, b.narration).model_copy(update={"covers": p.covers or b.covers})
                 for i, (p, b) in enumerate(zip(out.scenes, beats, strict=True), 1)

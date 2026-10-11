@@ -14,8 +14,13 @@ pytestmark = pytest.mark.slow
 
 def test_one_scene_renders_with_voice_music_and_credit(tmp_path):
     (tmp_path / "audio").mkdir()
-    seconds = KokoroTTS().synth("Try ReelHive today.", tmp_path / "audio/scene_01.wav", "female", "us", 1.0)
+    speech = KokoroTTS().synth("Try ReelHive today.", tmp_path / "audio/scene_01.wav", "female", "us", 1.0)
+    seconds = speech.seconds
     assert 0.5 < seconds < 4
+    # Kokoro's own timestamps: every word, in order, inside the audio, punctuation joined to its word.
+    assert " ".join(w.text for w in speech.words) == "Try ReelHive today."
+    starts = [w.start for w in speech.words]
+    assert starts == sorted(starts) and speech.words[-1].end <= seconds
 
     duration = round(seconds + LEAD + TAIL, 2)
     spec = SceneSpec(
@@ -28,8 +33,10 @@ def test_one_scene_renders_with_voice_music_and_credit(tmp_path):
                 audio="audio/scene_01.wav",
                 start=0,
                 duration=duration,
+                words=[w.model_copy(update={"start": LEAD + w.start, "end": LEAD + w.end}) for w in speech.words],
             )
         ],
+        captions=True,
         credit=Credit(mode="end", duration=1.5),
         music=pick_track("upbeat", 120)["file"],
     )

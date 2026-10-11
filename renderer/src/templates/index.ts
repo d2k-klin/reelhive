@@ -1,8 +1,13 @@
-import {stat, bullets, problem} from './extras';
-import {imageFull} from './image-full';
-import type {Template} from '../spec';
-import {cta} from './cta';
+import type {SceneSpec, Template} from '../spec';
+import {closing} from './closing';
 import {featureCard} from './feature-card';
-import {hook} from './hook';
+import type {Builder} from './kit';
+import {product} from './product';
+import {bullets, hook, problem, stat} from './statements';
 
-export const TEMPLATES: Record<Template, typeof hook> = {hook, 'feature-card': featureCard, cta, 'image-full': imageFull, 'screenshot-pan': imageFull, problem, stat, bullets};
+export const TEMPLATES: Record<Template, Builder<SceneSpec>> = {
+  hook, problem, stat, bullets, cta: closing,
+  'feature-card': featureCard,
+  'image-full': product,
+  'screenshot-pan': product,
+};

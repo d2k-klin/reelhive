@@ -29,7 +29,20 @@ make schema    # writes renderer/src/spec.schema.json
 
 ## 4. Draw it
 
-Add `renderer/src/templates/quote.tsx` exporting a generator `function* quote(view, scene)`. Size everything from `view.width()` / `view.height()` so that 16:9, 9:16 and 1:1 all work, take colors from `currentTheme()`, and finish with `yield* playFor(view, node, scene.duration)` so that the scene takes exactly its duration. Register it in `renderer/src/templates/index.ts`. The `Template` type in `renderer/src/spec.ts` and the `TEXT_DEFS` map there need the new name too.
+Add `renderer/src/templates/quote.tsx` exporting a `Builder<SceneSpec>` (see [`kit.ts`](../renderer/src/templates/kit.ts)):
+
+```tsx
+export const quote: Builder<SceneSpec> = function* (stage, layer, scene) {
+  const root = shotRoot(layer);
+  const line = text(stage, scene.text.quote, {size: stage.type.hero, weight: 800, width: stage.measure});
+  root.add(line);
+  stack([line], []);
+  const parts: Part[] = [{node: line, role: 'headline'}];
+  return {root, parts, enter: staggered(stage, parts), hold: waitFor};
+};
+```
+
+Place everything through the stage: `text()` for wrapped text, the `stage.type` scale for sizes, `stack()` and `hug()` for positions, the content box for widths, so 16:9, 9:16 and 1:1 all work and the hierarchy matches the other shots. List the elements in reading order as `parts`, each with its role (`headline`, `subline`, `body`, `label`, `item`, `url`, `visual`, `logo`, or `null` for decoration): the default entrance brings them in in that order, and the layout report measures them for the `review` gates. A builder never waits or animates out; the orchestrator owns time. Register it in `renderer/src/templates/index.ts`. The `Template` type in `renderer/src/spec.ts` and the `TEXT_DEFS` map there need the new name too.
 
 ## 5. Check it
 

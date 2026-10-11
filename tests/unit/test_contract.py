@@ -23,3 +23,20 @@ def test_brand_manifest_matches_shipped_webp_assets():
     assert sum((root / name).stat().st_size for name in manifest["files"]) < 2 * 1024 * 1024
     for name, record in manifest["files"].items():
         assert sha256((root / name).read_bytes()).hexdigest() == record["sha256"]
+
+
+def test_layout_report_shape_matches_the_renderer():
+    import re
+    from typing import get_args
+
+    from reelhive.agents.reviewer import MAX_ZOOM
+    from reelhive.schemas.layout import LAYOUT_MARKER, Box
+
+    measure = (REPO_ROOT / "renderer/src/measure.ts").read_text()
+    assert f"export const LAYOUT_MARKER = '{LAYOUT_MARKER}';" in measure
+    union = re.search(r"export type Role = ([^;]+);", measure)
+    assert union and set(re.findall(r"'([a-z]+)'", union[1])) == set(get_args(Box.model_fields["role"].annotation))
+    # The camera never enlarges past what the review gate accepts.
+    device = (REPO_ROOT / "renderer/src/components/device.tsx").read_text()
+    sharpness = re.search(r"export const MAX_SHARPNESS = ([\d.]+);", device)
+    assert sharpness and float(sharpness[1]) <= MAX_ZOOM

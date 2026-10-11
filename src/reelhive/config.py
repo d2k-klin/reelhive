@@ -51,7 +51,7 @@ class Config(BaseModel):
     models: dict[str, Tiers] = Field(
         default_factory=lambda: {"claude": Tiers(strong="claude-sonnet-5-5", fast="claude-haiku-5-5")}
     )
-    nodes: dict[Literal["research", "script", "scenes", "music", "critic", "fix"], Provider] = Field(
+    nodes: dict[Literal["research", "script", "scenes", "music", "critic", "fix", "review"], Provider] = Field(
         default_factory=dict
     )
     tier_providers: dict[Literal["strong", "fast"], Provider] = Field(default_factory=dict)

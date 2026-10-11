@@ -35,7 +35,7 @@ def test_dataset_covers_the_plan_matrix():
 
 
 def test_estimate_tts_matches_kokoro_rate(tmp_path):
-    seconds = EstimateTTS().synth(" ".join(["word"] * 161), tmp_path / "a.wav", "female", "us", 1.0)
+    seconds = EstimateTTS().synth(" ".join(["word"] * 161), tmp_path / "a.wav", "female", "us", 1.0).seconds
     assert seconds == pytest.approx(60, abs=0.1)
     assert sf.info(tmp_path / "a.wav").duration == pytest.approx(60, abs=0.1)
 

@@ -1,13 +1,20 @@
 """Production graph (plan §3.1).
 
     ┌─► scenes ─► visuals ─┐
-    ├─► narrate ┼─► timing ─► critic ─┬─(pass)────────────────────► render
-    └─► music ──┘                     └─(fail)─► fix ─► recheck ─(pass)─┘
+    ├─► narrate ┼─► timing ─► critic ─┬─(pass)──────────────────────► render ─► review ─┬─(pass)─► master
+    └─► music ──┘                     └─(fail)─► fix ─► recheck ─(pass)─┘                │
+                                                 ▲                                       │
+                                                 └──────────(fail, rounds left)──────────┘
 
-Strands runs a node as soon as ANY incoming edge is satisfied, so:
+`critic` judges the plan before anything is drawn; `review` judges the cut the renderer actually drew
+(measured layout, and optionally the frames themselves), and sends it back through `fix` when it falls
+short. Strands runs a node as soon as ANY incoming edge is satisfied, so:
   * the fan-in to `timing` uses a condition that waits for all three branches;
-  * `render` is one node with two conditional incoming edges (critic pass, recheck pass).
-If recheck fails, nothing is ready to run, the graph ends, and the service reports why.
+  * `render` and `fix` each have two conditional incoming edges;
+  * the review loop is a real cycle: the graph resets revisited nodes, `review` reopens the repair path in
+    the run's checkpoint, and `MAX_REVIEW_ROUNDS` plus the execution cap bound it.
+If recheck fails, or the review still fails after the last round, nothing is ready to run, the graph ends,
+and the service stops the run with the failure report.
 """
 
 from __future__ import annotations
@@ -19,7 +26,9 @@ from strands.multiagent.graph import Graph, GraphBuilder, GraphState
 from reelhive.agents.critic import CriticNode
 from reelhive.agents.fixer import FixerNode
 from reelhive.agents.music_director import MusicDirectorNode
+from reelhive.agents.reviewer import MAX_REVIEW_ROUNDS, ReviewNode
 from reelhive.agents.scene_planner import ScenePlannerNode
+from reelhive.nodes.master_node import MasterNode
 from reelhive.nodes.narrate_node import NarrateNode
 from reelhive.nodes.recheck_node import RecheckNode
 from reelhive.nodes.render_node import RenderNode
@@ -27,7 +36,9 @@ from reelhive.nodes.timing_node import TimingNode
 from reelhive.nodes.visuals_node import VisualsNode
 
 BRANCHES = ("visuals", "narrate", "music")
-NODES = ("scenes", *BRANCHES, "timing", "critic", "fix", "recheck", "render")
+FINISHING = ("critic", "fix", "recheck", "render", "review", "master")
+NODES = ("scenes", *BRANCHES, "timing", *FINISHING)
+REPAIR_LOOP = ("fix", "recheck", "render", "review")
 
 
 def all_branches_done(state: GraphState) -> bool:
@@ -35,22 +46,42 @@ def all_branches_done(state: GraphState) -> bool:
     return set(BRANCHES) <= done
 
 
+def _ctx(invocation_state: dict[str, Any]) -> Any:
+    return invocation_state["ctx"]
+
+
 def critic_passed(state: GraphState, *, invocation_state: dict[str, Any], **_: Any) -> bool:
-    return bool(invocation_state["ctx"].critic_passed)
+    """Plan approved and no rendered cut awaiting repair (a resumed run re-enters at `critic`)."""
+    ctx = _ctx(invocation_state)
+    return bool(ctx.critic_passed) and ctx.review_passed is not False
+
+
+def _repair_due(ctx: Any) -> bool:
+    """The cut failed review and a repair round is left."""
+    return ctx.review_passed is False and ctx.review_rounds <= MAX_REVIEW_ROUNDS
 
 
 def critic_failed(state: GraphState, *, invocation_state: dict[str, Any], **_: Any) -> bool:
-    return not invocation_state["ctx"].critic_passed
+    ctx = _ctx(invocation_state)
+    return not ctx.critic_passed or _repair_due(ctx)
 
 
 def recheck_passed(state: GraphState, *, invocation_state: dict[str, Any], **_: Any) -> bool:
-    return bool(invocation_state["ctx"].recheck_passed)
+    return bool(_ctx(invocation_state).recheck_passed)
+
+
+def review_passed(state: GraphState, *, invocation_state: dict[str, Any], **_: Any) -> bool:
+    return _ctx(invocation_state).review_passed is True
+
+
+def review_failed(state: GraphState, *, invocation_state: dict[str, Any], **_: Any) -> bool:
+    return _repair_due(_ctx(invocation_state))
 
 
 def build_production_graph(stage: str = "all") -> Graph:
     b = GraphBuilder()
     preparation = (ScenePlannerNode(), VisualsNode(), NarrateNode(), MusicDirectorNode(), TimingNode())
-    finishing = (CriticNode(), FixerNode(), RecheckNode(), RenderNode())
+    finishing = (CriticNode(), FixerNode(), RecheckNode(), RenderNode(), ReviewNode(), MasterNode())
     for node in preparation if stage == "prepare" else finishing if stage == "finish" else preparation + finishing:
         b.add_node(node, node.name)
     if stage != "finish":
@@ -67,5 +98,9 @@ def build_production_graph(stage: str = "all") -> Graph:
         b.add_edge("critic", "fix", condition=critic_failed)
         b.add_edge("fix", "recheck")
         b.add_edge("recheck", "render", condition=recheck_passed)
-    b.set_max_node_executions(len(NODES))
+        b.add_edge("render", "review")
+        b.add_edge("review", "master", condition=review_passed)
+        b.add_edge("review", "fix", condition=review_failed)
+        b.reset_on_revisit(True)
+    b.set_max_node_executions(len(NODES) + MAX_REVIEW_ROUNDS * len(REPAIR_LOOP))
     return b.build()

@@ -18,24 +18,30 @@ A Strands graph runs to completion, so human approval points sit between graph r
 draft:        brief ─► research ─► script
 
 production:   ┌─► scenes ─► visuals ─┐
-              ├─► narrate ───────────┼─► timing ─► critic ─┬─(pass)─────────────────────► render
-              └─► music ─────────────┘                     └─(fail)─► fix ─► recheck ─(pass)─┘
+              ├─► narrate ───────────┼─► timing ─► critic ─┬─(pass)──────────────────────► render ─► review ─┬─(pass)─► master
+              └─► music ─────────────┘                     └─(fail)─► fix ─► recheck ─(pass)─┘                │
+                                                                      ▲                                       │
+                                                                      └──────────(fail, rounds left)──────────┘
 ```
+
+`critic` judges the plan before anything is drawn. `review` judges the cut the renderer actually drew and sends it back through `fix` when it falls short, so the production graph is a real cycle: the builder resets revisited nodes (`reset_on_revisit`), a failed review reopens `fix`, `recheck` and `render` in the run's checkpoint, a new render reopens `review` and `master`, and `MAX_REVIEW_ROUNDS` (2) plus the execution cap bound the loop. The edges read the run's state, so a run resumed after a crash re-enters the loop where it was instead of re-rendering an unrepaired cut.
 
 | Node | Kind | Job | Code |
 | --- | --- | --- | --- |
 | `brief` | deterministic | Validate, fill the level's defaults, make paths absolute, save `brief.yaml` | `nodes/brief_node.py` |
-| `research` | agent, fast + crawl | Read the product website (same origin, ≤10 pages, masks honoured) and write `research.json`: what it is, correct names, offerings, pains, facts, what each note refers to. Uses a public App URL when no website is given; skipped without either | `agents/researcher.py` |
+| `research` | agent, fast + crawl | Read the product website (same origin, ≤10 pages, masks honoured) and the brief's documents, and write `research.json`: what it is, correct names, offerings, pains, facts, what each note refers to. Uses a public App URL when no website is given; skipped with no source | `agents/researcher.py` |
 | `script` | agent, strong | Narration as beats, sized to the target duration | `agents/script_writer.py` |
-| `scenes` | agent, fast | A template, on-screen text and a visual request per beat | `agents/scene_planner.py` |
+| `scenes` | agent, fast | Director as well as designer: a template, on-screen text, a visual request (with a close-up region), a `layout` and a `hold` per beat; the intro follows an opening hook | `agents/scene_planner.py` |
 | `visuals` | deterministic | Resolve each visual request: provided image, screenshot or generated image, else a text fallback | `visuals/resolver.py` |
-| `narrate` | deterministic | Kokoro TTS per beat, recording real durations | `nodes/narrate_node.py` |
+| `narrate` | deterministic | Kokoro TTS per beat, recording real durations and word timings (for captions) | `nodes/narrate_node.py` |
 | `music` | agent, fast + lookup | Mood and BPM, then the closest track in `assets/music` | `agents/music_director.py` |
 | `timing` | deterministic | Scene starts and lengths from real audio, padded to the target | `nodes/timing_node.py` |
 | `critic` | hard checks + agent | Deterministic gates first; only if they pass, a rubric review | `agents/critic.py` |
 | `fix` | agent, strong | Repair the scene plan against the failures | `agents/fixer.py` |
 | `recheck` | deterministic | Re-voice changed scenes, re-resolve visuals, re-time, run the gates again | `nodes/recheck_node.py` |
-| `render` | deterministic | Revideo renders silent frames; ffmpeg mixes, ducks and muxes | `nodes/render_node.py`, `render/bridge.py`, `audio/mixer.py` |
+| `render` | deterministic | Revideo draws the silent cut and reports the layout it measured on screen (`render/layout.json`) | `nodes/render_node.py`, `render/bridge.py` |
+| `review` | layout gates + optional vision agent | Gates on the measured geometry first; then, only when the brief opts in (`frame_review`), a vision agent scores one settled frame per shot | `agents/reviewer.py`, `render/frames.py` |
+| `master` | deterministic | ffmpeg mixes narration and music (ducking the music under the voice) and muxes them onto the reviewed cut | `nodes/master_node.py`, `audio/mixer.py` |
 
 Deterministic nodes never call an LLM. Agent nodes return Pydantic-validated structured output; the image prompts are written by `scenes`, and `visuals` only executes them.
 
@@ -49,17 +55,31 @@ The brief is raw material. The writers get the notes numbered, the product resea
 
 - total duration within ±5% of the target;
 - every key-point note told by at least one scene (scenes record the notes they tell in `covers`; wording is free);
-- narration pace of 130-170 words per minute of video (the floor follows the voice's measured rate, so a slow voice isn't asked for the impossible);
+- narration pace within the brief's `pacing` range (`slow` 100-135, `balanced` 130-170, `fast` 145-175 words per minute of video, not counting the intro, the credit or planned holds; the floor follows the voice's measured rate, so a slow voice isn't asked for the impossible);
 - on-screen text within each template's limits;
+- reading time: at most four on-screen words per second a scene is settled on screen;
 - every scene voiced with its current narration;
 - every image present, inside the run folder and at the format's minimum resolution;
 - no generated image in a `product_ui` scene.
 
 If `recheck` still fails, no edge is satisfied, the graph ends, and the service stops the run with the failure report instead of rendering a bad video.
 
+## Reviewing the cut
+
+`review` checks what was drawn, cheapest first, like `critic`:
+
+1. **Layout gates**, on the geometry the renderer measured once each shot had settled (no model call): every shot measured; text inside a 4% title-safe margin and visuals inside the frame; no text colliding with other text, a visual or the logo; text at least 2.2% of the frame's short side (24 px at 1080, readable on a phone); images enlarged at most 1.35× (the camera caps itself at 1.3×).
+2. **Frame review**, only when those pass and the brief sets `frame_review`: one settled still per shot goes to a vision model, which scores focal point, hierarchy, readability, composition and consistency and names fixes per scene. This sends the frames to your provider, so it is off by default; with Copilot (text only) it is skipped.
+
+A failure goes to `fix` with scene-numbered reasons. The fixer can shorten copy, change a scene's template, `layout`, `hold` or close-up region; `recheck` re-voices and re-times, and the cut is drawn again.
+
 ## The render contract
 
-`schemas/scene_spec.py` is the contract between Python and the Node renderer. Pydantic exports it to `renderer/src/spec.schema.json` (`make schema`), and the renderer reads its character limits from that file, so there is one source of truth. A contract test fails if the two drift. Agents never write renderer code; they fill this spec.
+`schemas/scene_spec.py` is the contract between Python and the Node renderer. Pydantic exports it to `renderer/src/spec.schema.json` (`make schema`), and the renderer reads its character limits from that file, so there is one source of truth. A contract test fails if the two drift. Agents never write renderer code; they fill this spec. The spec also carries the motion timings (`motion.enter`, `motion.transition`), so the reading-time gate and the renderer agree on when a shot has settled.
+
+The contract runs the other way too: `schemas/layout.py` is the shape of the layout report. The renderer prints one `REELHIVE_LAYOUT` line per shot, the bridge collects them into `render/layout.json`, and Python validates every line. Contract tests keep the marker, the element roles and the camera's sharpness cap in step with the review gates.
+
+The renderer owns how things move, in one language for the whole video: elements arrive in reading order on an exact-length spring curve, and each cut is chosen from what meets there (the device carried from one product shot to the next, a settle into the intro and the closing, a push otherwise). Frame geometry (safe box, type scale) lives in `renderer/src/stage.ts`, so every template shares margins and hierarchy.
 
 ## Run folder
 
@@ -75,7 +95,8 @@ runs/2026-10-08T15-30-00-123456_cloud-bills-grow-silently/
 ├── spec.json         # the final scene spec
 ├── visuals/          # copied, captured or generated images
 ├── audio/            # scene_XX.wav, narration.wav, mix.wav
-├── render/silent.mp4
+├── documents/        # pages rendered from the brief's PDFs and decks
+├── render/           # silent.mp4, layout.json (measured layout), frames/ (stills for the frame review)
 ├── video.mp4
 └── run.log.jsonl     # every event
 ```
@@ -91,6 +112,7 @@ runs/2026-10-08T15-30-00-123456_cloud-bills-grow-silently/
 | `agent.text` | streamed model text |
 | `gate.result` | check, value, threshold, passed |
 | `critic.verdict` | rubric scores, passed, reasons |
+| `review.verdict` | frame review scores, passed, reasons (only with `frame_review`; layout gates arrive as `gate.result` from `review`) |
 | `fix.diff` | before/after of each changed scene |
 | `run.paused` / `script.approved` | approval stop and resume |
 | `suggestion.offered` / `suggestion.applied` / `version.restored` | M6 quick actions: what was offered (cached or not), which was applied, and undo |
@@ -98,7 +120,7 @@ runs/2026-10-08T15-30-00-123456_cloud-bills-grow-silently/
 
 ## Providers
 
-`providers/factory.py` turns `config.yaml` into a Strands model per tier (strong: script, critic, fix; fast: scenes, music), with optional per-node overrides. GitHub Copilot is not a Strands model: `AgentNode` hands its work to `CopilotAgentNode`, which runs a locked-down Copilot SDK session with a single submit tool. See [providers.md](providers.md) and [copilot-sdk.md](copilot-sdk.md).
+`providers/factory.py` turns `config.yaml` into a Strands model per tier (strong: script, critic, fix, review; fast: research, scenes, music), with optional per-node overrides. GitHub Copilot is not a Strands model: `AgentNode` hands its work to `CopilotAgentNode`, which runs a locked-down Copilot SDK session with a single submit tool. See [providers.md](providers.md) and [copilot-sdk.md](copilot-sdk.md).
 
 ## Evals
 

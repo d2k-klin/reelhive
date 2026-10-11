@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 from urllib.parse import urldefrag, urljoin, urlparse
 
 from PIL import Image
@@ -68,6 +69,57 @@ def browser_context(options: Screenshots, format: str):
 
 
 TEXT_PER_PAGE = 3000  # research reads this much visible text per page
+MAX_REGIONS = 12  # close-up candidates per page
+
+# Parts of a page worth closing in on, in reading order: semantic containers and large media, labelled by
+# their heading (or alt/aria text) with masked text left out. Boxes are in full-page CSS pixels, which is
+# what a full-page screenshot at device scale 1 measures too.
+REGIONS_JS = """(masks, limit) => {
+  const masked = node => masks.some(s => node.closest && node.closest(s));
+  const words = node => {
+    if (!node) return '';
+    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+    const parts = [];
+    while (walker.nextNode()) {
+      const parent = walker.currentNode.parentElement;
+      if (parent && !masked(parent)) parts.push(walker.currentNode.textContent);
+    }
+    return parts.join(' ').replace(/\\s+/g, ' ').trim();
+  };
+  const kinds = [
+    ['form', 'form'], ['table', 'table'], ['figure', 'figure'], ['img,video,canvas,picture', 'image'],
+    ['section,article,aside,[role=region],[role=tabpanel]', 'section'], ['nav', 'navigation'],
+  ];
+  const vw = innerWidth, vh = innerHeight, picks = [];
+  for (const [selector, kind] of kinds) {
+    for (const node of document.querySelectorAll(selector)) {
+      if (masked(node)) continue;
+      const style = getComputedStyle(node);
+      if (style.visibility === 'hidden' || style.display === 'none' || Number(style.opacity) === 0) continue;
+      const r = node.getBoundingClientRect();
+      if (r.width < vw * 0.25 || r.height < 80 || r.height > vh * 1.5) continue;
+      const heading = node.querySelector('h1,h2,h3,h4,legend,caption,figcaption');
+      const name = (kind === 'image' ? node.getAttribute('alt') || node.getAttribute('aria-label') : null)
+        || node.getAttribute('aria-label') || words(heading) || words(node);
+      if (!name) continue;
+      const box = [r.left + scrollX, r.top + scrollY, r.width, r.height].map(Math.round);
+      const overlaps = picks.some(p => {
+        const [x, y, w, h] = p.box;
+        const ix = Math.max(0, Math.min(x + w, box[0] + box[2]) - Math.max(x, box[0]));
+        const iy = Math.max(0, Math.min(y + h, box[1] + box[3]) - Math.max(y, box[1]));
+        return ix * iy > 0.85 * Math.min(w * h, box[2] * box[3]);
+      });
+      if (!overlaps) picks.push({label: `${kind}: ${name.slice(0, 80)}`, box});
+    }
+  }
+  picks.sort((a, b) => a.box[1] - b.box[1] || a.box[0] - b.box[0]);
+  return picks.slice(0, limit);
+}"""
+
+
+def regions(page, masks: list[str]) -> list[dict]:
+    """Close-up candidates on the open page: `{"label", "box": [x, y, width, height]}` in page pixels."""
+    return page.evaluate(f"([masks, limit]) => ({REGIONS_JS})(masks, limit)", [masks, MAX_REGIONS])
 
 
 def _open_page(page, options: Screenshots, url: str) -> str:
@@ -113,10 +165,10 @@ def _prepare_screenshot(page) -> None:
     )
 
 
-def discover(options: Screenshots, format: str, with_text: bool = False) -> list[dict[str, str]]:
+def discover(options: Screenshots, format: str, with_text: bool = False) -> list[dict[str, Any]]:
     queue = [same_origin(options.url, route) for route in (options.routes or [options.url])]
     seen: set[str] = set()
-    pages: list[dict[str, str]] = []
+    pages: list[dict[str, Any]] = []
     with browser_context(options, format) as page:
         while queue and len(pages) < 10:
             url = queue.pop(0)
@@ -145,6 +197,10 @@ def discover(options: Screenshots, format: str, with_text: bool = False) -> list
                             options.mask,
                         )
                     )[:1000],
+                    "regions": [
+                        {"id": f"r{n}", "label": region["label"]}
+                        for n, region in enumerate(regions(page, options.mask), start=1)
+                    ],
                     **({"text": _visible_text(page, options.mask)} if with_text else {}),
                 }
             )
@@ -169,12 +225,14 @@ def _visible_text(page, masks: list[str]) -> str:
     return " ".join(str(text).split())[:TEXT_PER_PAGE]
 
 
-def capture(options: Screenshots, format: str, route: str, output: Path) -> None:
+def capture(options: Screenshots, format: str, route: str, output: Path) -> list[dict]:
+    """Save a full-page screenshot and return its close-up regions, measured in the same session."""
     url = same_origin(options.url, route)
     output.parent.mkdir(parents=True, exist_ok=True)
     with browser_context(options, format) as page:
         _open_page(page, options, url)
         _prepare_screenshot(page)
+        measured = regions(page, options.mask)
         page.screenshot(
             path=str(output),
             full_page=True,
@@ -185,3 +243,4 @@ def capture(options: Screenshots, format: str, route: str, output: Path) -> None
 
     with Image.open(output) as image:
         image.convert("RGB").save(output, format="PNG")
+    return measured

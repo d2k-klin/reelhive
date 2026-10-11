@@ -11,7 +11,7 @@ from PIL import Image
 
 from reelhive.core.context import RunContext
 from reelhive.schemas.brief import Generate, Images
-from reelhive.schemas.scene_spec import HookScene, HookText, Theme, VisualAsset
+from reelhive.schemas.scene_spec import Focus, HookScene, HookText, Theme, VisualAsset
 from reelhive.visuals import capture, documents, provided
 
 MINIMUM_SIZE = {"16:9": (1280, 720), "9:16": (720, 1280), "1:1": (720, 720)}
@@ -34,6 +34,32 @@ def image_ok(path: Path, format: str) -> bool:
             return valid
     except (OSError, ValueError):
         return False
+
+
+def focus_for(ctx: RunContext, route: str, region: str | None, measured: list[dict], image: Path) -> Focus | None:
+    """The planner's region (an id from discovery) found again among the regions measured at capture time.
+
+    Ids come from discovery and labels identify the element, so the box always matches this screenshot even
+    when lazy content moved the page between discovery and capture."""
+    if not region:
+        return None
+    page = next((e for e in ctx.visual_catalog if e.get("route") == route), {})
+    label = next((r["label"] for r in page.get("regions", []) if r["id"] == region), None)
+    found = next((r for r in measured if r["label"] == label), None) if label else None
+    if not found:
+        ctx.events.emit("node.task", node="visuals", task=f"Region {region} not found on {route}; showing the page")
+        return None
+    with Image.open(image) as picture:
+        width, height = picture.size
+    x, y, w, h = found["box"]
+    left, top = min(max(x / width, 0.0), 1.0), min(max(y / height, 0.0), 1.0)
+    return Focus(
+        x=left,
+        y=top,
+        width=max(min(w / width, 1.0 - left), 1 / width),
+        height=max(min(h / height, 1.0 - top), 1 / height),
+        label=found["label"][:120],
+    )
 
 
 def catalog(ctx: RunContext) -> list[dict[str, str]]:
@@ -112,12 +138,13 @@ def resolve(ctx: RunContext, generator=None) -> None:
                     ]
                     if target not in [capture.same_origin(options.screenshots.url, r) for r in allowed]:
                         raise ValueError("requested route is not in the screenshot catalog")
-                    capture.capture(options.screenshots, ctx.brief.format, target, dest)
+                    measured = capture.capture(options.screenshots, ctx.brief.format, target, dest)
                     if image_ok(dest, ctx.brief.format):
                         scene.visual = VisualAsset(
                             source="screenshot",
                             file=str(dest.relative_to(ctx.run_dir)),
                             frame=options.screenshots.frame,
+                            focus=focus_for(ctx, target, request.region, measured, dest),
                         )
                 except Exception as e:
                     ctx.events.emit(

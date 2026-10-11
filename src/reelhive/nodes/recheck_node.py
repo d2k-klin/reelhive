@@ -27,6 +27,6 @@ class RecheckNode(FunctionNode):
             )
             narrate(ctx, scene.index, scene.narration)
         resolve(ctx)
-        apply_timing(ctx.spec, ctx.narrated, ctx.brief)
+        apply_timing(ctx.spec, ctx.narrated, ctx.brief, ctx.words)
         ctx.failures = run_gates(ctx, self.name)
         ctx.recheck_passed = not ctx.failures

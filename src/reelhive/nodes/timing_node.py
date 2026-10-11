@@ -7,14 +7,26 @@ import os
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import FunctionNode
 from reelhive.schemas.brief import Brief
-from reelhive.schemas.scene_spec import CREDIT_SECONDS, INTRO_SECONDS, Credit, CtaScene, SceneSpec, display_url
+from reelhive.schemas.scene_spec import (
+    CREDIT_SECONDS,
+    INTRO_SECONDS,
+    Credit,
+    CtaScene,
+    Intro,
+    SceneSpec,
+    Word,
+    display_url,
+)
 
-WPM_TARGET = 145  # what the script writer aims for; the pace check allows 130-170
+# Narration density per brief `pacing`: (lowest, highest, target) words per minute of video. `slow` leaves
+# room for the picture (short showcase cuts); `balanced` is the classic narrated explainer.
+PACE = {"slow": (100, 135, 115), "balanced": (130, 170, 145), "fast": (145, 175, 160)}
 SPEECH_WPM = 161  # measured Kokoro rate at speed 1.0 (docs/plan.md, M1 notes)
 LEAD = 0.3  # silence before the voice starts in each scene (covers the fade-in)
 TAIL = 0.7  # breathing room after the voice
 TAIL_MIN = 0.3
 MAX_EXTRA = 3.0  # most padding added per scene before we'd rather lengthen the script
+FINAL_HOLD = 1.0  # the closing frame settles this long after the last words, before the credit
 FPS = 30
 
 
@@ -49,20 +61,30 @@ def target_words(brief: Brief) -> int:
     padding still fits the target (found by the M4 evals: 15-20s briefs overran by 6-8%)."""
     available = available_seconds(brief)
     scenes = len(brief.features) + 3  # hook, problem, one per feature, cta
-    fits = (available - scenes * (LEAD + TAIL_MIN)) * SPEECH_WPM * brief.voice.speed / 60
-    return round(min(available * WPM_TARGET / 60, fits))
+    fits = (available - scenes * (LEAD + TAIL_MIN) - FINAL_HOLD) * SPEECH_WPM * brief.voice.speed / 60
+    return round(min(available * PACE[brief.pacing][2] / 60, fits))
+
+
+def holds(spec: SceneSpec) -> dict[int, float]:
+    """Seconds each scene stays settled after its narration: the planner's `hold`, and the closing frame's."""
+    last = spec.scenes[-1].index
+    return {s.index: max(s.hold, FINAL_HOLD if s.index == last else 0.0) for s in spec.scenes}
 
 
 def _frames(seconds: float) -> float:
     return round(seconds * FPS) / FPS
 
 
-def apply_timing(spec: SceneSpec, narrated: dict[int, tuple[str, float]], brief: Brief) -> SceneSpec:
+def apply_timing(
+    spec: SceneSpec, narrated: dict[int, tuple[str, float]], brief: Brief, words: dict[int, list[Word]] | None = None
+) -> SceneSpec:
     spec.credit = credit_for(brief)
+    spec.captions = brief.captions
     place_urls(spec, brief)
     opening = intro_seconds(spec)
     available = available_seconds(brief, opening)
-    base = [narrated[s.index][1] + LEAD + TAIL for s in spec.scenes]
+    settle = holds(spec)
+    base = [narrated[s.index][1] + LEAD + TAIL + settle[s.index] for s in spec.scenes]
     flexible = sum(s.duration_override is None for s in spec.scenes)
     gap = available - sum(
         s.duration_override if s.duration_override is not None else length
@@ -72,13 +94,22 @@ def apply_timing(spec: SceneSpec, narrated: dict[int, tuple[str, float]], brief:
         delta = min(MAX_EXTRA, gap / max(1, flexible))
     else:
         delta = -min(TAIL - TAIL_MIN, -gap / max(1, flexible))
-    end = opening
-    for scene, length in zip(spec.scenes, base, strict=True):
+    lengths = {s.index: length for s, length in zip(spec.scenes, base, strict=True)}
+    end = 0.0
+    for item in spec.timeline():
+        if isinstance(item, Intro):  # silent title screen, wherever `intro_at` puts it
+            end += item.duration
+            continue
         # Round the boundaries, not each length, so frame rounding never accumulates.
-        scene.audio = f"audio/scene_{scene.index:02d}.wav"
-        scene.start = _frames(end)
-        end += scene.duration_override if scene.duration_override is not None else length + delta
-        scene.duration = round(_frames(end) - scene.start, 4)
+        item.audio = f"audio/scene_{item.index:02d}.wav"
+        item.start = _frames(end)
+        end += item.duration_override if item.duration_override is not None else lengths[item.index] + delta
+        item.duration = round(_frames(end) - item.start, 4)
+        # Captions follow the voice, which the mix places LEAD seconds into the scene.
+        item.words = [
+            w.model_copy(update={"start": round(LEAD + w.start, 3), "end": round(LEAD + w.end, 3)})
+            for w in (words or {}).get(item.index, [])
+        ]
     spec.duration = round(_frames(end) + (spec.credit.duration if spec.credit else 0.0), 3)
     return spec
 
@@ -90,7 +121,7 @@ class TimingNode(FunctionNode):
         assert ctx.spec
         if ctx.music and ctx.brief.music:
             ctx.spec.music = ctx.music["file"]
-        apply_timing(ctx.spec, ctx.narrated, ctx.brief)
+        apply_timing(ctx.spec, ctx.narrated, ctx.brief, ctx.words)
         ctx.events.emit(
             "node.task",
             node=self.name,

@@ -33,7 +33,13 @@ Generated images are never accepted for product UI, including after a fix. PNG, 
 
 Before capturing, ReelHive scrolls through the page to trigger deferred images, returns to the top, and waits for fonts and image decoding. Preparation is bounded to 40 scroll steps and 10 seconds; continuous background requests do not prevent capture. Animations are frozen for the shot. HTTP error pages are rejected instead of becoming scene images, and discovery counts the home page only once whether its URL has a trailing slash or not.
 
-The scene planner receives filenames, captions and discovered page titles/headings. It never receives screenshot pixels. Caption files map filenames to descriptions:
+The scene planner receives filenames, captions and discovered page titles/headings. It never receives screenshot pixels.
+
+## Close-ups and layout
+
+Discovery also measures each page's **regions**: sections, forms, tables, figures and large images, each with an id and a label taken from its heading (masked text is left out), up to 12 per page. The planner can point a product scene at one (`visual_request.region: r3`). At capture time the regions are measured again in the same browser session as the screenshot and matched by label, so the box always fits the image even if lazy content moved the page. The scene opens on the page, then the camera glides to the region and outlines it. The camera never enlarges source pixels more than 1.3×, so a close-up stays sharp; a region it can't find is skipped with a note in the progress log.
+
+Product scenes also take a `layout`: `center` for a full view with the text below, `split-left` / `split-right` for the device beside its explanation (stacked on 9:16). Devices keep the image's proportions: a screenshot keeps the capture viewport's shape and scrolls inside it, any other image keeps its own. Caption files map filenames to descriptions:
 
 ```yaml
 dashboard.png: Main dashboard showing the savings summary

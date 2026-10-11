@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-from reelhive.audio import mixer
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import FunctionNode
 
 
 class RenderNode(FunctionNode):
-    """Render the silent video with Revideo, then mix, duck and mux the audio with ffmpeg."""
+    """Render the silent video with Revideo; the renderer also reports the layout it measured on screen."""
 
     name = "render"
 
     def run(self, ctx: RunContext) -> None:
         assert ctx.spec
+        # A new cut makes any earlier review and master of an older cut stale.
+        ctx.completed -= {"review", "master"}
+        ctx.video = None
         spec_path = ctx.path("spec.json")
         spec_path.write_text(ctx.spec.model_dump_json(indent=2))
         if ctx.spec_only:
@@ -28,9 +30,4 @@ class RenderNode(FunctionNode):
                 task = "Finalizing video frames" if p >= 1 else "Rendering frames"
                 ctx.events.emit("node.task", node=self.name, task=task, progress=round(p, 3))
 
-        silent = ctx.path("render", "silent.mp4")
-        ctx.renderer(spec_path, silent, progress)
-
-        ctx.events.emit("node.task", node=self.name, task="Mixing narration and music")
-        mix = mixer.mix(ctx.run_dir, ctx.spec, narration=ctx.brief.narration)
-        ctx.video = mixer.mux(silent, mix, ctx.path("video.mp4"))
+        ctx.renderer(spec_path, ctx.path("render", "silent.mp4"), progress)

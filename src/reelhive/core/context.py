@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 from reelhive.config import Config
 from reelhive.core.events import EventBus
 from reelhive.schemas.brief import Brief
-from reelhive.schemas.scene_spec import SceneSpec
+from reelhive.schemas.scene_spec import SceneSpec, Word
 from reelhive.schemas.script import Script
 
 if TYPE_CHECKING:
@@ -44,10 +44,13 @@ class RunContext:
     script: Script | None = None
     spec: SceneSpec | None = None
     narrated: dict[int, tuple[str, float]] = field(default_factory=dict)  # scene index -> (text, seconds)
+    words: dict[int, list[Word]] = field(default_factory=dict)  # scene index -> spoken words, timed from its audio
     music: dict[str, Any] | None = None
     failures: list[str] = field(default_factory=list)  # hard-check or critic reasons for `fix`
     critic_passed: bool = False
     recheck_passed: bool = False
+    review_passed: bool | None = None  # None until the rendered cut has been reviewed
+    review_rounds: int = 0  # failed reviews so far; the production graph bounds the repair loop
     video: Path | None = None
 
     def path(self, *parts: str) -> Path:
@@ -63,6 +66,7 @@ class RunContext:
                 "script": self.script.model_dump() if self.script else None,
                 "spec": self.spec.model_dump() if self.spec else None,
                 "narrated": self.narrated,
+                "words": {i: [w.model_dump() for w in ws] for i, ws in self.words.items()},
                 "voiced": self.voiced,
                 "music": self.music,
                 "visual_catalog": self.visual_catalog,
@@ -70,6 +74,8 @@ class RunContext:
                 "failures": self.failures,
                 "critic_passed": self.critic_passed,
                 "recheck_passed": self.recheck_passed,
+                "review_passed": self.review_passed,
+                "review_rounds": self.review_rounds,
                 "video": self.video.name if self.video and self.video.is_file() else None,
             }
             temporary = self.path("checkpoint.tmp")
@@ -90,15 +96,29 @@ class RunContext:
         self.script = Script.model_validate(data["script"]) if data.get("script") else None
         self.spec = SceneSpec.model_validate(data["spec"]) if data.get("spec") else None
         self.narrated = {int(k): tuple(v) for k, v in data.get("narrated", {}).items()}
+        self.words = {int(k): [Word(**w) for w in v] for k, v in data.get("words", {}).items()}
         self.voiced = {int(k): v for k, v in data.get("voiced", {}).items()}
-        for key in ("music", "visual_catalog", "research", "failures", "critic_passed", "recheck_passed"):
+        for key in (
+            "music",
+            "visual_catalog",
+            "research",
+            "failures",
+            "critic_passed",
+            "recheck_passed",
+            "review_passed",
+            "review_rounds",
+        ):
             if key in data:
                 setattr(self, key, data[key])
+        # A node counts as done only if what it made is still on disk.
+        silent = self.path("render", "silent.mp4")
+        if "render" in self.completed and not (silent.is_file() and silent.with_name("layout.json").is_file()):
+            self.completed -= {"render", "review", "master"}
         video = self.path(data["video"]) if data.get("video") else self.path("video.mp4")
-        if "render" in self.completed and video.is_file() and video.stat().st_size:
+        if "master" in self.completed and video.is_file() and video.stat().st_size:
             self.video = video
-        elif "render" in self.completed:
-            self.completed.remove("render")
+        else:
+            self.completed.discard("master")
 
 
 class RunCancelled(RuntimeError):

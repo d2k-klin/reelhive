@@ -12,7 +12,8 @@
 | [`visuals_node.py`](visuals_node.py) | `visuals`: calls `visuals/resolver.resolve`. |
 | [`timing_node.py`](timing_node.py) | `timing`: scene starts and lengths from real speech plus padding, landing on the target; also the credit rule, `target_words()` and the speech-rate constants. |
 | [`recheck_node.py`](recheck_node.py) | `recheck`: after `fix`, re-voice changed scenes, re-resolve visuals, re-time, run the hard checks again. |
-| [`render_node.py`](render_node.py) | `render`: writes `spec.json`, runs the renderer, mixes and muxes `video.mp4` (stops after `spec.json` in eval mode). |
+| [`render_node.py`](render_node.py) | `render`: writes `spec.json` and runs the renderer, which draws `render/silent.mp4` and reports the measured layout in `render/layout.json` (stops after `spec.json` in eval mode). A new cut reopens `review` and `master`. |
+| [`master_node.py`](master_node.py) | `master`: mixes narration and music and muxes them onto the reviewed cut as `video.mp4`. |
 
 ## Extending: a new deterministic node
 
@@ -29,4 +30,4 @@ Then wire it in [`../graphs/production.py`](../graphs/production.py). Emit `node
 
 ## Timing constants
 
-`WPM_TARGET` (145) is what the script aims for, `SPEECH_WPM` (161) is Kokoro's measured rate, and `LEAD` / `TAIL` / `TAIL_MIN` / `MAX_EXTRA` shape the padding. Changing them changes every video's length. Run the evals before and after (`reelhive eval`).
+`PACE` holds each brief `pacing`'s narration range and target (balanced aims for 145), `FINAL_HOLD` lets the closing frame settle, `SPEECH_WPM` (161) is Kokoro's measured rate, and `LEAD` / `TAIL` / `TAIL_MIN` / `MAX_EXTRA` shape the padding. Changing them changes every video's length. Run the evals before and after (`reelhive eval`).

@@ -17,7 +17,7 @@ models:
     strong: YOUR_COPILOT_MODEL_ID  # reelhive models --provider copilot
     fast: YOUR_COPILOT_MODEL_ID
 # Optional per-node provider overrides (script, scenes, music, critic, fix):
-nodes: {}                  # e.g. {script: copilot, scenes: claude}
+nodes: {}                  # e.g. {script: copilot, scenes: claude, review: claude}; review needs vision for frame_review
 ollama_host: http://localhost:11434
 max_tokens: 8000
 runs_dir: runs

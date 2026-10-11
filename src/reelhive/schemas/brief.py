@@ -119,6 +119,13 @@ class Brief(Options):
     scenes: list[Scene] | None = Field(None, min_length=1, max_length=12)
     music_track: str | None = None
     music_volume: float = Field(0.3, ge=0, le=1)
+    captions: bool = Field(
+        False, description="Show the narration on screen, phrase by phrase, highlighting each word as it is spoken"
+    )
+    frame_review: bool = Field(
+        False,
+        description="Send one rendered frame per shot to the review provider for a visual review (vision model)",
+    )
     narration: bool = Field(True, description="Mix the voice-over into the video")
     music: bool = Field(True, description="Add background music")
 

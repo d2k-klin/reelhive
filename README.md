@@ -20,9 +20,9 @@ You write a few rough notes: who the video is for, the story you want to tell, t
 
 1. **Research.** They read your website to learn what the product is, how its names are spelled and what it offers.
 2. **Write.** They turn your notes into a story, with narration sized to the length you asked for and a polished closing line.
-3. **Design.** They plan every scene: a title screen, a layout for each point, on-screen headlines, and the screenshots or images to show.
-4. **Produce.** A natural-sounding voice reads the narration, background music is picked to match the mood, and every scene is timed to the voice.
-5. **Check.** A reviewer checks the cut against the brief: the length, the pace, every key point told, the text fitting on screen. Anything that fails is fixed and checked again.
+3. **Design.** They direct every scene: a hook before the title screen, a layout for each point, on-screen headlines, the screenshots, slides or images to show and which part of a page to close in on.
+4. **Produce.** A natural-sounding voice reads the narration, background music is picked to match the mood, and every scene is timed to the voice. Optional captions light up each word as it is spoken.
+5. **Check.** A reviewer checks the plan against the brief (the length, the pace, every key point told), then the rendered cut itself: nothing clipped, overlapping, too small or blurry, and optionally an AI art director looks at every shot. Anything that fails is fixed and drawn again.
 6. **Render.** You get a finished video, plus the script and every file that went into it.
 
 Everything runs on your own machine. Only text goes to the AI service you choose, and your images and recordings stay with you. See [Privacy](docs/privacy.md).

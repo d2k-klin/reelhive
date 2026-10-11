@@ -60,7 +60,7 @@ The main controls are:
 8. **Format** controls the render dimensions: landscape `16:9`, portrait `9:16`, or square `1:1`.
 9. **Voice** selects gender, US/UK accent, and speed from 0.8 to 1.2. **Preview voice** speaks a fixed sample locally with Kokoro.
 
-Medium and High add tone, pacing, brand colors, a logo, theme, CTA URL, music mood, and music level. High also lets you choose an exact music track. The frame on the right previews the brand palette, duration, voice and estimated scene count; the actual headlines are written by the agents.
+Every level can switch the narrator voice, background music and **Captions** (word-by-word, each word lighting up as it is spoken) on or off. Medium and High add tone, pacing, brand colors, a logo, theme, CTA URL, music mood, and music level. High also lets you choose an exact music track. The frame on the right previews the brand palette, duration, voice and estimated scene count; the actual headlines are written by the agents.
 
 The draft is saved in this browser as you type. **Clear form** (top of the page) starts a new brief from your saved defaults. **Import brief file** (top of the page) loads a YAML brief; **Export brief file** (bottom of the last step, next to the final button) downloads the completed form so it can be reviewed, versioned, or used with the CLI. Importing validates the same schema used by production.
 
@@ -121,11 +121,15 @@ The proportional timeline at the top shows every scene, its template, duration, 
 
 - **Template** changes the composition. Available layouts include hook, problem, feature card, stat, bullets, full image, screenshot pan, and CTA.
 - **Duration (s)** pins a scene to a specific length. Leave it empty to let ReelHive fit timing around the narration and target duration.
+- **Layout** (full image and screenshot scenes) places the product centred above its text, or on the left or right of it. Alternate sides across consecutive product scenes; the device travels between them.
+- **Hold (s)** keeps the settled frame on screen after the voice ends, up to 3 seconds, so a key screen can be read.
 - **Headline** and **Supporting text** control the words shown on screen. Template-specific length limits are enforced.
 - **Narration** changes the spoken text. Saving a change re-synthesizes only the affected audio.
 - **Override voice** lets one scene use another gender, accent, or speed.
-- **Visual kind** tells the resolver whether the scene needs product UI, concept art, or no image. Use **Image or route** for a page route (product UI) or a description (concept). Changing the kind clears the previous request and image approval.
+- **Visual kind** tells the resolver whether the scene needs product UI, concept art, or no image. Use **Image or route** for a page route (product UI) or a description (concept). Changing the kind clears the previous request and image approval. For product UI, **Close-up region** names a region of the page (r1, r2…) for the camera to move to after showing the whole page; the hint shows what it is closing in on.
 - **Approve this image** appears when a visual has resolved. Every resolved image must be approved before rendering.
+- **AI quick actions** (top right of the Script and Scenes screens) shows or hides the suggested edits under the selected beat or scene. It is the same setting as in Settings and is kept on this device.
+- **Layout**, **Hold (s)** and **Close-up region** are covered above; together they direct how each shot is composed.
 - **Live preview** uses the same Revideo project as the final render. Play it to check layout, timing, and the selected visual.
 
 Choose **Save scenes** after direct edits or image approvals. Rendering, regeneration, and suggested edits remain disabled while scenes have unsaved changes. **Regenerate scene** reruns only the selected scene using the regeneration note. Review the result again because regeneration can change narration, text, or the requested visual.

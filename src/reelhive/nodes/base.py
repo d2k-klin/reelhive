@@ -14,6 +14,7 @@ from typing import Any, ClassVar, Literal
 from pydantic import BaseModel, ValidationError
 from strands import Agent
 from strands.multiagent.base import MultiAgentBase, MultiAgentResult, Status
+from strands.types.content import ContentBlock
 from strands.types.event_loop import Usage
 from strands.types.exceptions import StructuredOutputException
 
@@ -77,12 +78,13 @@ def load_prompt(name: str) -> str:
 class AgentNode(FunctionNode):
     """An LLM node: builds a prompt from the run, gets validated structured output, applies it."""
 
-    name: ClassVar[Literal["research", "script", "scenes", "music", "critic", "fix"]]
+    name: ClassVar[Literal["research", "script", "scenes", "music", "critic", "fix", "review"]]
     tier: ClassVar[str] = "strong"  # "strong" | "fast"
     prompt: ClassVar[str]  # agents/prompts/<prompt>.md
     output: ClassVar[type[BaseModel]]
 
-    def build_prompt(self, ctx: RunContext) -> str:
+    def build_prompt(self, ctx: RunContext) -> str | list[ContentBlock]:
+        """The user turn: text, or content blocks (text and images) for a vision node."""
         raise NotImplementedError
 
     def apply(self, ctx: RunContext, out: Any) -> None:

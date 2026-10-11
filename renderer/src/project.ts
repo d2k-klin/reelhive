@@ -1,3 +1,4 @@
+import '@fontsource-variable/inter';
 import {makeProject} from '@revideo/core';
 import fromSpec from './scenes/from-spec';
 

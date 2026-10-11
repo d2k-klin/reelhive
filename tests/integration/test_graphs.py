@@ -47,7 +47,7 @@ def test_pass_path_renders_a_video(config, brief):
     started = [d["node"] for d in of_type(events, "node.started")]
     assert started[:3] == ["brief", "research", "script"]  # research is skipped without a website
     assert set(started[3:6]) == {"scenes", "narrate", "music"}  # parallel branches
-    assert started[6:] == ["visuals", "timing", "critic", "render"]
+    assert started[6:] == ["visuals", "timing", "critic", "render", "review", "master"]
     assert [d["node"] for d in of_type(events, "node.skipped")] == ["fix", "recheck"]
     assert all(d["passed"] for d in of_type(events, "gate.result"))
     assert of_type(events, "critic.verdict")[0]["passed"]
@@ -98,7 +98,7 @@ def test_recheck_failure_stops_with_a_report(config, brief):
 
     assert result.status == "stopped" and result.video is None
     assert any("key points not told" in line and brief.features[1] in line for line in result.report)
-    assert [d["node"] for d in of_type(events, "node.skipped")] == ["render"]
+    assert [d["node"] for d in of_type(events, "node.skipped")] == ["render", "review", "master"]
     assert of_type(events, "run.finished")[0]["status"] == "stopped"
 
 
@@ -180,7 +180,7 @@ def test_render_progress_is_logged_per_percent_not_per_frame(config, brief):
     assert len(finalized) == 1 and finalized[0]["progress"] == 1.0
 
 
-def test_intro_screen_opens_the_video_and_the_address_shows_twice(config, brief):
+def test_the_intro_follows_the_hook_and_the_address_shows_twice(config, brief):
     brief.cta_url = "https://www.costhive.dev/pricing/?ref=x"
     svc, _, tts = service(
         config,
@@ -195,7 +195,9 @@ def test_intro_screen_opens_the_video_and_the_address_shows_twice(config, brief)
         "url": "costhive.dev/pricing",
         "duration": 3.0,
     }
-    assert spec["scenes"][0]["start"] == 3.0
+    # A cold open: the hook plays first, then the title screen, then the rest.
+    assert spec["intro_at"] == 1 and spec["scenes"][0]["start"] == 0.0
+    assert spec["scenes"][1]["start"] == pytest.approx(spec["scenes"][0]["duration"] + 3.0, abs=1 / 30)
     assert spec["scenes"][-1]["text"]["url"] == "costhive.dev/pricing"
     assert len(tts.calls) == 6  # the intro has no narration
     assert probe(result.video)["duration"] == pytest.approx(brief.duration, rel=0.05)

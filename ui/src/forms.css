@@ -60,3 +60,4 @@ input[type=checkbox], input[type=radio] { flex: none; margin: 0; }
 @media (max-width: 500px) {
   .node-settings { grid-template-columns: 1fr; }
 }
+.section-title .quick-toggle{margin:0 0 0 auto;font-size:.82rem;font-weight:600;white-space:nowrap}

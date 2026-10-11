@@ -6,20 +6,21 @@
 
 | File | Agent | Tier | Output |
 | --- | --- | --- | --- |
-| [`researcher.py`](researcher.py) | `research`: reads the product website (via the screenshot crawler, text only) and writes product notes | fast | `ProductNotes` |
+| [`researcher.py`](researcher.py) | `research`: reads the product website (via the screenshot crawler, text only) and the brief's documents, and writes product notes | fast | `ProductNotes` |
 | [`script_writer.py`](script_writer.py) | `script`: narration as beats, sized to the target word count | strong | `Script` |
-| [`scene_planner.py`](scene_planner.py) | `scenes`: template, on-screen text and visual request per beat; builds the `SceneSpec` and theme. At `high`, the brief's own scenes are used as is (no LLM call). | fast | `ScenePlan` |
+| [`scene_planner.py`](scene_planner.py) | `scenes`: the director. Template, on-screen text, visual request (with a close-up `region`), `layout` and `hold` per beat; builds the `SceneSpec` and theme and places the intro after an opening hook. At `high`, the brief's own scenes are used as is (no LLM call). | fast | `ScenePlan` |
 | [`music_director.py`](music_director.py) | `music`: mood and BPM, then a library track | fast | `MusicChoice` |
-| [`critic.py`](critic.py) | `critic`: the hard checks (`hard_checks`, `run_gates`: duration, closing, features, pace, text limits, audio, images, product UI, voice fit, and image approval at `high`), then a rubric `Verdict` only if they pass | strong | `Verdict` |
-| [`fixer.py`](fixer.py) | `fix`: a corrected `ScenePlan` with narration; emits `fix.diff` | strong | `ScenePlan` |
-| [`plan.py`](plan.py) | `PlannedScene` / `ScenePlan`, shared by planner and fixer; enforces template character limits so the model retries rather than us truncating | – | – |
+| [`critic.py`](critic.py) | `critic`: the hard checks (`hard_checks`, `run_gates`: duration, closing, features, pace, text limits, reading time, audio, images, product UI, voice fit, and image approval at `high`), then a rubric `Verdict` only if they pass | strong | `Verdict` |
+| [`reviewer.py`](reviewer.py) | `review`: the layout gates on what the renderer measured (`layout_checks`: every shot measured, safe area, overlap, type size, sharpness), then, only with `frame_review`, a vision review of one settled frame per shot. A failure reopens the repair loop | strong | `FrameVerdict` |
+| [`fixer.py`](fixer.py) | `fix`: a corrected `ScenePlan` with narration, repairing plan failures and cut failures alike; emits `fix.diff` | strong | `ScenePlan` |
+| [`plan.py`](plan.py) | `PlannedScene` / `ScenePlan`, shared by planner and fixer; enforces template character limits so the model retries rather than us truncating. `keep_direction()` carries layout, hold and visual request a repair leaves out; `intro_position()` is the cold-open rule | – | – |
 | [`suggester.py`](suggester.py) | `suggest` (M6): 3-4 quick-action suggestions for one beat or scene, cached per version | fast | `Suggestions` |
 | [`prompts/`](prompts) | The system prompts, one Markdown file per agent | – | – |
 
 ## Extending: a new agent node
 
 1. Add the prompt as `prompts/<name>.md`.
-2. Subclass `AgentNode` with `name`, `tier`, `prompt`, `output`, `build_prompt(ctx)` and `apply(ctx, out)`. Put validation in the output model, so invalid output goes back to the model.
+2. Subclass `AgentNode` with `name`, `tier`, `prompt`, `output`, `build_prompt(ctx)` and `apply(ctx, out)`. Put validation in the output model, so invalid output goes back to the model. `build_prompt` may return content blocks (text and images) for a vision node; skip Copilot first, it is text only (see `ReviewNode`).
 3. Add the node name to the `nodes:` literal in `config.py` and to `NODE_TIERS` in `providers/factory.py`, so it can be overridden per provider.
 4. Wire it into a graph and test it with `FakeModel` (canned output keyed by the output model's class name).
 

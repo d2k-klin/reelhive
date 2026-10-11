@@ -18,6 +18,7 @@ EVENT_TYPES = {
     "agent.text",
     "gate.result",
     "critic.verdict",
+    "review.verdict",
     "fix.diff",
     "run.finished",
     "run.paused",

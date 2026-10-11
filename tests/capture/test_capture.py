@@ -42,6 +42,12 @@ def site():
                 img{display:block;margin-top:8000px;width:200px;height:100px}</style>
                 <h1>Lazy image below the fold</h1><img loading="lazy" src="/lazy-image.png">
                 <img style="display:none" loading="lazy" src="/hidden-image.png">"""
+            elif self.path == "/regions":
+                html = """<title>Regions</title><style>body{margin:0;background:white}
+                section,form{display:block;width:1200px;height:500px;margin:200px 100px}</style>
+                <section><h2>Pricing <span class="private">acct 42</span></h2><p>Plans</p></section>
+                <form aria-label="Sign up"><input></form>
+                <section style="height:20px"><h2>Too thin to show</h2></section>"""
             elif self.path == "/live":
                 html = """<title>Live page</title><h1>Ready content</h1>
                 <script>setInterval(() => fetch('/stream'), 50)</script>"""
@@ -135,3 +141,15 @@ def test_capture_rejects_http_error_pages(site, tmp_path):
     with pytest.raises(ValueError, match="HTTP 404"):
         capture(Screenshots(url=site), "16:9", "/missing", output)
     assert not output.exists()
+
+
+def test_regions_are_measured_for_close_ups_and_match_the_screenshot(site, tmp_path):
+    options = Screenshots(url=site, routes=["/regions"], mask=[".private"])
+    [page] = discover(options, "16:9")
+    assert page["regions"] == [{"id": "r1", "label": "section: Pricing"}, {"id": "r2", "label": "form: Sign up"}]
+    output = tmp_path / "regions.png"
+    measured = capture(options, "16:9", "/regions", output)
+    pricing = next(r for r in measured if r["label"] == "section: Pricing")
+    assert pricing["box"] == [100, 200, 1200, 500]  # full-page pixels, the same frame as the screenshot
+    with Image.open(output) as shot:
+        assert shot.getpixel((150, 250)) == (255, 255, 255) and shot.height >= 1400

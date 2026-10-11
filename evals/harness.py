@@ -14,6 +14,7 @@ import soundfile as sf
 import yaml
 from PIL import Image
 
+from reelhive.audio.tts.base import Speech, estimate_words
 from reelhive.nodes.timing_node import SPEECH_WPM
 from reelhive.schemas.brief import Brief
 
@@ -24,10 +25,10 @@ KOKORO_WPS = SPEECH_WPM / 60
 class EstimateTTS:
     """Silence as long as Kokoro would take to say the text, so timing and pace metrics stay realistic."""
 
-    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float) -> float:
+    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float) -> Speech:
         seconds = max(0.5, len(text.split()) / KOKORO_WPS / speed)
         sf.write(out, np.zeros(int(seconds * 24000), dtype=np.float32), 24000)
-        return seconds
+        return Speech(seconds, estimate_words(text, 0.0, seconds))
 
 
 class PromptRecorder:

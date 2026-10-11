@@ -1689,6 +1689,18 @@
             "title": "Music Volume",
             "default": 0.3
           },
+          "captions": {
+            "type": "boolean",
+            "title": "Captions",
+            "description": "Show the narration on screen, phrase by phrase, highlighting each word as it is spoken",
+            "default": false
+          },
+          "frame_review": {
+            "type": "boolean",
+            "title": "Frame Review",
+            "description": "Send one rendered frame per shot to the review provider for a visual review (vision model)",
+            "default": false
+          },
           "narration": {
             "type": "boolean",
             "title": "Narration",
@@ -1786,6 +1798,22 @@
             ],
             "title": "Audio",
             "description": "Narration WAV, relative to the run folder"
+          },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
           },
           "start": {
             "type": "number",
@@ -1905,7 +1933,8 @@
                 "scenes",
                 "music",
                 "critic",
-                "fix"
+                "fix",
+                "review"
               ]
             },
             "type": "object",
@@ -2095,6 +2124,22 @@
             ],
             "title": "Audio",
             "description": "Narration WAV, relative to the run folder"
+          },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
           },
           "start": {
             "type": "number",
@@ -2300,6 +2345,22 @@
             "title": "Audio",
             "description": "Narration WAV, relative to the run folder"
           },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
+          },
           "start": {
             "type": "number",
             "title": "Start",
@@ -2366,6 +2427,50 @@
           "headline"
         ],
         "title": "FeatureCardText"
+      },
+      "Focus": {
+        "properties": {
+          "x": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Y"
+          },
+          "width": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Height"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Label",
+            "description": "What the region shows, as measured on the page",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "title": "Focus",
+        "description": "A part of the image to close in on, as fractions of the image's width and height."
       },
       "Generate": {
         "properties": {
@@ -2479,6 +2584,22 @@
             ],
             "title": "Audio",
             "description": "Narration WAV, relative to the run folder"
+          },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
           },
           "start": {
             "type": "number",
@@ -2636,6 +2757,22 @@
             "title": "Audio",
             "description": "Narration WAV, relative to the run folder"
           },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
+          },
           "start": {
             "type": "number",
             "title": "Start",
@@ -2645,6 +2782,17 @@
             "type": "number",
             "title": "Duration",
             "default": 0.0
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "center",
+              "split-left",
+              "split-right"
+            ],
+            "title": "Layout",
+            "description": "Where the visual sits: centred above the text, or on the left or right of it",
+            "default": "center"
           },
           "template": {
             "type": "string",
@@ -2793,6 +2941,27 @@
         ],
         "title": "LoginRequest"
       },
+      "Motion": {
+        "properties": {
+          "enter": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Enter",
+            "description": "Seconds a shot's elements take to arrive, staggered in reading order",
+            "default": 0.8
+          },
+          "transition": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Transition",
+            "description": "Seconds the outgoing shot overlaps the start of the incoming one",
+            "default": 0.6
+          }
+        },
+        "type": "object",
+        "title": "Motion",
+        "description": "Timing of the renderer's motion language, set by code so Python's checks and the renderer agree."
+      },
       "Note": {
         "properties": {
           "note": {
@@ -2905,6 +3074,22 @@
             ],
             "title": "Audio",
             "description": "Narration WAV, relative to the run folder"
+          },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
           },
           "start": {
             "type": "number",
@@ -3022,7 +3207,7 @@
           "version": {
             "type": "integer",
             "title": "Version",
-            "default": 1
+            "default": 2
           },
           "format": {
             "type": "string",
@@ -3059,6 +3244,19 @@
               "accent": "#f5a524"
             }
           },
+          "motion": {
+            "$ref": "#/components/schemas/Motion",
+            "default": {
+              "enter": 0.8,
+              "transition": 0.6
+            }
+          },
+          "captions": {
+            "type": "boolean",
+            "title": "Captions",
+            "description": "Show the narration as word-by-word captions; set from the brief",
+            "default": false
+          },
           "intro": {
             "anyOf": [
               {
@@ -3068,6 +3266,13 @@
                 "type": "null"
               }
             ]
+          },
+          "intro_at": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Intro At",
+            "description": "Scenes played before the intro screen: 0 opens with it, 1 is a cold open after the hook",
+            "default": 0
           },
           "scenes": {
             "items": {
@@ -3226,6 +3431,22 @@
             "title": "Audio",
             "description": "Narration WAV, relative to the run folder"
           },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
+          },
           "start": {
             "type": "number",
             "title": "Start",
@@ -3235,6 +3456,17 @@
             "type": "number",
             "title": "Duration",
             "default": 0.0
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "center",
+              "split-left",
+              "split-right"
+            ],
+            "title": "Layout",
+            "description": "Where the visual sits: centred above the text, or on the left or right of it",
+            "default": "center"
           },
           "template": {
             "type": "string",
@@ -3401,6 +3633,22 @@
             ],
             "title": "Audio",
             "description": "Narration WAV, relative to the run folder"
+          },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
           },
           "start": {
             "type": "number",
@@ -3581,6 +3829,17 @@
             ],
             "title": "Frame",
             "default": "none"
+          },
+          "focus": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Focus"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Resolved from visual_request.region when the image is captured"
           }
         },
         "type": "object",
@@ -3625,6 +3884,18 @@
             ],
             "title": "Route",
             "description": "Route from the screenshot catalog"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region",
+            "description": "Region id from that screenshot page's `regions` to close in on; product UI only"
           },
           "prompt": {
             "anyOf": [
@@ -3739,6 +4010,35 @@
         "additionalProperties": false,
         "type": "object",
         "title": "Voice"
+      },
+      "Word": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Text",
+            "description": "The word with any punctuation that follows it"
+          },
+          "start": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Start",
+            "description": "Seconds from the scene's start"
+          },
+          "end": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text",
+          "start",
+          "end"
+        ],
+        "title": "Word",
+        "description": "One spoken word, timed from the recorded voice (never written by an agent)."
       },
       "YamlBrief": {
         "properties": {

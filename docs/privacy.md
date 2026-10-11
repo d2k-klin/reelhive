@@ -8,8 +8,10 @@ ReelHive runs on your machine. This page lists what, if anything, leaves it, and
 | --- | --- |
 | Brief text, script, image filenames and captions, page titles | Yes, to your agent provider (Claude, Bedrock, OpenAI or GitHub Copilot); no, with Ollama |
 | Product website text (when you give a website) | Yes, the research step sends the readable text of up to 10 pages to your agent provider; no, with Ollama |
-| Screenshots | No |
+| Text of your documents (PDFs and decks) | Yes, the research step sends the page text to your agent provider; no, with Ollama. The page images stay local |
+| Screenshots, and the layout regions measured on them | Screenshots no; region labels (the heading of each region) go with the page titles |
 | Your images | No, unless `describe_images: true` |
+| Rendered frames | No, unless `frame_review: true`: then one still per shot goes to your review provider |
 | Image prompts | Yes, to OpenAI, only when `generate` is on |
 | Audio, video, login state | No |
 

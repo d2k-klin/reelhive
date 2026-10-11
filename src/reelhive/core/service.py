@@ -17,8 +17,8 @@ from reelhive.config import Config
 from reelhive.core.context import RunCancelled, RunContext
 from reelhive.core.events import Event, EventBus
 from reelhive.graphs.draft import build_draft_graph
+from reelhive.graphs.production import FINISHING, build_production_graph
 from reelhive.graphs.production import NODES as PRODUCTION_NODES
-from reelhive.graphs.production import build_production_graph
 from reelhive.levels import LEVELS
 from reelhive.schemas.brief import Brief
 from reelhive.schemas.scene_spec import SceneSpec
@@ -116,6 +116,13 @@ class Service:
             spec_only=self.spec_only,
             image_generator=self.image_generator,
         )
+
+    @staticmethod
+    def _reopen_finishing(ctx: RunContext) -> None:
+        """Edits invalidate every verdict and cut: check, render and review again from `critic`."""
+        ctx.completed.difference_update(FINISHING)
+        ctx.critic_passed = ctx.recheck_passed = False
+        ctx.review_passed, ctx.review_rounds = None, 0
 
     @staticmethod
     def _status(ctx: RunContext, status: str, report: list[str] | None = None) -> None:
@@ -285,6 +292,7 @@ class Service:
         return RunResult(run_dir, "awaiting_script")
 
     def refresh_scenes(self, ctx: RunContext) -> None:
+        from reelhive.agents.plan import intro_position
         from reelhive.nodes.narrate_node import narrate
         from reelhive.nodes.timing_node import apply_timing
         from reelhive.visuals.resolver import resolve
@@ -297,9 +305,9 @@ class Service:
             ):
                 narrate(ctx, scene.index, scene.narration)
         resolve(ctx)
-        apply_timing(ctx.spec, ctx.narrated, ctx.brief)
-        ctx.completed.difference_update({"critic", "fix", "recheck", "render"})
-        ctx.critic_passed = ctx.recheck_passed = False
+        ctx.spec.intro_at = intro_position(ctx.spec.scenes)
+        apply_timing(ctx.spec, ctx.narrated, ctx.brief, ctx.words)
+        self._reopen_finishing(ctx)
         ctx.checkpoint()
 
     def save_spec(self, run_dir: Path, spec: SceneSpec) -> RunResult:
@@ -336,13 +344,12 @@ class Service:
             raise ValueError("approve every scene image before rendering")
         ctx.stage = "finish"
         # Approving again (after edits, or a stopped run) must re-check, not replay the old gate results.
-        ctx.completed.difference_update({"critic", "fix", "recheck", "render"})
-        ctx.critic_passed = ctx.recheck_passed = False
+        self._reopen_finishing(ctx)
         ctx.checkpoint()
         return asyncio.run(self.run_async(ctx, approved=True))
 
     def regenerate_scene(self, run_dir: Path, index: int, note: str = "", suggestion: str | None = None) -> RunResult:
-        from reelhive.agents.plan import ScenePlan, brief_block
+        from reelhive.agents.plan import ScenePlan, brief_block, keep_direction
         from reelhive.agents.scene_planner import ScenePlannerNode
 
         self.require_status(run_dir, {"awaiting_scenes", "stopped", "done"})
@@ -363,8 +370,10 @@ class Service:
             def apply(self, ctx, out: ScenePlan):
                 if len(out.scenes) != 1:
                     raise ValueError("regeneration must return exactly one scene")
-                result = out.scenes[0].to_scene(index, out.scenes[0].narration or old.narration)
+                planned = out.scenes[0]
+                result = planned.to_scene(index, planned.narration or old.narration)
                 result.voice_override, result.duration_override = old.voice_override, old.duration_override
+                keep_direction(planned, result, old)
                 ctx.spec.scenes[index - 1] = result
 
         # Use the agent executor without the planner's catalog/spec initialization.
@@ -408,6 +417,7 @@ class Service:
                 "duration": length,
                 "credit": None,
                 "intro": None,
+                "intro_at": 0,
                 "music": None,
             }
         )

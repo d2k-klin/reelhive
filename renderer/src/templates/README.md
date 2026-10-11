@@ -1,20 +1,20 @@
 # `renderer/src/templates`
 
-**Overview.** One generator function per template. Each takes the view and one scene from the spec and must take exactly `scene.duration` seconds, so picture and pre-mixed audio stay in sync.
+**Overview.** One builder per template. A builder takes the stage, a layer and one scene from the spec, places its elements and returns a `Shot`. It never decides time: the orchestrator ([`../scenes/from-spec.tsx`](../scenes/from-spec.tsx)) runs the transition, the entrance, the layout report and the hold, so every shot lasts exactly its `duration` and the pre-mixed voice stays in sync.
 
 ## What's here
 
 | File | Template |
 | --- | --- |
-| [`common.ts`](common.ts) | `playFor(view, node, duration)`: fade and slide in, hold, fade out, remove; always exactly `duration`. |
-| [`hook.tsx`](hook.tsx) | `hook`: accent bar, big headline, optional subline |
-| [`feature-card.tsx`](feature-card.tsx) | `feature-card`: label number, headline, body |
-| [`cta.tsx`](cta.tsx) | `cta`: closing headline and an accent pill (URL) |
-| [`image-full.tsx`](image-full.tsx) | `image-full` and `screenshot-pan`: an image or screenshot in an optional browser or phone frame; screenshots pan top to bottom |
-| [`extras.tsx`](extras.tsx) | `problem` (a muted hook), `stat` (one big number with a line), `bullets` (a headline and up to five points) |
+| [`kit.ts`](kit.ts) | The `Shot` and `Builder` contracts, `staggered()` (the default entrance), `shotRoot()` and the accent bar. |
+| [`statements.tsx`](statements.tsx) | `hook` (accent bar, hero headline, subline), `problem` (the same with a muted mark), `stat` (a big figure that counts up), `bullets` (a headline and a list that hugs its content) |
+| [`feature-card.tsx`](feature-card.tsx) | `feature-card`: a raised card with an accent marker, headline and body |
+| [`product.tsx`](product.tsx) | `image-full` and `screenshot-pan`: the device with its copy, in the scene's `layout` (`center`, `split-left`, `split-right`; stacked on portrait) |
+| [`closing.tsx`](closing.tsx) | `cta`: logo, call to action, accent pill and address; it stays on screen as the last frame. Also `logoMark()`. |
+| [`intro.tsx`](intro.tsx) | The intro screen (not a scene): logo or accent bar, the name, tagline and address |
 | [`credit.tsx`](credit.tsx) | `CREDIT_TEXT` (the only copy of the credit text, contract-tested), the end card and the corner badge |
-| [`index.ts`](index.ts) | `TEMPLATES`: template name → generator. vitest checks that it covers every template in the schema. |
+| [`index.ts`](index.ts) | `TEMPLATES`: template name → builder. vitest checks that it covers every template in the schema. |
 
 ## Extending
 
-Follow [docs/adding-a-template.md](../../../docs/adding-a-template.md). In short: size from `view.width()` / `view.height()` (all three formats must work), take colors from `currentTheme()`, end with `yield* playFor(...)`, register in `index.ts`, then render it at 16:9, 9:16 and 1:1 and look at it.
+Follow [docs/adding-a-template.md](../../../docs/adding-a-template.md). In short: place everything through the stage (`text()`, `stack()`, `hug()`, the type scale), list the elements in reading order as `parts` with their roles so the entrance and the layout report see them, register the builder in `index.ts`, then render it at 16:9, 9:16 and 1:1 and look at it.

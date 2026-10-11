@@ -4,14 +4,40 @@ import schema from './spec.schema.json';
 
 export type Template = 'hook' | 'feature-card' | 'cta' | 'image-full' | 'screenshot-pan' | 'problem' | 'stat' | 'bullets';
 
+export interface Focus {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label: string;
+}
+
+export interface Visual {
+  source: 'provided' | 'screenshot' | 'generated';
+  file: string;
+  frame: 'browser' | 'phone' | 'none';
+  focus?: Focus | null;
+}
+
+export type ShotLayout = 'center' | 'split-left' | 'split-right';
+
 export interface SceneSpec {
   index: number;
   template: Template;
   start: number;
   duration: number;
   narration: string;
-  visual?: {source: 'provided' | 'screenshot' | 'generated'; file: string; frame: 'browser' | 'phone' | 'none'} | null;
+  hold?: number;
+  layout?: ShotLayout;
+  /** The narration's words as spoken, in seconds from the scene's start. */
+  words?: {text: string; start: number; end: number}[];
+  visual?: Visual | null;
   text: Record<string, any>;
+}
+
+export interface Motion {
+  enter: number;
+  transition: number;
 }
 
 export interface Credit {
@@ -34,7 +60,10 @@ export interface Spec {
   height: number;
   fps: number;
   duration: number;
+  motion?: Motion;
+  captions?: boolean;
   intro?: Intro | null;
+  intro_at?: number;
   scenes: SceneSpec[];
   credit: Credit | null;
 }

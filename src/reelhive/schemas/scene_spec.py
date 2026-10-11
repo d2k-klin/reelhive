@@ -19,6 +19,7 @@ FORMATS = {"16:9": (1920, 1080), "9:16": (1080, 1920), "1:1": (1080, 1080)}
 CREDIT_TEXT = "Made with ReelHive by Mr.D"  # mirrors renderer/src/templates/credit.tsx (contract-tested)
 CREDIT_SECONDS = 1.5
 INTRO_SECONDS = 3.0
+MAX_HOLD = 3.0
 
 
 def display_url(raw: str | None) -> str | None:
@@ -75,13 +76,33 @@ class VisualRequest(BaseModel):
     kind: Literal["product_ui", "concept", "none"] = "none"
     image: str | None = Field(None, description="Filename from the provided image catalog")
     route: str | None = Field(None, description="Route from the screenshot catalog")
+    region: str | None = Field(
+        None, description="Region id from that screenshot page's `regions` to close in on; product UI only"
+    )
     prompt: str | None = Field(None, description="Concept illustration only; never product UI")
+
+
+class Focus(BaseModel):
+    """A part of the image to close in on, as fractions of the image's width and height."""
+
+    x: float = Field(ge=0, le=1)
+    y: float = Field(ge=0, le=1)
+    width: float = Field(gt=0, le=1)
+    height: float = Field(gt=0, le=1)
+    label: str = Field("", max_length=120, description="What the region shows, as measured on the page")
+
+    @model_validator(mode="after")
+    def inside(self) -> Focus:
+        if self.x + self.width > 1.0001 or self.y + self.height > 1.0001:
+            raise ValueError("focus region must lie inside the image")
+        return self
 
 
 class VisualAsset(BaseModel):
     source: Literal["provided", "screenshot", "generated"]
     file: str
     frame: Literal["browser", "phone", "none"] = "none"
+    focus: Focus | None = Field(None, description="Resolved from visual_request.region when the image is captured")
 
 
 class Theme(BaseModel):
@@ -109,6 +130,14 @@ class StatText(BaseModel):
     subline: str | None = Field(None, max_length=80)
 
 
+class Word(BaseModel):
+    """One spoken word, timed from the recorded voice (never written by an agent)."""
+
+    text: str = Field(min_length=1, description="The word with any punctuation that follows it")
+    start: float = Field(ge=0, description="Seconds from the scene's start")
+    end: float = Field(ge=0)
+
+
 class _SceneBase(BaseModel):
     index: int = Field(ge=1)
     narration: str
@@ -119,6 +148,10 @@ class _SceneBase(BaseModel):
     visual_request: VisualRequest = VisualRequest()
     visual: VisualAsset | None = None
     audio: str | None = Field(None, description="Narration WAV, relative to the run folder")
+    hold: float = Field(
+        0.0, ge=0, le=MAX_HOLD, description="Seconds the settled frame stays after the narration, so it can be read"
+    )
+    words: list[Word] = Field(default_factory=list, description="The narration's words as spoken; set by timing")
     start: float = 0.0
     duration: float = 0.0
 
@@ -133,12 +166,18 @@ class FeatureCardScene(_SceneBase):
     text: FeatureCardText
 
 
-class ImageScene(_SceneBase):
+class _VisualScene(_SceneBase):
+    layout: Literal["center", "split-left", "split-right"] = Field(
+        "center", description="Where the visual sits: centred above the text, or on the left or right of it"
+    )
+
+
+class ImageScene(_VisualScene):
     template: Literal["image-full"] = "image-full"
     text: HookText
 
 
-class ScreenshotScene(_SceneBase):
+class ScreenshotScene(_VisualScene):
     template: Literal["screenshot-pan"] = "screenshot-pan"
     text: HookText
 
@@ -170,6 +209,13 @@ Scene = Annotated[
 TEMPLATES = ("hook", "feature-card", "cta", "image-full", "screenshot-pan", "problem", "stat", "bullets")
 
 
+class Motion(BaseModel):
+    """Timing of the renderer's motion language, set by code so Python's checks and the renderer agree."""
+
+    enter: float = Field(0.8, gt=0, description="Seconds a shot's elements take to arrive, staggered in reading order")
+    transition: float = Field(0.6, gt=0, description="Seconds the outgoing shot overlaps the start of the incoming one")
+
+
 class Credit(BaseModel):
     mode: Literal["end", "corner"]
     text: str = CREDIT_TEXT
@@ -177,18 +223,36 @@ class Credit(BaseModel):
 
 
 class SceneSpec(BaseModel):
-    version: int = 1
+    version: int = 2
     format: str = "16:9"
     width: int = 1920
     height: int = 1080
     fps: int = 30
     duration: float = 0.0
     theme: Theme = Theme()
+    motion: Motion = Motion()
+    captions: bool = Field(False, description="Show the narration as word-by-word captions; set from the brief")
     intro: Intro | None = None
+    intro_at: int = Field(
+        0, ge=0, description="Scenes played before the intro screen: 0 opens with it, 1 is a cold open after the hook"
+    )
     scenes: list[Scene] = Field(min_length=1)
     credit: Credit | None = None
     music_volume: float = Field(0.3, ge=0, le=1)
     music: str | None = Field(None, description="Music file chosen from the library")
+
+    @model_validator(mode="after")
+    def intro_in_range(self) -> SceneSpec:
+        if self.intro_at > len(self.scenes):
+            raise ValueError("intro_at is past the last scene")
+        return self
+
+    def timeline(self) -> list[Intro | Scene]:
+        """What plays, in order: the scenes with the intro screen inserted at `intro_at`."""
+        items: list[Intro | Scene] = list(self.scenes)
+        if self.intro:
+            items.insert(self.intro_at, self.intro)
+        return items
 
 
 def export_schema(path: Path) -> str:

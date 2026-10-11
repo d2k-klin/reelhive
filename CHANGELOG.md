@@ -12,7 +12,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   planner can pick by name. Upload them in the studio (up to 50 MB each).
 - `context`: free-text extra info (facts, pricing, release notes) for every agent and for research.
 
+- Directed video. The scene planner now directs each shot: a `layout` (product centred, or beside its text), a
+  `hold` (stillness after the voice so a frame can be read) and a close-up `region` of a screenshot page. Regions are
+  measured from the page's DOM at discovery and again at capture, so no pixels go to the planner and the box always
+  fits the screenshot.
+- `review` node: the rendered cut is checked like a motion designer previews it. Layout gates run on the geometry
+  the renderer measured (text inside the safe area, nothing overlapping, type readable on a phone, no blurry
+  close-ups); with `frame_review: true`, a vision model also scores one settled frame per shot. A failure loops back
+  through `fix -> recheck -> render` (a bounded cycle in the production graph, at most 2 repair rounds).
+- `reading_time` hard check: at most four on-screen words per settled second.
+- Word-by-word captions (`captions: true`, a toggle in the studio): the narration in short phrases below the content,
+  each word lighting up as it is spoken. Timed from Kokoro's own word timestamps, so they also work with the
+  narrator off. The caption band is reserved in the layout and checked by the review gates.
+- An **AI quick actions** switch on the Script and Scenes screens (the same per-device setting as in Settings).
+- A new renderer motion system: elements arrive in reading order on an exact-length spring, one transition grammar
+  (the device carried between product shots, a settle into the intro and closing, a push otherwise), device frames
+  with depth, a camera that closes in on regions, a drifting backdrop, a counting stat, and the bundled Inter font.
+
 ### Changed
+- The TTS interface returns a `Speech` (length and timed words) instead of seconds.
+- `render` is split into `render` (silent cut and layout report), `review` and `master` (audio mix and mux).
+- The intro follows an opening hook (a cold open) instead of always playing first (`SceneSpec.intro_at`).
+- The closing frame settles for a second and stays on screen under the end credit instead of fading out.
+- `pacing` now sets narration density: `slow` 100-135, `balanced` 130-170, `fast` 145-175 words per minute; planned
+  holds don't count against the pace.
 - The studio's visual source now defaults to `auto`, so the website's screenshots, uploaded images, documents and
   generated images combine out of the box.
 

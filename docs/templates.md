@@ -7,15 +7,21 @@ Every scene uses one template. Limits are enforced three times: by the agent's s
 | `hook` | Opening line, problem statement, any typography-only beat | `headline` (48), `subline` (80, optional) |
 | `feature-card` | One feature per card | `label` (4, e.g. `01`), `headline` (40), `body` (110, optional) |
 | `problem` | The pain before the product, in muted tones | `headline` (48), `subline` (80) |
-| `stat` | One big number with a supporting line | `headline` (20, e.g. `~30% wasted`), `subline` (80) |
+| `stat` | One big number with a supporting line; a leading number counts up as it arrives | `headline` (20, e.g. `~30% wasted`), `subline` (80) |
 | `bullets` | A headline and a short list | `headline` (48), `items` (1-5, each ≤70) |
 | `cta` | The closing call to action | `headline` (60, usually the closing message), `subline` (60, optional), `url` (60, set from the brief, shown small below) |
-| `image-full` | A provided or generated image with a caption | `headline` (48), `subline` (80) |
-| `screenshot-pan` | A full-page screenshot that pans top to bottom inside an optional browser or phone frame | `headline` (48), `subline` (80) |
-| `intro` | Not a scene: the 3-second title screen before the first scene, with no narration | `title` (40, the exact product name), `tagline` (80, optional), `url` (60, set from the brief, shown small) |
+| `image-full` | A provided or generated image on a raised card, with its headline | `headline` (48), `subline` (80); `layout` |
+| `screenshot-pan` | A full-page screenshot in an optional browser or phone frame: the page first, then a close-up of the scene's region or a gentle pan | `headline` (48), `subline` (80); `layout` |
+| `intro` | Not a scene: the 3-second product reveal with no narration, after the opening hook (a cold open) or first | `title` (40, the exact product name), `tagline` (80, optional), `url` (60, set from the brief, shown small) |
 | `credit` | Not a scene: the "Made with ReelHive by Mr.D" end card (1.5 s) or corner badge | fixed text |
 
+Product scenes take a `layout`: `center` (the device above its text, for the first full view), `split-left` or `split-right` (the device on one side, the explanation on the other). On 9:16 a split stacks, with the text left-aligned. Every scene can also take a `hold` of up to 3 seconds: the settled frame stays after the voice ends so it can be read. The closing scene always settles for a second and stays on screen under the credit.
+
 Any scene that resolved a visual is drawn with the image layout, whatever its template, so a `feature-card` with a screenshot shows the screenshot with its headline. A scene whose image could not be resolved falls back to `hook`.
+
+With `captions: true`, a caption band takes the bottom of the frame for the whole video and every shot is laid out in the space above it; the layout review checks that nothing enters the band.
+
+All shots share one motion language: elements arrive in reading order with a gentle spring, and the cut between two shots is chosen from what meets there (the device travels from one product shot to the next; the closing and the intro settle into place; everything else pushes through). Type comes from one scale (Inter, bundled with the renderer), so headlines, supporting text and labels keep the same hierarchy in every shot.
 
 Every template sizes itself from the frame, so the same spec renders at 16:9 (1920×1080), 9:16 (1080×1920) and 1:1 (1080×1080). Colors come from the theme: the default dark theme, `dark`, or `brand`, built from up to three brief colors (accent, background, text) plus an optional logo.
 

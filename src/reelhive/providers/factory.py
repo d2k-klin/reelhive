@@ -14,6 +14,7 @@ NODE_TIERS = {
     "music": "fast",
     "critic": "strong",
     "fix": "strong",
+    "review": "strong",  # needs a vision-capable model when the brief opts into the frame review
 }
 
 

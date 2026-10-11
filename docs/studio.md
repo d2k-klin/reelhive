@@ -16,7 +16,7 @@ Set duration, format, voice, tone, theme and brand colors, then choose the backg
 
 ## Direct the scenes
 
-Every video opens with a 3-second intro screen: the product name, a one-line tagline and your site address in small letters. At the high level you can edit it, and every scene, before anything is rendered.
+Every video has a 3-second intro screen: the product name, a one-line tagline and your site address in small letters. When the video opens on a hook, the intro follows it (a cold open), so the first second grabs attention before the product is named. At the high level you can edit it, and every scene, before anything is rendered: its words, its layout, how long it holds, and which part of a page the camera closes in on.
 
 ![The intro title and tagline fields above the scene timeline](screenshots/scene-editor.png)
 
@@ -32,7 +32,7 @@ The Runs screen lists productions newest first with their start time. Open one t
 
 ## Quick actions
 
-On the Script and Scenes screens, the selected beat or scene gets 3-4 suggested edits as buttons, such as "Punchier hook" or "Shorten by ~2s", rendered with CopilotKit from an AG-UI tool call. One click regenerates just that beat or scene; **Undo** puts it back. The same works from the terminal:
+On the Script and Scenes screens, the selected beat or scene gets 3-4 suggested edits as buttons (switch them off with **AI quick actions** in the corner of either screen, or in Settings; the choice is kept on this device), such as "Punchier hook" or "Shorten by ~2s", rendered with CopilotKit from an AG-UI tool call. One click regenerates just that beat or scene; **Undo** puts it back. The same works from the terminal:
 
 ```bash
 uv run reelhive suggest runs/<run> --scene 3            # list them

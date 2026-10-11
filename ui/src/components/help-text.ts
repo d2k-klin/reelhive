@@ -84,9 +84,11 @@ export const stages: Record<string, {label: string; doing: string; next: string}
   visuals: {label: 'Visual preparation', doing: 'Your requested images and app captures are being prepared.', next: 'Next, the prepared visuals join narration and music for timing and quality review.'},
   narrate: {label: 'Narration', doing: 'The narrator is turning the script into spoken audio.', next: 'Next, scene timing is adjusted to fit the recorded voice.'},
   music: {label: 'Music agent', doing: 'The music agent is selecting a background track for your story.', next: 'Next, the track joins your narration in the final mix.'},
-  timing: {label: 'Scene timing', doing: 'Scene lengths are being matched to the voice and target duration.', next: 'Next, the video is reviewed for timing, readability, and coverage.'},
+  timing: {label: 'Scene timing', doing: 'Scene lengths are being matched to the voice, the pauses you planned and the target duration.', next: 'Next, the video is reviewed for timing, readability, and coverage.'},
   critic: {label: 'Quality review', doing: 'The review agent is checking your story, timing, and visual choices.', next: 'If changes are needed, the repair agent will make a pass before the final check.'},
   fix: {label: 'Repair agent', doing: 'The repair agent is improving scenes that did not pass review.', next: 'Next, the updated scenes are checked again.'},
   recheck: {label: 'Final checks', doing: 'The revised scenes are being checked before video creation.', next: 'If they pass, the final video can be created.'},
-  render: {label: 'Video creation', doing: 'Your scenes are being turned into a video with voice and music.', next: 'Next, watch the finished video and download your MP4.'},
+  render: {label: 'Video creation', doing: 'Your scenes are being drawn frame by frame, and their layout is measured.', next: 'Next, the cut is reviewed as you would preview it.'},
+  review: {label: 'Cut review', doing: 'The finished frames are being checked: nothing clipped, overlapping, too small or blurry, and (if you opted in) an art director looks at each shot.', next: 'If something falls short, the repair agent fixes those scenes and the video is drawn again.'},
+  master: {label: 'Sound mix', doing: 'Narration and music are being mixed onto the reviewed video.', next: 'Next, watch the finished video and download your MP4.'},
 };

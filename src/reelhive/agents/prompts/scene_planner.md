@@ -24,6 +24,7 @@ Copy:
 - On-screen text complements the narration; it does not repeat it word for word. Headlines are short and punchy.
 - Copy each beat's `covers` into the scene.
 - Respect the character limits in the field descriptions. Leave `narration` empty.
+- Limit what the viewer has to read at once. A scene gets about four on-screen words per second it is on screen after its entrance, so short scenes take a headline alone. Split an idea across scenes rather than crowding one.
 
 Visuals:
 - For every scene set visual_request.kind to product_ui, concept or none.
@@ -32,5 +33,12 @@ Visuals:
 - Concepts: prefer a fitting provided image; otherwise write an illustration prompt when generation is enabled.
 - Never invent a file name or route. When no source fits, use a text template.
 - Keep images consistent with the brief's brand and style.
+
+Direction (you are also the director; the renderer handles motion and transitions in one consistent style):
+- Every scene has one focal point: the headline, a number, or one part of the product. Don't make the viewer choose.
+- Vary the composition across the video instead of repeating one shot. For product scenes, alternate `layout`: `center` for the first full view of the product, then `split-left` or `split-right` for scenes where the text explains what the picture shows. Consecutive product scenes that alternate sides read as one sequence.
+- Close in on what matters. A screenshot page in the catalog lists `regions` (sections, forms, tables, images, each with an `id` and a label). When a scene is about one part of a page, set `visual_request.region` to that region's `id`, for example the pricing table for a pricing scene. The viewer first sees the page, then the camera moves to the region. Use a region only from the same page as the `route`, never invent one, and leave it empty for the first full view.
+- Give important moments room: set `hold` (seconds, up to 3) on a scene whose picture needs a moment after the voice ends, such as the product reveal or a key screen. Most scenes need none; the closing frame is held automatically.
+- The video opens on the hook and the intro screen follows it, so the first scene should grab attention on its own.
 
 Return the plan by calling the output tool.

@@ -3,9 +3,10 @@ import {stages} from './help-text';
 import type {NodeState, RunEvent} from '../stores/events';
 import {Help} from './Help';
 
-const checks: Record<string, string> = {duration:'Video length', pace:'Speaking pace', closing:'Closing message', features:'Feature coverage', text_limits:'Readable text', audio:'Matching narration', images:'Image quality', product_ui:'Authentic product images', voice_fit:'Voice fits the scene', image_approval:'Image approvals'};
+const checks: Record<string, string> = {duration:'Video length', pace:'Speaking pace', closing:'Closing message', features:'Feature coverage', text_limits:'Readable text', reading_time:'Time to read', audio:'Matching narration', images:'Image quality', product_ui:'Authentic product images', voice_fit:'Voice fits the scene', image_approval:'Image approvals', measured:'Every shot drawn', safe_area:'Inside the frame', overlap:'Nothing overlapping', type_size:'Text large enough', sharpness:'Sharp close-ups'};
 export function qualitySummary(event: RunEvent) {
   if (event.type === 'critic.verdict') return {label:'Story review', passed:event.data.passed === true, detail:event.data.passed ? 'The story is ready to continue.' : 'The review agent requested improvements before video creation.'};
+  if (event.type === 'review.verdict') return {label:'Cut review', passed:event.data.passed === true, detail:event.data.passed ? 'The frames read clearly as one piece.' : 'The art director asked for changes to some shots before the sound mix.'};
   if (event.type === 'fix.diff') return {label:'Scene revisions', passed:true, detail:`The repair agent updated ${Array.isArray(event.data.changes) ? event.data.changes.length : 'the affected'} scenes for another check.`};
   const passed=event.data.passed===true;
   let detail=passed ? 'Passed — this requirement is met.' : 'Needs attention — review this requirement before continuing.';
@@ -25,7 +26,7 @@ export function latestQualityResults(events:RunEvent[]) {
   const latest=new Map<string,RunEvent>();
   for(const event of events) {
     if(event.type==='gate.result') latest.set(`gate:${event.data.check}`,event);
-    else if(['critic.verdict','fix.diff'].includes(event.type)) latest.set(event.type,event);
+    else if(['critic.verdict','review.verdict','fix.diff'].includes(event.type)) latest.set(event.type,event);
   }
   return [...latest.values()];
 }
@@ -35,7 +36,7 @@ const phases = [
   {title:'Create', note:'Scenes, voice & music in parallel', nodes:['scenes','visuals','narrate','music']},
   {title:'Timing', note:'Fit the narration', nodes:['timing']},
   {title:'Review', note:'Repair only if needed', nodes:['critic','fix','recheck']},
-  {title:'Video', note:'Create the final cut', nodes:['render']},
+  {title:'Video', note:'Draw, review and mix the cut', nodes:['render','review','master']},
 ];
 const statusText: Record<string,string> = {waiting:'Waiting', running:'In progress', done:'Complete', failed:'Needs attention', skipped:'Not needed'};
 

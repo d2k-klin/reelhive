@@ -15,8 +15,12 @@ import yaml
 from strands.models.model import Model
 
 from reelhive.audio.mixer import ffmpeg_exe
+from reelhive.audio.tts.base import Speech, estimate_words
 from reelhive.config import REPO_ROOT, Config
+from reelhive.render.bridge import layout_path
 from reelhive.schemas.brief import Brief
+from reelhive.schemas.layout import Box, LayoutReport, ShotLayout
+from reelhive.schemas.scene_spec import Intro, SceneSpec
 
 WORDS_PER_SECOND = 2.6  # ~156 wpm, close to Kokoro at speed 1.0
 
@@ -69,16 +73,31 @@ class StubTTS:
     def __init__(self) -> None:
         self.calls: list[str] = []
 
-    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float) -> float:
+    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float) -> Speech:
         self.calls.append(text)
         seconds = len(text.split()) / WORDS_PER_SECOND / speed
         sf.write(out, np.zeros(int(seconds * 24000), dtype=np.float32), 24000)
-        return seconds
+        return Speech(seconds, estimate_words(text, 0.0, seconds))
+
+
+def stub_layout(spec: SceneSpec) -> LayoutReport:
+    """What a clean render measures: one headline per shot, centred well inside the safe area."""
+    w, h = spec.width, spec.height
+    headline = Box(role="headline", x=w * 0.2, y=h * 0.4, width=w * 0.6, height=h * 0.1, font_size=h * 0.05)
+    return LayoutReport(
+        shots=[
+            ShotLayout(kind="intro", index=0, width=w, height=h, boxes=[headline])
+            if isinstance(item, Intro)
+            else ShotLayout(kind="scene", index=item.index, width=w, height=h, boxes=[headline])
+            for item in spec.timeline()
+        ]
+    )
 
 
 def stub_renderer(spec: Path, out: Path, on_progress: Callable[[float], None]) -> None:
-    """A black video as long as the spec, made by ffmpeg instead of Revideo."""
+    """A black video as long as the spec, made by ffmpeg instead of Revideo, plus a clean layout report."""
     duration = json.loads(spec.read_text())["duration"]
+    layout_path(out).write_text(stub_layout(SceneSpec.model_validate_json(spec.read_text())).model_dump_json())
     on_progress(0.5)
     subprocess.run(
         [

@@ -561,6 +561,19 @@
                         "description": "Route from the screenshot catalog",
                         "title": "Route"
                       },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
                       "prompt": {
                         "anyOf": [
                           {
@@ -604,6 +617,59 @@
                             ],
                             "title": "Frame",
                             "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
                           }
                         },
                         "required": [
@@ -631,6 +697,48 @@
                     "default": null,
                     "description": "Narration WAV, relative to the run folder",
                     "title": "Audio"
+                  },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
                   },
                   "start": {
                     "default": 0.0,
@@ -800,6 +908,19 @@
                         "description": "Route from the screenshot catalog",
                         "title": "Route"
                       },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
                       "prompt": {
                         "anyOf": [
                           {
@@ -843,6 +964,59 @@
                             ],
                             "title": "Frame",
                             "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
                           }
                         },
                         "required": [
@@ -870,6 +1044,48 @@
                     "default": null,
                     "description": "Narration WAV, relative to the run folder",
                     "title": "Audio"
+                  },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
                   },
                   "start": {
                     "default": 0.0,
@@ -1053,6 +1269,19 @@
                         "description": "Route from the screenshot catalog",
                         "title": "Route"
                       },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
                       "prompt": {
                         "anyOf": [
                           {
@@ -1096,6 +1325,59 @@
                             ],
                             "title": "Frame",
                             "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
                           }
                         },
                         "required": [
@@ -1123,6 +1405,48 @@
                     "default": null,
                     "description": "Narration WAV, relative to the run folder",
                     "title": "Audio"
+                  },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
                   },
                   "start": {
                     "default": 0.0,
@@ -1306,6 +1630,19 @@
                         "description": "Route from the screenshot catalog",
                         "title": "Route"
                       },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
                       "prompt": {
                         "anyOf": [
                           {
@@ -1349,6 +1686,59 @@
                             ],
                             "title": "Frame",
                             "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
                           }
                         },
                         "required": [
@@ -1377,6 +1767,48 @@
                     "description": "Narration WAV, relative to the run folder",
                     "title": "Audio"
                   },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
+                  },
                   "start": {
                     "default": 0.0,
                     "title": "Start",
@@ -1386,6 +1818,17 @@
                     "default": 0.0,
                     "title": "Duration",
                     "type": "number"
+                  },
+                  "layout": {
+                    "default": "center",
+                    "description": "Where the visual sits: centred above the text, or on the left or right of it",
+                    "enum": [
+                      "center",
+                      "split-left",
+                      "split-right"
+                    ],
+                    "title": "Layout",
+                    "type": "string"
                   },
                   "template": {
                     "const": "image-full",
@@ -1545,6 +1988,19 @@
                         "description": "Route from the screenshot catalog",
                         "title": "Route"
                       },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
                       "prompt": {
                         "anyOf": [
                           {
@@ -1588,6 +2044,59 @@
                             ],
                             "title": "Frame",
                             "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
                           }
                         },
                         "required": [
@@ -1616,6 +2125,48 @@
                     "description": "Narration WAV, relative to the run folder",
                     "title": "Audio"
                   },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
+                  },
                   "start": {
                     "default": 0.0,
                     "title": "Start",
@@ -1625,6 +2176,17 @@
                     "default": 0.0,
                     "title": "Duration",
                     "type": "number"
+                  },
+                  "layout": {
+                    "default": "center",
+                    "description": "Where the visual sits: centred above the text, or on the left or right of it",
+                    "enum": [
+                      "center",
+                      "split-left",
+                      "split-right"
+                    ],
+                    "title": "Layout",
+                    "type": "string"
                   },
                   "template": {
                     "const": "screenshot-pan",
@@ -1784,6 +2346,19 @@
                         "description": "Route from the screenshot catalog",
                         "title": "Route"
                       },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
                       "prompt": {
                         "anyOf": [
                           {
@@ -1827,6 +2402,59 @@
                             ],
                             "title": "Frame",
                             "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
                           }
                         },
                         "required": [
@@ -1854,6 +2482,48 @@
                     "default": null,
                     "description": "Narration WAV, relative to the run folder",
                     "title": "Audio"
+                  },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
                   },
                   "start": {
                     "default": 0.0,
@@ -2023,6 +2693,19 @@
                         "description": "Route from the screenshot catalog",
                         "title": "Route"
                       },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
                       "prompt": {
                         "anyOf": [
                           {
@@ -2066,6 +2749,59 @@
                             ],
                             "title": "Frame",
                             "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
                           }
                         },
                         "required": [
@@ -2093,6 +2829,48 @@
                     "default": null,
                     "description": "Narration WAV, relative to the run folder",
                     "title": "Audio"
+                  },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
                   },
                   "start": {
                     "default": 0.0,
@@ -2262,6 +3040,19 @@
                         "description": "Route from the screenshot catalog",
                         "title": "Route"
                       },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
                       "prompt": {
                         "anyOf": [
                           {
@@ -2305,6 +3096,59 @@
                             ],
                             "title": "Frame",
                             "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
                           }
                         },
                         "required": [
@@ -2332,6 +3176,48 @@
                     "default": null,
                     "description": "Narration WAV, relative to the run folder",
                     "title": "Audio"
+                  },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
                   },
                   "start": {
                     "default": 0.0,
@@ -2413,6 +3299,18 @@
       "minimum": 0,
       "title": "Music Volume",
       "type": "number"
+    },
+    "captions": {
+      "default": false,
+      "description": "Show the narration on screen, phrase by phrase, highlighting each word as it is spoken",
+      "title": "Captions",
+      "type": "boolean"
+    },
+    "frame_review": {
+      "default": false,
+      "description": "Send one rendered frame per shot to the review provider for a visual review (vision model)",
+      "title": "Frame Review",
+      "type": "boolean"
     },
     "narration": {
       "default": true,

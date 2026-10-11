@@ -85,8 +85,11 @@ class CopilotAgentNode(FunctionNode):
                 enable_session_store=False,
                 mcp_servers={},
             )
+            prompt = self.node.build_prompt(ctx)
+            if not isinstance(prompt, str):  # the session is locked to text; vision nodes skip Copilot first
+                raise ProviderError(f"Copilot can't run {self.node.name}: it sends images")
             try:
-                await session.send_and_wait(self.node.build_prompt(ctx) + f"\nCall {tool_name} to finish.", timeout=180)
+                await session.send_and_wait(prompt + f"\nCall {tool_name} to finish.", timeout=180)
                 if submitted is None:
                     ctx.events.emit("node.task", node=self.node.name, task="Repairing invalid structured output")
                     await session.send_and_wait(

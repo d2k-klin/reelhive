@@ -744,6 +744,18 @@ export interface components {
              */
             music_volume: number;
             /**
+             * Captions
+             * @description Show the narration on screen, phrase by phrase, highlighting each word as it is spoken
+             * @default false
+             */
+            captions: boolean;
+            /**
+             * Frame Review
+             * @description Send one rendered frame per shot to the review provider for a visual review (vision model)
+             * @default false
+             */
+            frame_review: boolean;
+            /**
              * Narration
              * @description Mix the voice-over into the video
              * @default true
@@ -787,6 +799,17 @@ export interface components {
              * @description Narration WAV, relative to the run folder
              */
             audio?: string | null;
+            /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
             /**
              * Start
              * @default 0
@@ -932,6 +955,17 @@ export interface components {
              */
             audio?: string | null;
             /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
+            /**
              * Start
              * @default 0
              */
@@ -1023,6 +1057,17 @@ export interface components {
              */
             audio?: string | null;
             /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
+            /**
              * Start
              * @default 0
              */
@@ -1050,6 +1095,26 @@ export interface components {
             headline: string;
             /** Body */
             body?: string | null;
+        };
+        /**
+         * Focus
+         * @description A part of the image to close in on, as fractions of the image's width and height.
+         */
+        Focus: {
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+            /** Width */
+            width: number;
+            /** Height */
+            height: number;
+            /**
+             * Label
+             * @description What the region shows, as measured on the page
+             * @default
+             */
+            label: string;
         };
         /** Generate */
         Generate: {
@@ -1106,6 +1171,17 @@ export interface components {
              * @description Narration WAV, relative to the run folder
              */
             audio?: string | null;
+            /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
             /**
              * Start
              * @default 0
@@ -1172,6 +1248,17 @@ export interface components {
              */
             audio?: string | null;
             /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
+            /**
              * Start
              * @default 0
              */
@@ -1181,6 +1268,13 @@ export interface components {
              * @default 0
              */
             duration: number;
+            /**
+             * Layout
+             * @description Where the visual sits: centred above the text, or on the left or right of it
+             * @default center
+             * @enum {string}
+             */
+            layout: "center" | "split-left" | "split-right";
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
@@ -1246,6 +1340,24 @@ export interface components {
             /** Url */
             url: string;
         };
+        /**
+         * Motion
+         * @description Timing of the renderer's motion language, set by code so Python's checks and the renderer agree.
+         */
+        Motion: {
+            /**
+             * Enter
+             * @description Seconds a shot's elements take to arrive, staggered in reading order
+             * @default 0.8
+             */
+            enter: number;
+            /**
+             * Transition
+             * @description Seconds the outgoing shot overlaps the start of the incoming one
+             * @default 0.6
+             */
+            transition: number;
+        };
         /** Note */
         Note: {
             /**
@@ -1295,6 +1407,17 @@ export interface components {
              * @description Narration WAV, relative to the run folder
              */
             audio?: string | null;
+            /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
             /**
              * Start
              * @default 0
@@ -1348,7 +1471,7 @@ export interface components {
         SceneSpec: {
             /**
              * Version
-             * @default 1
+             * @default 2
              */
             version: number;
             /**
@@ -1386,7 +1509,26 @@ export interface components {
              *     }
              */
             theme: components["schemas"]["Theme"];
+            /**
+             * @default {
+             *       "enter": 0.8,
+             *       "transition": 0.6
+             *     }
+             */
+            motion: components["schemas"]["Motion"];
+            /**
+             * Captions
+             * @description Show the narration as word-by-word captions; set from the brief
+             * @default false
+             */
+            captions: boolean;
             intro?: components["schemas"]["Intro"] | null;
+            /**
+             * Intro At
+             * @description Scenes played before the intro screen: 0 opens with it, 1 is a cold open after the hook
+             * @default 0
+             */
+            intro_at: number;
             /** Scenes */
             scenes: (components["schemas"]["HookScene"] | components["schemas"]["FeatureCardScene"] | components["schemas"]["CtaScene"] | components["schemas"]["ImageScene"] | components["schemas"]["ScreenshotScene"] | components["schemas"]["ProblemScene"] | components["schemas"]["StatScene"] | components["schemas"]["BulletsScene"])[];
             credit?: components["schemas"]["Credit"] | null;
@@ -1433,6 +1575,17 @@ export interface components {
              */
             audio?: string | null;
             /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
+            /**
              * Start
              * @default 0
              */
@@ -1442,6 +1595,13 @@ export interface components {
              * @default 0
              */
             duration: number;
+            /**
+             * Layout
+             * @description Where the visual sits: centred above the text, or on the left or right of it
+             * @default center
+             * @enum {string}
+             */
+            layout: "center" | "split-left" | "split-right";
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
@@ -1504,6 +1664,17 @@ export interface components {
              * @description Narration WAV, relative to the run folder
              */
             audio?: string | null;
+            /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
             /**
              * Start
              * @default 0
@@ -1593,6 +1764,8 @@ export interface components {
              * @enum {string}
              */
             frame: "browser" | "phone" | "none";
+            /** @description Resolved from visual_request.region when the image is captured */
+            focus?: components["schemas"]["Focus"] | null;
         };
         /** VisualRequest */
         VisualRequest: {
@@ -1612,6 +1785,11 @@ export interface components {
              * @description Route from the screenshot catalog
              */
             route?: string | null;
+            /**
+             * Region
+             * @description Region id from that screenshot page's `regions` to close in on; product UI only
+             */
+            region?: string | null;
             /**
              * Prompt
              * @description Concept illustration only; never product UI
@@ -1656,6 +1834,24 @@ export interface components {
              * @default 1
              */
             speed: number;
+        };
+        /**
+         * Word
+         * @description One spoken word, timed from the recorded voice (never written by an agent).
+         */
+        Word: {
+            /**
+             * Text
+             * @description The word with any punctuation that follows it
+             */
+            text: string;
+            /**
+             * Start
+             * @description Seconds from the scene's start
+             */
+            start: number;
+            /** End */
+            end: number;
         };
         /** YamlBrief */
         YamlBrief: {

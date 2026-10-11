@@ -13,11 +13,19 @@ from strands.types.event_loop import Usage
 from reelhive.agents.plan import brief_block, research_block
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode, _no_usage
+from reelhive.nodes.timing_node import PACE, holds
 from reelhive.schemas.brief import Brief
-from reelhive.schemas.scene_spec import SceneSpec
+from reelhive.schemas.scene_spec import Intro, SceneSpec
 
 DURATION_TOLERANCE = 0.05
-WPM_RANGE = (130, 170)
+READ_WPS = 4.0  # on-screen words a viewer can take in per second while also listening
+
+
+def screen_words(scene: Any) -> int:
+    """Words a viewer has to read in a scene: headline, supporting text and bullets (labels and URLs are glanced)."""
+    text = scene.text
+    parts = [getattr(text, f, None) or "" for f in ("headline", "subline", "body")]
+    return sum(len(p.split()) for p in parts + list(getattr(text, "items", None) or []))
 
 
 @dataclass
@@ -37,7 +45,7 @@ def voice_wpm(spec: SceneSpec, narrated: dict[int, tuple[str, float]]) -> float:
     """How fast this voice actually speaks this script: spoken words per minute of speech."""
     words = sum(len(narrated[s.index][0].split()) for s in spec.scenes if s.index in narrated)
     seconds = sum(narrated[s.index][1] for s in spec.scenes if s.index in narrated)
-    return words / seconds * 60 if seconds > 0 else WPM_RANGE[0]
+    return words / seconds * 60 if seconds > 0 else PACE["balanced"][0]
 
 
 def hard_checks(
@@ -72,18 +80,20 @@ def hard_checks(
     words = sum(len(s.narration.split()) for s in spec.scenes)
     credit_seconds = spec.credit.duration if spec.credit else 0
     intro_seconds = spec.intro.duration if spec.intro else 0
-    minutes = (spec.duration - credit_seconds - intro_seconds) / 60
+    # Holds are silence by design (a frame left to settle), like the intro and the credit.
+    minutes = (spec.duration - credit_seconds - intro_seconds - sum(holds(spec).values())) / 60
     wpm = round(words / minutes) if minutes > 0 else 0
     # The floor catches scripts that leave long silences. A slow voice can't reach 130 wpm of video
     # however the script is cut, so the floor follows the voice's measured rate (a 125-wpm voice once
     # made duration and pace impossible to satisfy together).
-    low = min(WPM_RANGE[0], round(0.85 * voice_wpm(spec, narrated))) if narrated else WPM_RANGE[0]
+    floor, ceiling, _ = PACE[brief.pacing]
+    low = min(floor, round(0.85 * voice_wpm(spec, narrated))) if narrated else floor
     checks.append(
         Check(
             "pace",
             wpm,
-            f"{low}-{WPM_RANGE[1]} wpm",
-            low <= wpm <= WPM_RANGE[1],
+            f"{low}-{ceiling} wpm",
+            low <= wpm <= ceiling,
             f"{words} words over {minutes * 60:.0f}s is {wpm} words per minute",
         )
     )
@@ -94,6 +104,22 @@ def hard_checks(
     except ValidationError as e:
         text_ok, text_msg = False, f"on-screen text too long: {e.errors()[0]['loc']} {e.errors()[0]['msg']}"
     checks.append(Check("text_limits", text_ok, "within template limits", text_ok, text_msg))
+
+    settled = {s.index: s.duration - spec.motion.enter for s in spec.scenes}
+    crowded = [
+        f"scene {s.index}: {screen_words(s)} words in {max(settled[s.index], 0):.1f}s"
+        for s in spec.scenes
+        if s.duration and screen_words(s) > READ_WPS * max(settled[s.index], 0)
+    ]
+    checks.append(
+        Check(
+            "reading_time",
+            not crowded,
+            f"at most {READ_WPS:g} on-screen words per settled second",
+            not crowded,
+            f"too much to read before the scene ends, cut the on-screen words or split the idea: {crowded}",
+        )
+    )
 
     stale = [s.index for s in spec.scenes if narrated.get(s.index, ("",))[0] != s.narration]
     checks.append(Check("audio", not stale, "every scene voiced", not stale, f"scenes without matching audio: {stale}"))
@@ -163,14 +189,20 @@ def run_gates(ctx: RunContext, node: str) -> list[str]:
 
 def scenes_block(spec: SceneSpec, narrated: dict[int, tuple[str, float]]) -> str:
     lines = []
-    if spec.intro:
-        shown = spec.intro.model_dump_json(exclude_none=True, exclude={"duration"})
-        lines.append(f"Intro screen ({spec.intro.duration:.0f}s, no narration): {shown}")
-    for s in spec.scenes:
+    for s in spec.timeline():
+        if isinstance(s, Intro):
+            shown = s.model_dump_json(exclude_none=True, exclude={"duration"})
+            lines.append(f"Intro screen ({s.duration:.0f}s, no narration): {shown}")
+            continue
         speech = narrated.get(s.index, ("", 0.0))[1]
+        direction = f"layout={getattr(s, 'layout', 'center')}, hold={s.hold:g}s"
+        if s.visual:
+            direction += f", showing {s.visual.source}" + (
+                f" closed in on '{s.visual.focus.label}'" if s.visual.focus else ""
+            )
         lines.append(
             f"Scene {s.index} [{s.template}] {s.duration:.1f}s (speech {speech:.1f}s), "
-            f"covers={s.covers}\n  text: {s.text.model_dump_json(exclude_none=True)}\n"
+            f"covers={s.covers}, {direction}\n  text: {s.text.model_dump_json(exclude_none=True)}\n"
             f"  narration: {s.narration}\n  visual request: {s.visual_request.model_dump_json()}"
         )
     return "\n".join(lines)

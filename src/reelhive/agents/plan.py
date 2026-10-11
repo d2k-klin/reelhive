@@ -8,6 +8,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
 from reelhive.schemas.scene_spec import (
+    MAX_HOLD,
     BulletsScene,
     BulletsText,
     CtaScene,
@@ -48,6 +49,15 @@ SCENE_MODELS: dict[str, type[BaseModel]] = {
 }
 
 
+VISUAL_TEMPLATES = ("image-full", "screenshot-pan")
+COLD_OPEN = ("hook", "problem")  # a first scene of these plays before the intro screen
+
+
+def intro_position(scenes: list[Any]) -> int:
+    """Hook first, then the product: the intro screen follows an opening hook (a cold open)."""
+    return 1 if scenes and scenes[0].template in COLD_OPEN else 0
+
+
 class PlannedScene(BaseModel):
     template: Literal["hook", "feature-card", "cta", "image-full", "screenshot-pan", "problem", "stat", "bullets"]
     headline: str = Field(description="Main on-screen line. Limits: hook 48, feature-card 40, cta 60 chars")
@@ -61,6 +71,13 @@ class PlannedScene(BaseModel):
     narration: str | None = Field(None, description="Spoken text for this scene; set it only when asked to")
 
     visual_request: VisualRequest = VisualRequest()
+    layout: Literal["center", "split-left", "split-right"] = Field(
+        "center",
+        description="image-full/screenshot-pan only: the visual centred above the text, or left or right of it",
+    )
+    hold: float = Field(
+        0.0, ge=0, le=MAX_HOLD, description="Seconds the settled frame stays after the narration; 0 for none"
+    )
 
     items: list[str] | None = None
 
@@ -83,10 +100,30 @@ class PlannedScene(BaseModel):
         return self
 
     def to_scene(self, index: int, narration: str) -> SceneT:
+        direction: dict[str, Any] = {"hold": self.hold}
+        if self.template in VISUAL_TEMPLATES:
+            direction["layout"] = self.layout
         scene = SCENE_MODELS[self.template](
-            index=index, narration=narration, covers=self.covers, text=self.text(), visual_request=self.visual_request
+            index=index,
+            narration=narration,
+            covers=self.covers,
+            text=self.text(),
+            visual_request=self.visual_request,
+            **direction,
         )
         return scene  # type: ignore[return-value]
+
+
+def keep_direction(planned: PlannedScene, scene: SceneT, prior: SceneT | None) -> None:
+    """Direction the agent left out keeps its earlier value: a repair or regeneration changes only what it names."""
+    if prior is None:
+        return
+    if "visual_request" not in planned.model_fields_set:
+        scene.visual_request = prior.visual_request
+    if "hold" not in planned.model_fields_set:
+        scene.hold = prior.hold
+    if "layout" not in planned.model_fields_set and hasattr(prior, "layout") and hasattr(scene, "layout"):
+        scene.layout = prior.layout
 
 
 class ScenePlan(BaseModel):

@@ -5,14 +5,15 @@ from reelhive.nodes.base import FunctionNode
 
 
 def narrate(ctx: RunContext, index: int, text: str) -> float:
-    """Speak one scene's narration to audio/scene_XX.wav and record its real length."""
+    """Speak one scene's narration to audio/scene_XX.wav and record its real length and word timings."""
     scenes = ctx.spec.scenes if ctx.spec else ctx.brief.scenes or []
     scene = next((s for s in scenes if s.index == index), None)
     voice = (scene.voice_override if scene else None) or ctx.brief.voice
-    seconds = ctx.tts.synth(text, ctx.path("audio", f"scene_{index:02d}.wav"), voice.gender, voice.accent, voice.speed)
+    speech = ctx.tts.synth(text, ctx.path("audio", f"scene_{index:02d}.wav"), voice.gender, voice.accent, voice.speed)
     ctx.voiced[index] = voice.model_dump()
-    ctx.narrated[index] = (text, seconds)
-    return seconds
+    ctx.narrated[index] = (text, speech.seconds)
+    ctx.words[index] = speech.words
+    return speech.seconds
 
 
 class NarrateNode(FunctionNode):

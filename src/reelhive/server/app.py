@@ -173,7 +173,9 @@ def create_app(
         path = ws.root / ".previews" / (key + ".wav")
         path.parent.mkdir(exist_ok=True)
         if not path.exists():
-            KokoroTTS().synth("Bring your story to life with ReelHive.", path, voice.gender, voice.accent, voice.speed)
+            KokoroTTS().synth(
+                "Bring your story to life with ReelHive.", path, voice.gender, voice.accent, voice.speed
+            )  # only the audio is used
         return FileResponse(path, media_type="audio/wav")
 
     @app.get("/api/music")
