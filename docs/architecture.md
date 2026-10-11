@@ -2,6 +2,8 @@
 
 ReelHive turns a brief into a video in two Strands graphs, driven by one core service that the CLI (and, from M3, the local UI) sit on top of.
 
+![ReelHive architecture: entry points, core service, the draft and production graphs, run folder, rendering pipeline, quality gates and evals](architecture.png)
+
 ```
 CLI (cli.py) ─────────────────────────────┐
 UI (React) ─► server/ ─► core/workspace.py ┴─► core/service.py ─► draft graph ─(stop: medium, high)─► production graph ─(stop: high)─► finish          │
