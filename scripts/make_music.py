@@ -73,11 +73,15 @@ def track(bpm: int, chords: list[list[int]], drums: bool, bars: int = 32) -> np.
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     manifest_path = OUT / "manifest.json"
-    curated = [
-        entry
-        for entry in json.loads(manifest_path.read_text())["tracks"]
-        if entry["source"] != "scripts/make_music.py"
-    ] if manifest_path.exists() else []
+    curated = (
+        [
+            entry
+            for entry in json.loads(manifest_path.read_text())["tracks"]
+            if entry["source"] != "scripts/make_music.py"
+        ]
+        if manifest_path.exists()
+        else []
+    )
     manifest = []
     for mood, (bpm, chords, drums) in TRACKS.items():
         audio = track(bpm, chords, drums)

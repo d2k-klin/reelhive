@@ -87,9 +87,9 @@ def mix_args(
 def mix(run_dir: Path, spec: SceneSpec, narration: bool = True) -> Path:
     audio = run_dir / "audio"
     audio.mkdir(exist_ok=True)
-    narration = narration_track(run_dir, spec, audio / "narration.wav", narration)
+    voice = narration_track(run_dir, spec, audio / "narration.wav", narration)
     out = audio / "mix.wav"
-    _run(mix_args(narration, Path(spec.music) if spec.music else None, spec.duration, out, spec.music_volume))
+    _run(mix_args(voice, Path(spec.music) if spec.music else None, spec.duration, out, spec.music_volume))
     return out
 
 
