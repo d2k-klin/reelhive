@@ -1666,6 +1666,18 @@
             "minimum": 0.0,
             "title": "Music Volume",
             "default": 0.3
+          },
+          "narration": {
+            "type": "boolean",
+            "title": "Narration",
+            "description": "Mix the voice-over into the video",
+            "default": true
+          },
+          "music": {
+            "type": "boolean",
+            "title": "Music",
+            "description": "Add background music",
+            "default": true
           }
         },
         "additionalProperties": false,

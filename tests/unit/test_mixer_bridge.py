@@ -39,6 +39,8 @@ def test_narration_track_places_voice_at_scene_start(tmp_path):
     at = int((2.0 + 0.3) * sr)
     assert len(track) == 4 * sr
     assert track[at - 10] == 0 and track[at + 10] == pytest.approx(0.5, abs=1e-3)
+    silent, _ = sf.read(mixer.narration_track(tmp_path, spec, tmp_path / "off.wav", voice_on=False))
+    assert len(silent) == 4 * sr and not silent.any()  # narration off: same length, no voice
 
 
 def test_ffmpeg_errors_surface(tmp_path):

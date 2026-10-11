@@ -32,5 +32,5 @@ class RenderNode(FunctionNode):
         ctx.renderer(spec_path, silent, progress)
 
         ctx.events.emit("node.task", node=self.name, task="Mixing narration and music")
-        mix = mixer.mix(ctx.run_dir, ctx.spec)
+        mix = mixer.mix(ctx.run_dir, ctx.spec, narration=ctx.brief.narration)
         ctx.video = mixer.mux(silent, mix, ctx.path("video.mp4"))

@@ -32,4 +32,4 @@ export const briefSchema = z.object({ "level": z.enum(["low","medium","high"]).d
         message: "Invalid input: Should pass single schema. Passed " + passed,
       });
     }
-  })).min(1).max(12), z.null()]).default(null), "music_track": z.union([z.string(), z.null()]).default(null), "music_volume": z.number().gte(0).lte(1).default(0.3) }).strict();
+  })).min(1).max(12), z.null()]).default(null), "music_track": z.union([z.string(), z.null()]).default(null), "music_volume": z.number().gte(0).lte(1).default(0.3), "narration": z.boolean().describe("Mix the voice-over into the video").default(true), "music": z.boolean().describe("Add background music").default(true) }).strict();
