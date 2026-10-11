@@ -84,7 +84,7 @@ test('auto visuals inherit the website for capture, export and production, with 
   await expect.poll(()=>captures.length).toBe(1);
   expect(captures[0]).toMatchObject({url:'https://product.example',routes:['/dashboard']});
   await page.locator('section').filter({has:page.getByRole('heading',{name:'Your visuals',exact:true})})
-    .screenshot({path:'/private/tmp/reelhive-auto-visuals.png'});
+    .screenshot({path:test.info().outputPath('auto-visuals.png')});
 
   await page.getByRole('button',{name:'Use another app URL',exact:true}).click();
   await page.getByLabel('App URL',{exact:true}).fill('https://app.example');
@@ -197,7 +197,7 @@ for(const theme of ['light','dark']) for(const width of [390,1440]) {
       if(theme==='dark'&&width===1440){
         const anchor=path==='/'?page.getByLabel('Voice',{exact:true}):path==='/settings'?page.getByLabel('Credit placement',{exact:true}):path==='/runs'?page.getByLabel('Filter by status',{exact:true}):page.getByLabel('Headline',{exact:true});
         await anchor.scrollIntoViewIfNeeded();
-        await page.screenshot({path:`/private/tmp/reelhive-aligned-${path==='/'?'brief':path==='/settings'?'settings':path==='/runs'?'runs':'scenes'}.png`});
+        await page.screenshot({path:test.info().outputPath(`aligned-${path==='/'?'brief':path==='/settings'?'settings':path==='/runs'?'runs':'scenes'}.png`)});
       }
     }
     await page.getByRole('button',{name:'Help: Strong tier',exact:true}).click();
