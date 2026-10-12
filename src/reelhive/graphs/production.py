@@ -1,14 +1,15 @@
 """Production graph (plan §3.1).
 
     ┌─► scenes ─► visuals ─┐
-    ├─► narrate ┼─► timing ─► critic ─┬─(pass)──────────────────────► render ─► review ─┬─(pass)─► master
+    ├─► narrate ┼─► timing ─► critic ─┬─(pass)──────────────────────► render ─► review ─┬─(pass)─► sound ─► master
     └─► music ──┘                     └─(fail)─► fix ─► recheck ─(pass)─┘                │
                                                  ▲                                       │
                                                  └──────────(fail, rounds left)──────────┘
 
 `critic` judges the plan before anything is drawn; `review` judges the cut the renderer actually drew
 (measured layout, and optionally the frames themselves), and sends it back through `fix` when it falls
-short. Strands runs a node as soon as ANY incoming edge is satisfied, so:
+short. `sound` scores the approved cut on the moments the renderer reported, so it runs once, after the loop.
+Strands runs a node as soon as ANY incoming edge is satisfied, so:
   * the fan-in to `timing` uses a condition that waits for all three branches;
   * `render` and `fix` each have two conditional incoming edges;
   * the review loop is a real cycle: the graph resets revisited nodes, `review` reopens the repair path in
@@ -28,6 +29,7 @@ from reelhive.agents.fixer import FixerNode
 from reelhive.agents.music_director import MusicDirectorNode
 from reelhive.agents.reviewer import MAX_REVIEW_ROUNDS, ReviewNode
 from reelhive.agents.scene_planner import ScenePlannerNode
+from reelhive.agents.sound_designer import SoundDesignerNode
 from reelhive.nodes.master_node import MasterNode
 from reelhive.nodes.narrate_node import NarrateNode
 from reelhive.nodes.recheck_node import RecheckNode
@@ -36,7 +38,7 @@ from reelhive.nodes.timing_node import TimingNode
 from reelhive.nodes.visuals_node import VisualsNode
 
 BRANCHES = ("visuals", "narrate", "music")
-FINISHING = ("critic", "fix", "recheck", "render", "review", "master")
+FINISHING = ("critic", "fix", "recheck", "render", "review", "sound", "master")
 NODES = ("scenes", *BRANCHES, "timing", *FINISHING)
 REPAIR_LOOP = ("fix", "recheck", "render", "review")
 
@@ -81,7 +83,15 @@ def review_failed(state: GraphState, *, invocation_state: dict[str, Any], **_: A
 def build_production_graph(stage: str = "all") -> Graph:
     b = GraphBuilder()
     preparation = (ScenePlannerNode(), VisualsNode(), NarrateNode(), MusicDirectorNode(), TimingNode())
-    finishing = (CriticNode(), FixerNode(), RecheckNode(), RenderNode(), ReviewNode(), MasterNode())
+    finishing = (
+        CriticNode(),
+        FixerNode(),
+        RecheckNode(),
+        RenderNode(),
+        ReviewNode(),
+        SoundDesignerNode(),
+        MasterNode(),
+    )
     for node in preparation if stage == "prepare" else finishing if stage == "finish" else preparation + finishing:
         b.add_node(node, node.name)
     if stage != "finish":
@@ -99,7 +109,8 @@ def build_production_graph(stage: str = "all") -> Graph:
         b.add_edge("fix", "recheck")
         b.add_edge("recheck", "render", condition=recheck_passed)
         b.add_edge("render", "review")
-        b.add_edge("review", "master", condition=review_passed)
+        b.add_edge("review", "sound", condition=review_passed)
+        b.add_edge("sound", "master")
         b.add_edge("review", "fix", condition=review_failed)
         b.reset_on_revisit(True)
     b.set_max_node_executions(len(NODES) + MAX_REVIEW_ROUNDS * len(REPAIR_LOOP))

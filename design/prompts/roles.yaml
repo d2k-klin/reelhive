@@ -14,5 +14,7 @@ assets:
   - {name: role-recheck, prompt: "Mr.D as an inspector holding a checklist and a rubber stamp."}
   - {name: role-render, prompt: "Mr.D as a projectionist holding a film reel next to a small film projector."}
   - {name: role-review, prompt: "Mr.D as an art director studying a strip of film frames against a light box."}
+  - {name: role-sound, prompt: "Mr.D as a foley artist holding a small brass bell in one hand, the other hand raised for silence."}
   - {name: role-master, prompt: "Mr.D as a sound engineer at a small mixing desk wearing headphones."}
+  - {name: role-publish, prompt: "Mr.D as a press officer holding a stack of envelopes, each stamped with a small play icon."}
   - {name: role-suggest, prompt: "Mr.D as an editor holding sticky notes and a red pen (the M6 quick-actions agent)."}

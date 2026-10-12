@@ -1712,6 +1712,12 @@
             "title": "Music",
             "description": "Add background music",
             "default": true
+          },
+          "sound_effects": {
+            "type": "boolean",
+            "title": "Sound Effects",
+            "description": "Let the sound designer add a few sound effects where the picture earns them (often none)",
+            "default": true
           }
         },
         "additionalProperties": false,
@@ -1934,7 +1940,9 @@
                 "music",
                 "critic",
                 "fix",
-                "review"
+                "review",
+                "sound",
+                "publish"
               ]
             },
             "type": "object",
@@ -3348,6 +3356,14 @@
             ],
             "title": "Music",
             "description": "Music file chosen from the library"
+          },
+          "sound_effects": {
+            "items": {
+              "$ref": "#/components/schemas/SoundCue"
+            },
+            "type": "array",
+            "title": "Sound Effects",
+            "description": "Sound effects in the mix; often none. Set by the `sound` node"
           }
         },
         "type": "object",
@@ -3558,6 +3574,42 @@
           "beats"
         ],
         "title": "Script"
+      },
+      "SoundCue": {
+        "properties": {
+          "effect": {
+            "type": "string",
+            "title": "Effect",
+            "description": "Effect file from assets/sfx/manifest.json"
+          },
+          "moment": {
+            "type": "string",
+            "title": "Moment",
+            "description": "The moment it scores, e.g. 'scene 3 cut' (see render/layout.json)"
+          },
+          "at": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "At",
+            "description": "Seconds into the video the effect starts: its peak lands on the moment"
+          },
+          "gain_db": {
+            "type": "number",
+            "maximum": -6.0,
+            "minimum": -36.0,
+            "title": "Gain Db",
+            "description": "Level in the mix; music sits around -10 dB under the voice"
+          }
+        },
+        "type": "object",
+        "required": [
+          "effect",
+          "moment",
+          "at",
+          "gain_db"
+        ],
+        "title": "SoundCue",
+        "description": "One sound effect in the mix, placed by the `sound` node on a moment the renderer reported."
       },
       "StatScene": {
         "properties": {

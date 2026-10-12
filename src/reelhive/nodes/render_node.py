@@ -11,8 +11,8 @@ class RenderNode(FunctionNode):
 
     def run(self, ctx: RunContext) -> None:
         assert ctx.spec
-        # A new cut makes any earlier review and master of an older cut stale.
-        ctx.completed -= {"review", "master"}
+        # A new cut makes any earlier review, scoring and master of an older cut stale.
+        ctx.completed -= {"review", "sound", "master"}
         ctx.video = None
         spec_path = ctx.path("spec.json")
         spec_path.write_text(ctx.spec.model_dump_json(indent=2))

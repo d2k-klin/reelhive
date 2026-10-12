@@ -78,10 +78,10 @@ def load_prompt(name: str) -> str:
 class AgentNode(FunctionNode):
     """An LLM node: builds a prompt from the run, gets validated structured output, applies it."""
 
-    name: ClassVar[Literal["research", "script", "scenes", "music", "critic", "fix", "review"]]
+    name: ClassVar[Literal["research", "script", "scenes", "music", "critic", "fix", "review", "sound", "publish"]]
     tier: ClassVar[str] = "strong"  # "strong" | "fast"
     prompt: ClassVar[str]  # agents/prompts/<prompt>.md
-    output: ClassVar[type[BaseModel]]
+    output: type[BaseModel]  # usually a class attribute; a node may build it per run (see agents/sound_designer.py)
 
     def build_prompt(self, ctx: RunContext) -> str | list[ContentBlock]:
         """The user turn: text, or content blocks (text and images) for a vision node."""

@@ -767,6 +767,12 @@ export interface components {
              * @default true
              */
             music: boolean;
+            /**
+             * Sound Effects
+             * @description Let the sound designer add a few sound effects where the picture earns them (often none)
+             * @default true
+             */
+            sound_effects: boolean;
         };
         /** BulletsScene */
         BulletsScene: {
@@ -1542,6 +1548,11 @@ export interface components {
              * @description Music file chosen from the library
              */
             music?: string | null;
+            /**
+             * Sound Effects
+             * @description Sound effects in the mix; often none. Set by the `sound` node
+             */
+            sound_effects?: components["schemas"]["SoundCue"][];
         };
         /** ScreenshotScene */
         ScreenshotScene: {
@@ -1632,6 +1643,32 @@ export interface components {
             title: string;
             /** Beats */
             beats: components["schemas"]["Beat"][];
+        };
+        /**
+         * SoundCue
+         * @description One sound effect in the mix, placed by the `sound` node on a moment the renderer reported.
+         */
+        SoundCue: {
+            /**
+             * Effect
+             * @description Effect file from assets/sfx/manifest.json
+             */
+            effect: string;
+            /**
+             * Moment
+             * @description The moment it scores, e.g. 'scene 3 cut' (see render/layout.json)
+             */
+            moment: string;
+            /**
+             * At
+             * @description Seconds into the video the effect starts: its peak lands on the moment
+             */
+            at: number;
+            /**
+             * Gain Db
+             * @description Level in the mix; music sits around -10 dB under the voice
+             */
+            gain_db: number;
         };
         /** StatScene */
         StatScene: {

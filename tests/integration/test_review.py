@@ -57,7 +57,17 @@ def test_a_clipped_cut_is_repaired_and_rendered_again(config, brief):
     result, events, model = produce(config, brief, renderer)
 
     assert result.status == "done" and result.video
-    assert started(events)[-8:] == ["critic", "render", "review", "fix", "recheck", "render", "review", "master"]
+    assert started(events)[-9:] == [
+        "critic",
+        "render",
+        "review",
+        "fix",
+        "recheck",
+        "render",
+        "review",
+        "sound",
+        "master",
+    ]
     assert len(renders) == 2 and model.calls.count("ScenePlan") == 2  # planner, then the fixer
     gates = [e.data for e in events if e.type == "gate.result" and e.data["check"] == "safe_area"]
     assert [g["passed"] for g in gates] == [False, True]

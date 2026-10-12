@@ -237,6 +237,15 @@ class Credit(BaseModel):
     duration: float = Field(description="Seconds the end card takes; 0 for corner")
 
 
+class SoundCue(BaseModel):
+    """One sound effect in the mix, placed by the `sound` node on a moment the renderer reported."""
+
+    effect: str = Field(description="Effect file from assets/sfx/manifest.json")
+    moment: str = Field(description="The moment it scores, e.g. 'scene 3 cut' (see render/layout.json)")
+    at: float = Field(ge=0, description="Seconds into the video the effect starts: its peak lands on the moment")
+    gain_db: float = Field(ge=-36, le=-6, description="Level in the mix; music sits around -10 dB under the voice")
+
+
 class SceneSpec(BaseModel):
     version: int = 2
     format: str = "16:9"
@@ -255,6 +264,9 @@ class SceneSpec(BaseModel):
     credit: Credit | None = None
     music_volume: float = Field(0.3, ge=0, le=1)
     music: str | None = Field(None, description="Music file chosen from the library")
+    sound_effects: list[SoundCue] = Field(
+        default_factory=list, description="Sound effects in the mix; often none. Set by the `sound` node"
+    )
 
     @model_validator(mode="after")
     def intro_in_range(self) -> SceneSpec:

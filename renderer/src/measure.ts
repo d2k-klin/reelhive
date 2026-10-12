@@ -1,5 +1,6 @@
 // The layout report: once a shot has settled, measure where its elements really are in the frame and print one
-// line that src/reelhive/render/bridge.py collects into render/layout.json for the `review` node's gates.
+// line that src/reelhive/render/bridge.py collects into render/layout.json for the `review` node's gates. The line
+// also carries the shot's moments (when it cuts in, lands, closes in), which the `sound` node may score.
 // The shape is src/reelhive/schemas/layout.py (ShotLayout); Python validates every line it reads.
 import {Txt, type Layout, type View2D} from '@revideo/2d';
 
@@ -33,7 +34,19 @@ function box(part: Part & {role: Role}) {
   };
 }
 
-export function report(view: View2D, kind: 'intro' | 'scene', index: number, parts: Part[], zoom = 1): void {
+/** Something that happens on screen at a known time: the only places a sound effect may sit.
+ *  `cut`: the shot begins, `detail` is the transition (open, carry, settle, push); `arrive`: its entrance lands,
+ *  `detail` is the template (a stat's count lands here); `focus`: the camera lands on the region named in `detail`. */
+export interface Moment {
+  kind: 'cut' | 'arrive' | 'focus';
+  at: number;
+  detail: string;
+}
+
+export function report(
+  view: View2D, kind: 'intro' | 'scene', index: number, parts: Part[], zoom = 1, moments: Moment[] = [],
+): void {
   const boxes = parts.filter((p): p is Part & {role: Role} => p.role !== null).map(box);
-  console.log(LAYOUT_MARKER + JSON.stringify({kind, index, width: view.width(), height: view.height(), boxes, zoom}));
+  const timed = moments.map(m => ({...m, at: Math.round(m.at * 1000) / 1000}));
+  console.log(LAYOUT_MARKER + JSON.stringify({kind, index, width: view.width(), height: view.height(), boxes, zoom, moments: timed}));
 }

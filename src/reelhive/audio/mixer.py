@@ -15,6 +15,7 @@ from reelhive.nodes.timing_node import LEAD
 from reelhive.schemas.scene_spec import CREDIT_TEXT, SceneSpec
 
 SAMPLE_RATE = 24000
+EFFECTS_RATE = 48000  # assets/sfx is 48 kHz: clicks and air need the top octave the voice doesn't
 MUSIC_VOLUME = 0.3  # under the voice, before ducking
 FADE_OUT = 2.0
 
@@ -55,42 +56,71 @@ def narration_track(run_dir: Path, spec: SceneSpec, out: Path, voice_on: bool = 
     return out
 
 
+def effects_track(spec: SceneSpec, out: Path, sfx_dir: Path | None = None) -> Path:
+    """Place each sound effect at its `at` and level on one silent 48 kHz timeline (one file, like the voice)."""
+    from reelhive.audio.sfx_library import SFX_DIR
+
+    folder = sfx_dir or SFX_DIR
+    track = np.zeros(int(spec.duration * EFFECTS_RATE) + EFFECTS_RATE, dtype=np.float32)
+    for cue in spec.sound_effects:
+        effect, rate = sf.read(folder / cue.effect, dtype="float32")
+        if rate != EFFECTS_RATE:
+            raise ValueError(f"{cue.effect}: expected {EFFECTS_RATE} Hz, got {rate}")
+        if effect.ndim > 1:
+            effect = effect.mean(axis=1)
+        at = int(cue.at * EFFECTS_RATE)
+        end = min(len(track), at + len(effect))
+        track[at:end] += effect[: end - at] * 10 ** (cue.gain_db / 20)
+    sf.write(out, track[: int(spec.duration * EFFECTS_RATE)], EFFECTS_RATE)
+    return out
+
+
 def mix_args(
-    narration: Path, music: Path | None, duration: float, out: Path, volume: float = MUSIC_VOLUME
+    narration: Path,
+    music: Path | None,
+    duration: float,
+    out: Path,
+    volume: float = MUSIC_VOLUME,
+    effects: Path | None = None,
 ) -> list[str]:
-    if music is None:
+    """One ffmpeg call: the music (looped, faded, ducked under the voice), the voice, and the effects, summed."""
+    if music is None and effects is None:
         return ["-i", str(narration), "-ac", "2", "-ar", "48000", "-t", f"{duration:.3f}", str(out)]
-    fade_at = max(0.0, duration - FADE_OUT)
-    graph = (
-        f"[0:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={volume},"
-        f"afade=t=in:d=1,afade=t=out:st={fade_at:.3f}:d={FADE_OUT}[music];"
-        "[1:a]aformat=sample_rates=48000:channel_layouts=stereo,asplit=2[voice][key];"
-        "[music][key]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=400[ducked];"
-        "[ducked][voice]amix=inputs=2:duration=first:normalize=0[out]"
-    )
-    return [
-        "-stream_loop",
-        "-1",
-        "-i",
-        str(music),
-        "-i",
-        str(narration),
-        "-filter_complex",
-        graph,
-        "-map",
-        "[out]",
-        "-t",
-        f"{duration:.3f}",
-        str(out),
-    ]
+    stereo = "aformat=sample_rates=48000:channel_layouts=stereo"
+    inputs: list[str] = []
+    chains: list[str] = []
+    mixed: list[str] = []
+    if music is not None:
+        inputs += ["-stream_loop", "-1", "-i", str(music)]
+    inputs += ["-i", str(narration)]
+    voice = 1 if music is not None else 0  # input index of the narration
+    if music is not None:
+        fade_at = max(0.0, duration - FADE_OUT)
+        chains += [
+            f"[0:a]{stereo},volume={volume},afade=t=in:d=1,afade=t=out:st={fade_at:.3f}:d={FADE_OUT}[music]",
+            f"[{voice}:a]{stereo},asplit=2[voice][key]",
+            "[music][key]sidechaincompress=threshold=0.03:ratio=8:attack=20:release=400[ducked]",
+        ]
+        mixed += ["[ducked]", "[voice]"]
+    else:
+        chains.append(f"[{voice}:a]{stereo}[voice]")
+        mixed.append("[voice]")
+    if effects is not None:
+        inputs += ["-i", str(effects)]
+        chains.append(f"[{voice + 1}:a]{stereo}[effects]")
+        mixed.append("[effects]")
+    graph = ";".join([*chains, f"{''.join(mixed)}amix=inputs={len(mixed)}:duration=first:normalize=0[out]"])
+    return [*inputs, "-filter_complex", graph, "-map", "[out]", "-t", f"{duration:.3f}", str(out)]
 
 
 def mix(run_dir: Path, spec: SceneSpec, narration: bool = True) -> Path:
     audio = run_dir / "audio"
     audio.mkdir(exist_ok=True)
     voice = narration_track(run_dir, spec, audio / "narration.wav", narration)
+    effects = effects_track(spec, audio / "effects.wav") if spec.sound_effects else None
     out = audio / "mix.wav"
-    _run(mix_args(voice, Path(spec.music) if spec.music else None, spec.duration, out, spec.music_volume))
+    music = Path(spec.music) if spec.music else None
+    _run(mix_args(voice, music, spec.duration, out, spec.music_volume, effects))
     return out
 
 

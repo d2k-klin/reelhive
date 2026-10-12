@@ -1197,6 +1197,42 @@
       "title": "ScreenshotScene",
       "type": "object"
     },
+    "SoundCue": {
+      "description": "One sound effect in the mix, placed by the `sound` node on a moment the renderer reported.",
+      "properties": {
+        "effect": {
+          "description": "Effect file from assets/sfx/manifest.json",
+          "title": "Effect",
+          "type": "string"
+        },
+        "moment": {
+          "description": "The moment it scores, e.g. 'scene 3 cut' (see render/layout.json)",
+          "title": "Moment",
+          "type": "string"
+        },
+        "at": {
+          "description": "Seconds into the video the effect starts: its peak lands on the moment",
+          "minimum": 0,
+          "title": "At",
+          "type": "number"
+        },
+        "gain_db": {
+          "description": "Level in the mix; music sits around -10 dB under the voice",
+          "maximum": -6,
+          "minimum": -36,
+          "title": "Gain Db",
+          "type": "number"
+        }
+      },
+      "required": [
+        "effect",
+        "moment",
+        "at",
+        "gain_db"
+      ],
+      "title": "SoundCue",
+      "type": "object"
+    },
     "StatScene": {
       "properties": {
         "index": {
@@ -1783,6 +1819,14 @@
       "default": null,
       "description": "Music file chosen from the library",
       "title": "Music"
+    },
+    "sound_effects": {
+      "description": "Sound effects in the mix; often none. Set by the `sound` node",
+      "items": {
+        "$ref": "#/$defs/SoundCue"
+      },
+      "title": "Sound Effects",
+      "type": "array"
     }
   },
   "required": [

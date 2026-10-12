@@ -3835,6 +3835,12 @@
       "description": "Add background music",
       "title": "Music",
       "type": "boolean"
+    },
+    "sound_effects": {
+      "default": true,
+      "description": "Let the sound designer add a few sound effects where the picture earns them (often none)",
+      "title": "Sound Effects",
+      "type": "boolean"
     }
   },
   "required": [

@@ -90,5 +90,6 @@ export const stages: Record<string, {label: string; doing: string; next: string}
   recheck: {label: 'Final checks', doing: 'The revised scenes are being checked before video creation.', next: 'If they pass, the final video can be created.'},
   render: {label: 'Video creation', doing: 'Your scenes are being drawn frame by frame, and their layout is measured.', next: 'Next, the cut is reviewed as you would preview it.'},
   review: {label: 'Cut review', doing: 'The finished frames are being checked: nothing clipped, overlapping, too small or blurry, and (if you opted in) an art director looks at each shot.', next: 'If something falls short, the repair agent fixes those scenes and the video is drawn again.'},
-  master: {label: 'Sound mix', doing: 'Narration and music are being mixed onto the reviewed video.', next: 'Next, watch the finished video and download your MP4.'},
+  sound: {label: 'Sound design', doing: 'The sound designer is deciding whether a few moments deserve a sound effect. Often none do.', next: 'Next, the sound mix adds narration, music and any effects.'},
+  master: {label: 'Sound mix', doing: 'Narration, music and any sound effects are being mixed onto the reviewed video, with subtitles.', next: 'Next, watch the finished video and download your MP4 and subtitles.'},
 };

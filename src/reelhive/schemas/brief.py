@@ -128,6 +128,10 @@ class Brief(Options):
     )
     narration: bool = Field(True, description="Mix the voice-over into the video")
     music: bool = Field(True, description="Add background music")
+    sound_effects: bool = Field(
+        True,
+        description="Let the sound designer add a few sound effects where the picture earns them (often none)",
+    )
 
     @field_validator("level", mode="before")
     @classmethod

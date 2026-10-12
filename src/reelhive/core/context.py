@@ -113,7 +113,7 @@ class RunContext:
         # A node counts as done only if what it made is still on disk.
         silent = self.path("render", "silent.mp4")
         if "render" in self.completed and not (silent.is_file() and silent.with_name("layout.json").is_file()):
-            self.completed -= {"render", "review", "master"}
+            self.completed -= {"render", "review", "sound", "master"}
         video = self.path(data["video"]) if data.get("video") else self.path("video.mp4")
         if "master" in self.completed and video.is_file() and video.stat().st_size:
             self.video = video

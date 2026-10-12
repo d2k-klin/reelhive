@@ -20,6 +20,14 @@ export interface Device {
   zoom: number;
   /** The camera move while the shot holds; takes exactly `seconds`. */
   hold(seconds: number): ThreadGenerator;
+  /** Seconds into a hold of `seconds` at which the camera lands on the focus region; null without one. */
+  landing(seconds: number): number | null;
+}
+
+/** The close-up's timing: hold a beat on the whole screen, then travel to the region. */
+function closeUp(seconds: number) {
+  const establish = Math.min(0.9, seconds * 0.3), travel = Math.min(1.4, seconds * 0.45);
+  return {establish, travel};
 }
 
 export function* device(stage: Stage, visual: Visual, maxWidth: number, maxHeight: number): Generator<any, Device> {
@@ -88,7 +96,7 @@ export function* device(stage: Stage, visual: Visual, maxWidth: number, maxHeigh
     });
     image.add(ring);
     move = function* (seconds) {
-      const establish = Math.min(0.9, seconds * 0.3), travel = Math.min(1.4, seconds * 0.45);
+      const {establish, travel} = closeUp(seconds);
       yield* exactly(seconds, delay(establish, all(
         image.scale(closest, travel, glide),
         image.position(target, travel, glide),
@@ -107,5 +115,10 @@ export function* device(stage: Stage, visual: Visual, maxWidth: number, maxHeigh
     part: {node: frame, role: 'visual'},
     zoom: base * closest,
     hold: seconds => (seconds > 0 ? move(seconds) : waitFor(0)),
+    landing: seconds => {
+      if (!focus || seconds <= 0) return null;
+      const {establish, travel} = closeUp(seconds);
+      return establish + travel;
+    },
   };
 }

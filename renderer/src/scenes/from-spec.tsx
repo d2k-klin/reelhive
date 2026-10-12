@@ -1,6 +1,7 @@
 /** @jsxImportSource @revideo/2d/lib */
 // Walks the spec as one continuous piece. For every shot, in playing order (the intro sits at `intro_at`):
 //   transition from the previous shot ─ entrance (staggered, exactly motion.enter) ─ layout report ─ hold
+// The layout report also records when each shot cuts in, lands and closes in, read off the clock that drives it.
 // so each shot lasts exactly its duration and the voice, timed in Python, lands on its scene.
 //
 // Transitions are one grammar for the whole video, chosen from what meets at each cut:
@@ -8,10 +9,10 @@
 //   settle  into the intro or the closing: the old shot eases forward and away, the new one settles into place
 //   push    anything else: the old shot drifts out, the new one comes in from the same direction
 import {makeScene2D, Img, Node, type View2D} from '@revideo/2d';
-import {all, delay, easeOutCubic, useScene, type ThreadGenerator, waitFor} from '@revideo/core';
+import {all, delay, easeOutCubic, useScene, useThread, type ThreadGenerator, waitFor} from '@revideo/core';
 import {backdrop} from '../components/backdrop';
 import {captionBand, captionTrack} from '../components/captions';
-import {report} from '../measure';
+import {type Moment, report} from '../measure';
 import {easeInCubic, glide, spring} from '../motion';
 import {checkIntro, checkScene, type Intro, type SceneSpec, type Spec} from '../spec';
 import {type Stage, stageOf} from '../stage';
@@ -117,14 +118,24 @@ export default makeScene2D('from-spec', function* (view: View2D) {
     const carried = !!(prev?.device && shot.device);
     const settle = item.kind === 'intro' || position === items.length - 1;
     const lead = prev ? cut * CLEAR * 0.8 : 0;
+    const startsAt = useThread().time();
+    const moments: Moment[] = [
+      {kind: 'cut', at: startsAt, detail: !prev ? 'open' : carried ? 'carry' : settle ? 'settle' : 'push'},
+    ];
     yield* all(
       transition(stage, prev, shot, cut, settle),
       delay(lead, shot.enter(enter - lead, carried ? shot.device!.frame : undefined)),
       corner ? corner.opacity(shot.featuresLogo ? 0 : 0.75, cut) : waitFor(0),
     );
     const measured = band ? [...shot.parts, {node: band, role: 'caption' as const}] : shot.parts;
-    report(view, item.kind, item.kind === 'intro' ? 0 : item.scene.index, measured, shot.device?.zoom ?? 1);
-    yield* shot.hold(Math.max(0, duration - enter));
+    const settledAt = useThread().time(), holding = Math.max(0, duration - enter);
+    moments.push({kind: 'arrive', at: settledAt, detail: item.kind === 'intro' ? 'intro' : item.scene.template});
+    const landing = shot.device?.landing(holding);
+    if (landing != null && item.kind === 'scene') {
+      moments.push({kind: 'focus', at: settledAt + landing, detail: item.scene.visual?.focus?.label || 'region'});
+    }
+    report(view, item.kind, item.kind === 'intro' ? 0 : item.scene.index, measured, shot.device?.zoom ?? 1, moments);
+    yield* shot.hold(holding);
     prev = shot;
   }
   // The closing frame stays; the end credit appears beneath it.

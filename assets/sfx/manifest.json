@@ -1,0 +1,77 @@
+{
+  "effects": [
+    {
+      "file": "whoosh-soft.wav",
+      "name": "whoosh-soft",
+      "description": "Soft whoosh of air, for a shot pushing in from the side",
+      "suits": [
+        "cut"
+      ],
+      "duration": 0.7,
+      "peak": 0.377,
+      "source": "scripts/make_sfx.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "swish-short.wav",
+      "name": "swish-short",
+      "description": "Short, bright swish, for the device gliding into its next place",
+      "suits": [
+        "cut"
+      ],
+      "duration": 0.4,
+      "peak": 0.198,
+      "source": "scripts/make_sfx.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "click-ui.wav",
+      "name": "click-ui",
+      "description": "Quiet interface click, for the camera landing on a button or control",
+      "suits": [
+        "focus"
+      ],
+      "duration": 0.12,
+      "peak": 0.005,
+      "source": "scripts/make_sfx.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "pop-soft.wav",
+      "name": "pop-soft",
+      "description": "Rounded pop, for a number or point landing on screen",
+      "suits": [
+        "arrive"
+      ],
+      "duration": 0.25,
+      "peak": 0.006,
+      "source": "scripts/make_sfx.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "chime-bright.wav",
+      "name": "chime-bright",
+      "description": "Two-note bell, for the closing call to action or the logo arriving",
+      "suits": [
+        "arrive"
+      ],
+      "duration": 1.8,
+      "peak": 0.008,
+      "source": "scripts/make_sfx.py",
+      "license": "CC0-1.0"
+    },
+    {
+      "file": "impact-low.wav",
+      "name": "impact-low",
+      "description": "Low, soft thump, for settling into the intro or the closing frame",
+      "suits": [
+        "cut",
+        "arrive"
+      ],
+      "duration": 0.9,
+      "peak": 0.011,
+      "source": "scripts/make_sfx.py",
+      "license": "CC0-1.0"
+    }
+  ]
+}

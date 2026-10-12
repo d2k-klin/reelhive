@@ -3,7 +3,7 @@
 The renderer measures every shot once its entrance has settled and prints one `REELHIVE_LAYOUT` line per
 shot; `render/bridge.py` collects them into `render/layout.json`. The `review` node checks it against the
 layout gates, so clipped, overlapping, tiny or blurry elements are caught from real geometry, not guessed
-from character counts.
+from character counts. Each line also carries the shot's moments, which the `sound` node scores.
 """
 
 from __future__ import annotations
@@ -27,6 +27,19 @@ class Box(BaseModel):
     text: str | None = None
 
 
+class Moment(BaseModel):
+    """Something that happens on screen at a known time, read off the renderer's own clock. These are the only
+    places the `sound` node may put an effect, so a sound can never drift off the picture."""
+
+    kind: Literal["cut", "arrive", "focus"] = Field(
+        description="cut: the shot begins; arrive: its entrance lands; focus: the camera lands on a region"
+    )
+    at: float = Field(ge=0, description="Seconds from the start of the video")
+    detail: str = Field(
+        "", description="cut: the transition (open, carry, settle, push); arrive: the template; focus: the region"
+    )
+
+
 class ShotLayout(BaseModel):
     kind: Literal["intro", "scene"]
     index: int = Field(ge=0, description="Scene index; 0 for the intro screen")
@@ -36,6 +49,7 @@ class ShotLayout(BaseModel):
     zoom: float = Field(
         1.0, ge=0, description="Visual only: image pixels drawn per source pixel at the closest framing (>1 upscales)"
     )
+    moments: list[Moment] = Field(default_factory=list)
 
 
 class LayoutReport(BaseModel):

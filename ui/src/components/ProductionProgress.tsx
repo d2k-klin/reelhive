@@ -36,7 +36,7 @@ const phases = [
   {title:'Create', note:'Scenes, voice & music in parallel', nodes:['scenes','visuals','narrate','music']},
   {title:'Timing', note:'Fit the narration', nodes:['timing']},
   {title:'Review', note:'Repair only if needed', nodes:['critic','fix','recheck']},
-  {title:'Video', note:'Draw, review and mix the cut', nodes:['render','review','master']},
+  {title:'Video', note:'Draw, review, score and mix the cut', nodes:['render','review','sound','master']},
 ];
 const statusText: Record<string,string> = {waiting:'Waiting', running:'In progress', done:'Complete', failed:'Needs attention', skipped:'Not needed'};
 
