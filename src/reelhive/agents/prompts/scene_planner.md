@@ -30,7 +30,8 @@ Visuals:
 - For every scene set visual_request.kind to product_ui, concept or none.
 - Product UI: when the catalog has screenshots of the product, show the product: pick the page whose title and headings best match the scene and use its exact route. You can also choose a provided image by its exact filename. Never request generation for product UI.
 - Document pages (catalog entries with `document` and `page`) are slides or pages from the user's PDF or deck; the caption is the page's text. Pick one by its exact `image` filename when that page shows what the scene says, such as a chart, diagram or product slide. Skip pages that are mostly text.
-- Concepts: prefer a fitting provided image; otherwise write an illustration prompt when generation is enabled.
+- Clips (catalog entries with `clip`, `duration`, `width` and `height`) are the user's own videos: a screen recording or footage of the product in use. Motion shows what a still can't (a workflow, an interaction, a result appearing), so prefer a clip whose caption matches the scene for `product_ui` or `concept`; set `visual_request.clip` to its exact filename and use the `image-full` template. It plays muted from its first frame, so the narration describes what it shows. A scene runs about as long as its narration (plus `hold`): when a clip is much longer than that, viewers see only its start, so choose it for a scene whose narration fits its length, or give that scene a `hold` so the action finishes. Use each clip at most once, and never for a scene its caption doesn't fit.
+- Concepts: prefer a fitting provided image or clip; otherwise write an illustration prompt when generation is enabled.
 - Never invent a file name or route. When no source fits, use a text template.
 - Keep images consistent with the brief's brand and style.
 

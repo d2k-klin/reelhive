@@ -123,18 +123,14 @@ def hard_checks(
 
     stale = [s.index for s in spec.scenes if narrated.get(s.index, ("",))[0] != s.narration]
     checks.append(Check("audio", not stale, "every scene voiced", not stale, f"scenes without matching audio: {stale}"))
-    from reelhive.visuals.resolver import image_ok, local_asset
+    from reelhive.visuals.resolver import visual_ok
 
     bad_images, generated_ui = [], []
     for scene in spec.scenes:
         if scene.visual_request.kind == "product_ui" and scene.visual and scene.visual.source == "generated":
             generated_ui.append(scene.index)
         if scene.visual:
-            try:
-                valid = run_dir is not None and image_ok(local_asset(run_dir, scene.visual.file), brief.format)
-            except ValueError:
-                valid = False
-            if not valid:
+            if run_dir is None or not visual_ok(run_dir, scene.visual, brief.format):
                 bad_images.append(scene.index)
         elif scene.template in ("image-full", "screenshot-pan"):
             bad_images.append(scene.index)
@@ -144,7 +140,7 @@ def hard_checks(
             not bad_images,
             "files exist and meet minimum resolution",
             not bad_images,
-            f"missing, invalid or low-resolution images: {bad_images}",
+            f"missing, invalid or low-resolution images or clips: {bad_images}",
         )
     )
     checks.append(
@@ -197,7 +193,8 @@ def scenes_block(spec: SceneSpec, narrated: dict[int, tuple[str, float]]) -> str
         speech = narrated.get(s.index, ("", 0.0))[1]
         direction = f"layout={getattr(s, 'layout', 'center')}, hold={s.hold:g}s"
         if s.visual:
-            direction += f", showing {s.visual.source}" + (
+            clip = f" clip ({s.visual.duration:g}s, last frame holds after)" if s.visual.media == "video" else ""
+            direction += f", showing {s.visual.source}{clip}" + (
                 f" closed in on '{s.visual.focus.label}'" if s.visual.focus else ""
             )
         lines.append(

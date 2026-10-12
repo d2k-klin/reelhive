@@ -29,11 +29,22 @@ from reelhive.core.service import Service
 from reelhive.schemas.brief import Brief, Images, Screenshots
 from reelhive.schemas.scene_spec import SceneSpec
 from reelhive.schemas.script import Script
+from reelhive.visuals import clips
 
 BUSY = {"drafting", "producing", "queued", "regenerating", "capturing"}
 # The first bytes of each accepted document type: PDF, then Office/OpenDocument zip, then legacy Office.
 DOCUMENT_MAGIC = {".pdf": b"%PDF-", ".pptx": b"PK\x03\x04", ".odp": b"PK\x03\x04", ".ppt": b"\xd0\xcf\x11\xe0"}
-DOWNLOADS = {"video.mp4", "brief.yaml", "script.json", "spec.json", "run.log.jsonl", "script.approved.json"}
+MEDIA_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".wav"}
+DOWNLOADS = {
+    "video.mp4",
+    "video.srt",
+    "video.vtt",
+    "brief.yaml",
+    "script.json",
+    "spec.json",
+    "run.log.jsonl",
+    "script.approved.json",
+}
 
 
 class RunView(BaseModel):
@@ -323,7 +334,7 @@ class Workspace:
         if (
             not path.is_relative_to(root)
             or not path.is_file()
-            or not (name in DOWNLOADS or media and path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".wav"})
+            or not (name in DOWNLOADS or media and path.suffix.lower() in {*MEDIA_SUFFIXES, *clips.SUFFIXES})
         ):
             raise FileNotFoundError("artifact not available")
         return path
@@ -347,6 +358,8 @@ class Workspace:
         Service.require_status(path, {"editing", "awaiting_script", "awaiting_scenes"})
         if Path(filename).suffix.lower() in DOCUMENT_MAGIC:
             return self.upload_document(path, data, filename)
+        if Path(filename).suffix.lower() in clips.SUFFIXES:
+            return self.upload_clip(path, data, filename, caption)
         if len(data) > 10 * 1024 * 1024:
             raise ValueError("image exceeds the 10 MB limit")
         if Path(filename).suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}:
@@ -361,13 +374,41 @@ class Workspace:
         if logo:
             brief.brand.logo = str(output)
         else:
-            brief.visuals.images = Images(dir=str(output.parent))
-            captions_path = output.parent / "captions.yaml"
-            captions = yaml.safe_load(captions_path.read_text()) if captions_path.exists() else {}
-            captions[output.name] = caption or Path(filename).stem
-            captions_path.write_text(yaml.safe_dump(captions))
+            self._add_provided(brief, output, caption or Path(filename).stem)
         (path / "brief.yaml").write_text(yaml.safe_dump(brief.model_dump(mode="json"), sort_keys=False))
         return {"name": output.name, "file": str(output), "caption": caption, "brief": brief.model_dump(mode="json")}
+
+    @staticmethod
+    def _add_provided(brief: Brief, file: Path, caption: str) -> None:
+        """Images and clips share the uploads folder, which becomes the brief's provided-media folder."""
+        brief.visuals.images = Images(dir=str(file.parent))
+        captions_path = file.parent / "captions.yaml"
+        captions = yaml.safe_load(captions_path.read_text()) if captions_path.exists() else {}
+        captions[file.name] = caption
+        captions_path.write_text(yaml.safe_dump(captions))
+
+    def upload_clip(self, path: Path, data: bytes, filename: str, caption: str) -> dict:
+        """A clip is kept as uploaded (normalized later, per scene) once ffmpeg confirms it plays."""
+        if len(data) > clips.MAX_BYTES:
+            raise ValueError(f"clip exceeds the {clips.MAX_BYTES // (1024 * 1024)} MB limit")
+        output = path / "uploads" / f"{uuid.uuid4().hex}{Path(filename).suffix.lower()}"
+        output.parent.mkdir(exist_ok=True)
+        output.write_bytes(data)
+        try:
+            info = clips.inspect(output)
+        except clips.ClipError:
+            output.unlink()
+            raise
+        brief = Brief.model_validate(yaml.safe_load((path / "brief.yaml").read_text()))
+        self._add_provided(brief, output, caption or Path(filename).stem)
+        (path / "brief.yaml").write_text(yaml.safe_dump(brief.model_dump(mode="json"), sort_keys=False))
+        return {
+            "name": output.name,
+            "file": str(output),
+            "caption": caption,
+            "brief": brief.model_dump(mode="json"),
+            **info,
+        }
 
     def upload_document(self, path: Path, data: bytes, filename: str) -> dict:
         suffix = Path(filename).suffix.lower()

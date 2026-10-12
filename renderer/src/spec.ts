@@ -15,8 +15,14 @@ export interface Focus {
 export interface Visual {
   source: 'provided' | 'screenshot' | 'generated';
   file: string;
+  /** `video`: the user's own clip, played muted from its first frame; its last frame holds after it ends. */
+  media?: 'image' | 'video';
   frame: 'browser' | 'phone' | 'none';
   focus?: Focus | null;
+  /** Video only: seconds of clip, and its pixel size (measured in Python when the clip is normalized). */
+  duration?: number | null;
+  width?: number | null;
+  height?: number | null;
 }
 
 export type ShotLayout = 'center' | 'split-left' | 'split-right';

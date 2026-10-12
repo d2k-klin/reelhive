@@ -40,6 +40,7 @@ def test_pass_path_renders_a_video(config, brief):
     assert result.status == "done"
     info = probe(result.video)
     assert info["has_audio"] and info["comment"] == CREDIT_TEXT
+    assert info["has_subtitles"] and (result.run_dir / "video.srt").read_text().startswith("1\n00:00:")
     assert info["duration"] == pytest.approx(brief.duration, rel=0.05)
     assert sorted(model.calls) == ["MusicChoice", "ScenePlan", "Script", "Verdict"]
     assert len(tts.calls) == 6

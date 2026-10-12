@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import soundfile as sf
@@ -93,17 +94,17 @@ def mix(run_dir: Path, spec: SceneSpec, narration: bool = True) -> Path:
     return out
 
 
-def mux_args(video: Path, audio: Path, out: Path) -> list[str]:
+def mux_args(video: Path, audio: Path, out: Path, subtitles: Path | None = None) -> list[str]:
+    """The reviewed cut, the mix and, when given, a soft (selectable) English subtitle track."""
     # The metadata tag is always written, even with the visible credit off (plan §3.7).
+    inputs = ["-i", str(video), "-i", str(audio)]
+    maps = ["-map", "0:v", "-map", "1:a"]
+    if subtitles:
+        inputs += ["-i", str(subtitles)]
+        maps += ["-map", "2:s", "-c:s", "mov_text", "-metadata:s:s:0", "language=eng"]
     return [
-        "-i",
-        str(video),
-        "-i",
-        str(audio),
-        "-map",
-        "0:v",
-        "-map",
-        "1:a",
+        *inputs,
+        *maps,
         "-c:v",
         "copy",
         "-c:a",
@@ -119,22 +120,27 @@ def mux_args(video: Path, audio: Path, out: Path) -> list[str]:
     ]
 
 
-def mux(video: Path, audio: Path, out: Path) -> Path:
-    _run(mux_args(video, audio, out))
+def mux(video: Path, audio: Path, out: Path, subtitles: Path | None = None) -> Path:
+    _run(mux_args(video, audio, out, subtitles))
     return out
 
 
-def probe(path: Path) -> dict[str, object]:
-    """Duration, streams, size and comment tag, parsed from `ffmpeg -i` (no ffprobe needed)."""
+def probe(path: Path) -> dict[str, Any]:
+    """Duration, streams, display size (rotation applied) and comment tag, parsed from `ffmpeg -i` (no ffprobe)."""
     info = subprocess.run([ffmpeg_exe(), "-hide_banner", "-i", str(path)], capture_output=True, text=True).stderr
     d = re.search(r"Duration: (\d+):(\d+):([\d.]+)", info)
     size = re.search(r"Video: .*?, (\d{2,5})x(\d{2,5})", info)
     comment = re.search(r"comment\s*:\s*(.+)", info)
+    rotation = re.search(r"rotation of (-?[\d.]+) degrees", info)
+    width, height = (int(size[1]), int(size[2])) if size else (0, 0)
+    if rotation and round(abs(float(rotation[1]))) % 180 == 90:  # a phone held upright: the size it is shown at
+        width, height = height, width
     return {
         "duration": int(d[1]) * 3600 + int(d[2]) * 60 + float(d[3]) if d else 0.0,
         "has_audio": "Audio:" in info,
         "has_video": "Video:" in info,
-        "width": int(size[1]) if size else 0,
-        "height": int(size[2]) if size else 0,
+        "has_subtitles": "Subtitle:" in info,
+        "width": width,
+        "height": height,
         "comment": comment[1].strip() if comment else None,
     }

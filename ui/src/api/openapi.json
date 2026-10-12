@@ -3820,6 +3820,15 @@
             "type": "string",
             "title": "File"
           },
+          "media": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video"
+            ],
+            "title": "Media",
+            "default": "image"
+          },
           "frame": {
             "type": "string",
             "enum": [
@@ -3840,6 +3849,45 @@
               }
             ],
             "description": "Resolved from visual_request.region when the image is captured"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration",
+            "description": "Video only: seconds the clip plays; the last frame holds if the scene runs longer"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width",
+            "description": "Video only: pixel width of the normalized clip"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height",
+            "description": "Video only: pixel height of the normalized clip"
           }
         },
         "type": "object",
@@ -3872,6 +3920,18 @@
             ],
             "title": "Image",
             "description": "Filename from the provided image catalog"
+          },
+          "clip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clip",
+            "description": "Filename from the provided clip catalog: the user's own video, played muted in the scene"
           },
           "route": {
             "anyOf": [

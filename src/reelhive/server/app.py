@@ -25,6 +25,7 @@ from reelhive.schemas.scene_spec import SceneSpec
 from reelhive.schemas.script import Script
 from reelhive.schemas.voice import Voice
 from reelhive.server.security import protect, validate_host
+from reelhive.visuals import clips
 
 
 class CreateRun(BaseModel):
@@ -320,7 +321,7 @@ def create_app(
         caption: Annotated[str, Form()] = "",
         logo: Annotated[bool, Form()] = False,
     ):
-        data = await file.read(50 * 1024 * 1024 + 1)  # documents; images are held to 10 MB
+        data = await file.read(clips.MAX_BYTES + 1)  # clips; documents are held to 50 MB and images to 10 MB
         return await asyncio.to_thread(ws.upload, run_id, data, file.filename or "", caption, logo)
 
     @app.post("/api/capture/test", response_model=list[str])

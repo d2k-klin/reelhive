@@ -4,7 +4,7 @@ import {renderVideo} from '@revideo/renderer';
 import {readFileSync} from 'node:fs';
 import {basename, dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {embedAssets} from './src/assets';
+import {clipsFolder, embedAssets} from './src/assets';
 import {installBrowserShutdownGuard} from './src/browser-shutdown';
 import type {Spec} from './src/spec';
 
@@ -15,7 +15,10 @@ if (!specPath || !outPath || !outPath.endsWith('.mp4')) {
   console.error('usage: tsx render.ts <spec.json> <out.mp4>');
   process.exit(2);
 }
-const spec: Spec = embedAssets(JSON.parse(readFileSync(specPath, 'utf8')), dirname(resolve(specPath)));
+const runDir = dirname(resolve(specPath));
+const spec: Spec = embedAssets(JSON.parse(readFileSync(specPath, 'utf8')), runDir);
+// Only the run's normalized clips are served (images travel inside the spec as data URLs).
+const clips = clipsFolder(runDir);
 const here = dirname(fileURLToPath(import.meta.url));
 
 // Revideo owns browser creation and closure; guard its launch in this isolated render process.
@@ -30,6 +33,7 @@ await renderVideo({
     logProgress: false,
     // Revideo forces --single-process, which full Chrome rejects on macOS; headless-shell accepts it.
     puppeteer: {headless: 'shell'},
+    viteConfig: {publicDir: clips ?? false},
     progressCallback: (_worker, progress) => console.log(`progress ${progress.toFixed(3)}`),
     projectSettings: {
       size: {x: spec.width, y: spec.height},

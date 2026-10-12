@@ -54,6 +54,7 @@
           "default": {
             "kind": "none",
             "image": null,
+            "clip": null,
             "route": null,
             "region": null,
             "prompt": null
@@ -233,6 +234,7 @@
           "default": {
             "kind": "none",
             "image": null,
+            "clip": null,
             "route": null,
             "region": null,
             "prompt": null
@@ -401,6 +403,7 @@
           "default": {
             "kind": "none",
             "image": null,
+            "clip": null,
             "route": null,
             "region": null,
             "prompt": null
@@ -613,6 +616,7 @@
           "default": {
             "kind": "none",
             "image": null,
+            "clip": null,
             "route": null,
             "region": null,
             "prompt": null
@@ -767,6 +771,7 @@
           "default": {
             "kind": "none",
             "image": null,
+            "clip": null,
             "route": null,
             "region": null,
             "prompt": null
@@ -979,6 +984,7 @@
           "default": {
             "kind": "none",
             "image": null,
+            "clip": null,
             "route": null,
             "region": null,
             "prompt": null
@@ -1106,6 +1112,7 @@
           "default": {
             "kind": "none",
             "image": null,
+            "clip": null,
             "route": null,
             "region": null,
             "prompt": null
@@ -1244,6 +1251,7 @@
           "default": {
             "kind": "none",
             "image": null,
+            "clip": null,
             "route": null,
             "region": null,
             "prompt": null
@@ -1402,6 +1410,15 @@
           "title": "File",
           "type": "string"
         },
+        "media": {
+          "default": "image",
+          "enum": [
+            "image",
+            "video"
+          ],
+          "title": "Media",
+          "type": "string"
+        },
         "frame": {
           "default": "none",
           "enum": [
@@ -1423,6 +1440,48 @@
           ],
           "default": null,
           "description": "Resolved from visual_request.region when the image is captured"
+        },
+        "duration": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Video only: seconds the clip plays; the last frame holds if the scene runs longer",
+          "title": "Duration"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Video only: pixel width of the normalized clip",
+          "title": "Width"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Video only: pixel height of the normalized clip",
+          "title": "Height"
         }
       },
       "required": [
@@ -1456,6 +1515,19 @@
           "default": null,
           "description": "Filename from the provided image catalog",
           "title": "Image"
+        },
+        "clip": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Filename from the provided clip catalog: the user's own video, played muted in the scene",
+          "title": "Clip"
         },
         "route": {
           "anyOf": [

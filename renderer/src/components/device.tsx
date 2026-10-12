@@ -2,7 +2,8 @@
 // The product on screen: a browser window, a phone or a plain card, with depth (shadow, layering) and a camera
 // inside it. The camera establishes the whole screen first, then closes in on the planner's focus region, pans
 // a tall page gently, or pushes in slowly; it never enlarges source pixels past MAX_SHARPNESS.
-import {Circle, Img, Rect} from '@revideo/2d';
+// A clip (the user's own video) plays muted from the moment its shot starts, and holds its last frame.
+import {Circle, Img, Rect, Video} from '@revideo/2d';
 import {all, delay, easeInOutSine, easeOutCubic, type ThreadGenerator, Vector2, waitFor} from '@revideo/core';
 import type {Part} from '../measure';
 import {exactly, glide} from '../motion';
@@ -23,9 +24,14 @@ export interface Device {
 
 export function* device(stage: Stage, visual: Visual, maxWidth: number, maxHeight: number): Generator<any, Device> {
   const {s, theme} = stage;
-  const image = new Img({src: visual.file, layout: false});
+  const clip = visual.media === 'video';
+  const image = clip
+    ? new Video({src: visual.file, layout: false, volume: 0, decoder: 'web'})
+    : new Img({src: visual.file, layout: false});
   yield image.toPromise();
-  const natural = image.naturalSize();
+  // A clip's size comes from the spec (measured when it was normalized), so layout never waits on decoding.
+  const natural = clip ? new Vector2(visual.width!, visual.height!) : (image as Img).naturalSize();
+  if (clip) (image as Video).play();
   const screenshot = visual.source === 'screenshot';
   const kind = visual.frame;
   const pad = kind === 'browser' ? s * 0.01 : kind === 'phone' ? s * 0.016 : 0;

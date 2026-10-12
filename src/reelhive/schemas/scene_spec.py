@@ -75,6 +75,9 @@ class CtaText(BaseModel):
 class VisualRequest(BaseModel):
     kind: Literal["product_ui", "concept", "none"] = "none"
     image: str | None = Field(None, description="Filename from the provided image catalog")
+    clip: str | None = Field(
+        None, description="Filename from the provided clip catalog: the user's own video, played muted in the scene"
+    )
     route: str | None = Field(None, description="Route from the screenshot catalog")
     region: str | None = Field(
         None, description="Region id from that screenshot page's `regions` to close in on; product UI only"
@@ -101,8 +104,20 @@ class Focus(BaseModel):
 class VisualAsset(BaseModel):
     source: Literal["provided", "screenshot", "generated"]
     file: str
+    media: Literal["image", "video"] = "image"
     frame: Literal["browser", "phone", "none"] = "none"
     focus: Focus | None = Field(None, description="Resolved from visual_request.region when the image is captured")
+    duration: float | None = Field(
+        None, gt=0, description="Video only: seconds the clip plays; the last frame holds if the scene runs longer"
+    )
+    width: int | None = Field(None, gt=0, description="Video only: pixel width of the normalized clip")
+    height: int | None = Field(None, gt=0, description="Video only: pixel height of the normalized clip")
+
+    @model_validator(mode="after")
+    def video_is_measured(self) -> VisualAsset:
+        if self.media == "video" and not (self.duration and self.width and self.height):
+            raise ValueError("a video visual needs its duration, width and height")
+        return self
 
 
 class Theme(BaseModel):

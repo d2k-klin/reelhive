@@ -2,7 +2,7 @@ import {afterEach, describe, expect, it} from 'vitest';
 import {mkdtempSync, writeFileSync, rmSync, mkdirSync, symlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {embedAssets} from '../src/assets';
+import {clipsFolder, embedAssets} from '../src/assets';
 import type {Spec} from '../src/spec';
 
 const roots: string[] = [];
@@ -26,5 +26,21 @@ describe('local images', () => {
     for (const file of ['../secret.png', 'link.png']) {
       expect(() => embedAssets(spec(file), join(root, 'run'))).toThrow(/inside the run/);
     }
+  });
+});
+
+describe('local clips', () => {
+  const video = (file: string): Spec => ({...spec('asset.png'), theme: {}, scenes: [{...spec('asset.png').scenes[0],
+    visual: {file, source: 'provided', frame: 'none', media: 'video', duration: 2, width: 1920, height: 1080}}]});
+  it('points clips at the clip folder, the only folder the render server may serve', () => {
+    const root = make(); mkdirSync(join(root, 'visuals', 'clips'), {recursive: true});
+    writeFileSync(join(root, 'visuals', 'clips', 'scene_01.mp4'), 'frames');
+    expect(embedAssets(video('visuals/clips/scene_01.mp4'), root).scenes[0].visual?.file).toBe('/scene_01.mp4');
+    expect(clipsFolder(root)).toMatch(/visuals\/clips$/);
+  });
+  it('rejects a clip anywhere else in the run, and runs without clips serve nothing', () => {
+    const root = make(); writeFileSync(join(root, 'raw.mp4'), 'frames');
+    expect(() => embedAssets(video('raw.mp4'), root)).toThrow(/normalized MP4/);
+    expect(clipsFolder(root)).toBeNull();
   });
 });

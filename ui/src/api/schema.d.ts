@@ -1759,6 +1759,12 @@ export interface components {
             /** File */
             file: string;
             /**
+             * Media
+             * @default image
+             * @enum {string}
+             */
+            media: "image" | "video";
+            /**
              * Frame
              * @default none
              * @enum {string}
@@ -1766,6 +1772,21 @@ export interface components {
             frame: "browser" | "phone" | "none";
             /** @description Resolved from visual_request.region when the image is captured */
             focus?: components["schemas"]["Focus"] | null;
+            /**
+             * Duration
+             * @description Video only: seconds the clip plays; the last frame holds if the scene runs longer
+             */
+            duration?: number | null;
+            /**
+             * Width
+             * @description Video only: pixel width of the normalized clip
+             */
+            width?: number | null;
+            /**
+             * Height
+             * @description Video only: pixel height of the normalized clip
+             */
+            height?: number | null;
         };
         /** VisualRequest */
         VisualRequest: {
@@ -1780,6 +1801,11 @@ export interface components {
              * @description Filename from the provided image catalog
              */
             image?: string | null;
+            /**
+             * Clip
+             * @description Filename from the provided clip catalog: the user's own video, played muted in the scene
+             */
+            clip?: string | null;
             /**
              * Route
              * @description Route from the screenshot catalog

@@ -32,7 +32,8 @@ async def protect(request: Request, call_next, token: str):
         if (origin and origin not in allowed) or (request.method in {"POST", "PUT", "DELETE", "PATCH"} and not origin):
             return JSONResponse({"detail": "Invalid Origin"}, status_code=403)
         if request.method in {"POST", "PUT", "PATCH"}:
-            megabytes = 51 if request.url.path == "/api/uploads" else 11  # documents may be up to 50 MB
+            # Uploads take clips (up to 200 MB) and documents (50 MB); everything else is small JSON.
+            megabytes = 201 if request.url.path == "/api/uploads" else 11
             limit, data = megabytes * 1024 * 1024, bytearray()
             async for chunk in request.stream():
                 data.extend(chunk)

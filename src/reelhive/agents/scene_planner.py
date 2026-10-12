@@ -55,7 +55,7 @@ class ScenePlannerNode(AgentNode):
             f"{i}. [{b.role}] {b.narration}" + (f" (covers key points {b.covers})" if b.covers else "")
             for i, b in enumerate(ctx.script.beats, start=1)
         )
-        entries = [{k: v for k, v in entry.items() if k != "file"} for entry in ctx.visual_catalog]
+        entries = [{k: v for k, v in entry.items() if k not in ("file", "poster")} for entry in ctx.visual_catalog]
         return (
             f"{brief_block(ctx.brief)}\n\n{notes_block(ctx.brief)}{research_block(ctx)}\n\n"
             f"Beats ({len(ctx.script.beats)}):\n{beats}"

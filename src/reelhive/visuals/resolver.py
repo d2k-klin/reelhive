@@ -6,13 +6,14 @@ import hashlib
 import json
 import shutil
 from pathlib import Path
+from typing import Any
 
 from PIL import Image
 
 from reelhive.core.context import RunContext
 from reelhive.schemas.brief import Generate, Images
 from reelhive.schemas.scene_spec import Focus, HookScene, HookText, Theme, VisualAsset
-from reelhive.visuals import capture, documents, provided
+from reelhive.visuals import capture, clips, documents, provided
 
 MINIMUM_SIZE = {"16:9": (1280, 720), "9:16": (720, 1280), "1:1": (720, 720)}
 GENERATION_SIZE = {"16:9": "1536x1024", "9:16": "1024x1536", "1:1": "1024x1024"}
@@ -34,6 +35,41 @@ def image_ok(path: Path, format: str) -> bool:
             return valid
     except (OSError, ValueError):
         return False
+
+
+def visual_ok(run_dir: Path, visual: VisualAsset, format: str) -> bool:
+    """The scene's visual exists inside the run folder and is sharp enough: an image at the format's minimum size,
+    or a playable clip with its short side at least clips.MIN_SHORT_SIDE."""
+    try:
+        path = local_asset(run_dir, visual.file)
+        if visual.media == "image":
+            return image_ok(path, format)
+        return path.is_file() and clips.sharp_enough(clips.inspect(path))
+    except (OSError, ValueError):
+        return False
+
+
+def provided_clip(ctx: RunContext, scene_index: int, name: str) -> VisualAsset | None:
+    """The planner's clip, normalized into the run folder; None (with a note) when it can't be used."""
+    entry = provided.clip(ctx.visual_catalog, name)
+    if entry is None:
+        ctx.events.emit("node.task", node="visuals", task=f"Scene {scene_index}: clip {name} is not in the catalog")
+        return None
+    dest = ctx.path("visuals", "clips", f"scene_{scene_index:02d}.mp4")
+    try:
+        info = clips.normalize(Path(entry["file"]), dest, ctx.brief.format)
+    except clips.ClipError as e:
+        ctx.events.emit("node.task", node="visuals", task=f"Scene {scene_index}: {e}")
+        return None
+    if not clips.sharp_enough(info):
+        ctx.events.emit(
+            "node.task",
+            node="visuals",
+            task=f"Scene {scene_index}: clip {name} is {info['width']}x{info['height']}, below "
+            f"{clips.MIN_SHORT_SIDE}px on its short side",
+        )
+        return None
+    return VisualAsset(source="provided", media="video", file=str(dest.relative_to(ctx.run_dir)), **info)
 
 
 def focus_for(ctx: RunContext, route: str, region: str | None, measured: list[dict], image: Path) -> Focus | None:
@@ -62,11 +98,11 @@ def focus_for(ctx: RunContext, route: str, region: str | None, measured: list[di
     )
 
 
-def catalog(ctx: RunContext) -> list[dict[str, str]]:
+def catalog(ctx: RunContext) -> list[dict[str, Any]]:
     options = ctx.brief.visuals
     entries = []
     if options.source in ("auto", "images") and isinstance(options.images, Images):
-        entries += provided.catalog(options.images)
+        entries += provided.catalog(options.images, ctx.run_dir / "visuals" / "posters")
     if options.source in ("auto", "images") and ctx.brief.documents:
         try:
             pages = documents.pages(ctx.brief.documents, ctx.run_dir / "documents")
@@ -109,13 +145,15 @@ def resolve(ctx: RunContext, generator=None) -> None:
         if request.kind == "none" or options.source == "none":
             scene.visual = None
         elif scene.visual and (request.kind != "product_ui" or scene.visual.source != "generated"):
-            if image_ok(local_asset(ctx.run_dir, scene.visual.file), ctx.brief.format):
+            if visual_ok(ctx.run_dir, scene.visual, ctx.brief.format):
                 continue
             scene.visual = None
         else:
             scene.visual = None
         if request.kind != "none" and options.source != "none" and scene.visual is None:
-            if options.source in ("auto", "images"):
+            if options.source in ("auto", "images") and request.clip:
+                scene.visual = provided_clip(ctx, scene.index, request.clip)
+            if scene.visual is None and options.source in ("auto", "images"):
                 entry = provided.match(ctx.visual_catalog, request.image, scene.narration + " " + scene.text.headline)
                 if entry and image_ok(Path(entry["file"]), ctx.brief.format):
                     dest = ctx.path("visuals", f"scene_{scene.index:02d}_provided{Path(entry['file']).suffix.lower()}")
