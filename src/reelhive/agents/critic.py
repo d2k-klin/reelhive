@@ -13,7 +13,7 @@ from strands.types.event_loop import Usage
 from reelhive.agents.plan import brief_block, research_block
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode, _no_usage
-from reelhive.nodes.timing_node import PACE, holds
+from reelhive.nodes.timing_node import LEAD, PACE, SHOT, TAIL_MIN, holds
 from reelhive.schemas.brief import Brief
 from reelhive.schemas.scene_spec import Intro, SceneSpec
 
@@ -80,8 +80,10 @@ def hard_checks(
     words = sum(len(s.narration.split()) for s in spec.scenes)
     credit_seconds = spec.credit.duration if spec.credit else 0
     intro_seconds = spec.intro.duration if spec.intro else 0
-    # Holds are silence by design (a frame left to settle), like the intro and the credit.
-    minutes = (spec.duration - credit_seconds - intro_seconds - sum(holds(spec).values())) / 60
+    # Holds are silence by design (a frame left to settle), like the intro and the credit, and so is the short
+    # pause between beats: pace measures how dense the narration is, not how often the picture cuts.
+    breaths = len(spec.scenes) * (LEAD + TAIL_MIN)
+    minutes = (spec.duration - credit_seconds - intro_seconds - sum(holds(spec).values()) - breaths) / 60
     wpm = round(words / minutes) if minutes > 0 else 0
     # The floor catches scripts that leave long silences. A slow voice can't reach 130 wpm of video
     # however the script is cut, so the floor follows the voice's measured rate (a 125-wpm voice once
@@ -118,6 +120,23 @@ def hard_checks(
             f"at most {READ_WPS:g} on-screen words per settled second",
             not crowded,
             f"too much to read before the scene ends, cut the on-screen words or split the idea: {crowded}",
+        )
+    )
+
+    # The picture changes with each scene, so a long scene is a screen that doesn't move while the voice goes on.
+    average, longest = SHOT[brief.pacing]
+    timed = [s for s in spec.scenes if s.duration and s.duration_override is None]  # a user's own length stands
+    lingering = [f"scene {s.index}: {s.duration:.1f}s" for s in timed if s.duration > longest]
+    mean = sum(s.duration for s in timed) / len(timed) if timed else 0.0
+    slow = mean > average * 1.25
+    checks.append(
+        Check(
+            "shot_length",
+            round(mean, 1),
+            f"about {average:g}s per shot, none over {longest:g}s",
+            not lingering and not slow,
+            "shots stay on screen too long, split the narration into shorter beats, one idea per scene: "
+            + (str(lingering) if lingering else f"{mean:.1f}s per shot on average"),
         )
     )
 

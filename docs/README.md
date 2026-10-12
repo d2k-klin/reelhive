@@ -14,6 +14,7 @@
 | [providers.md](providers.md) | Claude, Bedrock, OpenAI, Ollama and Copilot; per-node overrides |
 | [templates.md](templates.md) | Templates and their character limits |
 | [limits.md](limits.md) | Every enforced limit, voices and formats |
+| [publishing.md](publishing.md) | Posting a finished video to YouTube, LinkedIn, TikTok and Instagram: setup, approval, limits |
 | [privacy.md](privacy.md) | What leaves your machine, and the ReelHive credit |
 
 ## Understanding it

@@ -23,4 +23,5 @@ class MasterNode(FunctionNode):
         written = subtitles.write(ctx.spec, video, voiced=ctx.brief.narration)
         if written:
             ctx.events.emit("node.task", node=self.name, task="Subtitles: " + ", ".join(p.name for p in written))
-        ctx.video = mixer.mux(ctx.path("render", "silent.mp4"), mix, video, written[0] if written else None)
+        silent = ctx.path("render", "silent.mp4")
+        ctx.video = mixer.mux(silent, mix, video, written[0] if written else None, duration=ctx.spec.duration)

@@ -24,14 +24,14 @@ test('script quick actions: suggest, apply, undo, nothing leaves the machine', a
   await expect(chips.locator('button.chip')).toHaveCount(3);
   await expect(page.getByText('Thinking of edits…')).toBeHidden();
   await expect(chips.getByRole('button', {name: /^Punchier hook/})).toHaveAttribute('title', /monthly cost number/);
-  const before = await page.getByLabel('Narration 1').inputValue();
+  const before = await page.getByLabel('Narration 1', {exact: true}).inputValue();
 
   await chips.getByRole('button', {name: /^Punchier hook/}).click();
-  await expect(page.getByLabel('Narration 1')).not.toHaveValue(before, {timeout: 15_000});
-  await expect(page.getByLabel('Narration 1')).toHaveValue(/rewritten/);
+  await expect(page.getByLabel('Narration 1', {exact: true})).not.toHaveValue(before, {timeout: 15_000});
+  await expect(page.getByLabel('Narration 1', {exact: true})).toHaveValue(/rewritten/);
 
   await page.getByRole('button', {name: 'Undo last change', exact:true}).click();
-  await expect(page.getByLabel('Narration 1')).toHaveValue(before, {timeout: 15_000});
+  await expect(page.getByLabel('Narration 1', {exact: true})).toHaveValue(before, {timeout: 15_000});
 
   await expect.poll(async () => {
     const log = await (await request.get(`${BASE}/api/runs/${id}/files/run.log.jsonl?token=${TOKEN}`)).text();

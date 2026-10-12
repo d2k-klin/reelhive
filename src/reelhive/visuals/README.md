@@ -6,8 +6,9 @@
 
 | Path | What it is |
 | --- | --- |
-| [`resolver.py`](resolver.py) | `resolve(ctx)`: for each scene's `visual_request` (`product_ui`, `concept`, `none`), tries a provided image, then a screenshot (product UI) or a generated image (concept), checks resolution, copies files into the run folder, and swaps image templates for `hook` when nothing fits. Also `catalog()` (what the scene planner may choose from), `theme_for()` (brand colors and logo), `image_ok()` and `local_asset()` (path safety). |
-| [`provided.py`](provided.py) | The user's image folder: `catalog()` (files plus `captions.yaml`), `match()` (by filename, or by word overlap with the narration), and opt-in `describe()` with a vision model. |
+| [`resolver.py`](resolver.py) | `resolve(ctx)`: for each scene's `visual_request` (`product_ui`, `concept`, `none`), tries a provided image, then a screenshot (product UI) or a generated image (concept), checks resolution, copies files into the run folder, and swaps image templates for `hook` when nothing fits. Also `catalog()` (what the scene planner may choose from), `theme_for()` (brand colors and logo), `image_ok()`, `visual_ok()` (images and clips) and `local_asset()` (path safety). |
+| [`provided.py`](provided.py) | The user's media folder: `catalog()` (images and clips plus `captions.yaml`; clips with their length, size and a poster frame), `match()` (images by filename, or by word overlap with the narration), `clip()` (clips only by exact name), and opt-in `describe()` with a vision model (a clip's poster frame stands in for it). |
+| [`clips.py`](clips.py) | The user's video clips: `inspect()` (playable, length, display size with rotation applied), `normalize()` (H.264, 30 fps, no audio, never enlarged, cached per source) into `visuals/clips/`, and `poster()`. |
 | [`capture.py`](capture.py) | Playwright: `discover()` crawls up to 10 same-origin pages (titles and headings, masked text excluded), and `capture()` takes a full-page, masked screenshot with a format-sized viewport. `same_origin()` and a navigation guard keep saved cookies off other sites. |
 | [`login.py`](login.py) | `reelhive login`: opens a visible browser, waits while the user signs in, and saves Playwright storage state with owner-only permissions. Never sees a password. |
 | [`generators/`](generators) | Image generation backends (OpenAI today). |
@@ -16,8 +17,8 @@
 
 | Scene kind | Order |
 | --- | --- |
-| `product_ui` | provided image → screenshot → text |
-| `concept` | provided image → generated image → text |
+| `product_ui` | planner's clip → provided image → screenshot → text |
+| `concept` | planner's clip → provided image → generated image → text |
 | `none` | text |
 
 ## Extending

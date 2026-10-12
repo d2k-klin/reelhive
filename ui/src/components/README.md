@@ -11,6 +11,7 @@
 | [`common.tsx`](common.tsx) | `Field` (a labelled control with an optional hint), `ErrorNote` (an `role="alert"` error), `Status` (a run status pill), `Mascot` (Mr.D art from `@brand` by mood: laptop, walking, working, presenting, inspecting), `VoiceFields` (gender, accent, speed) |
 | [`Help.tsx`](Help.tsx) / [`help-text.ts`](help-text.ts) | Accessible hover/focus/tap help and shared explanations; only one hint opens at a time. |
 | [`Guide.tsx`](Guide.tsx) | Mr.D guidance derived from run status and active stages. |
+| [`Publish.tsx`](Publish.tsx) | Publishing: `PublishPanel` on a finished run (choose platforms, draft the posts, edit them, publish only after an explicit confirmation, links per platform) and `Accounts` for Settings (connect and sign out; never shows a token). |
 | [`ProductionProgress.tsx`](ProductionProgress.tsx) | Responsive five-stage production path and readable quality results. |
 
 ## Extending

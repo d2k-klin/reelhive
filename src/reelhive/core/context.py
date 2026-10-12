@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 from reelhive.config import Config
 from reelhive.core.events import EventBus
 from reelhive.schemas.brief import Brief
+from reelhive.schemas.publish import PublishJob
 from reelhive.schemas.scene_spec import SceneSpec, Word
 from reelhive.schemas.script import Script
 
@@ -52,6 +53,8 @@ class RunContext:
     review_passed: bool | None = None  # None until the rendered cut has been reviewed
     review_rounds: int = 0  # failed reviews so far; the production graph bounds the repair loop
     video: Path | None = None
+    publish: PublishJob | None = None  # publishing (publish/job.json): platforms, copy, and what each post became
+    http: Any = None  # an httpx.Client for the platform adapters; None makes one per node (tests pass a mock)
 
     def path(self, *parts: str) -> Path:
         p = self.run_dir.joinpath(*parts)
@@ -85,6 +88,15 @@ class RunContext:
                 spec_temporary = self.path("spec.tmp")
                 spec_temporary.write_text(self.spec.model_dump_json(indent=2))
                 spec_temporary.replace(self.path("spec.json"))
+
+    def save_publish(self) -> None:
+        """Write the publishing job atomically; posting nodes call it after every post, so a crash never forgets one."""
+        with self.lock:
+            if self.publish is None:
+                return
+            temporary = self.path("publish", "job.tmp")
+            temporary.write_text(self.publish.model_dump_json(indent=2))
+            temporary.replace(self.path("publish", "job.json"))
 
     def restore(self) -> None:
         from reelhive.schemas.scene_spec import SceneSpec

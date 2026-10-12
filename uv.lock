@@ -1787,12 +1787,13 @@ wheels = [
 
 [[package]]
 name = "reelhive"
-version = "0.4.0"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "ag-ui-protocol" },
     { name = "en-core-web-sm" },
     { name = "fastapi" },
+    { name = "httpx" },
     { name = "imageio-ffmpeg" },
     { name = "kokoro" },
     { name = "misaki", extra = ["en"] },
@@ -1838,6 +1839,7 @@ requires-dist = [
     { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "github-copilot-sdk", marker = "extra == 'copilot'", specifier = "==1.0.17" },
+    { name = "httpx", specifier = ">=0.28" },
     { name = "imageio-ffmpeg", specifier = ">=0.6.0" },
     { name = "kokoro", specifier = ">=0.9.4" },
     { name = "misaki", extras = ["en"], specifier = ">=0.9.4" },

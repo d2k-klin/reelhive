@@ -35,6 +35,17 @@ Before capturing, ReelHive scrolls through the page to trigger deferred images, 
 
 The scene planner receives filenames, captions and discovered page titles/headings. It never receives screenshot pixels.
 
+## Your own clips
+
+Put short videos (`.mp4`, `.mov`, `.m4v`, `.webm`) in the same folder as your images, with a caption in `captions.yaml` saying what each one shows: a screen recording of a workflow, the product in use. The scene planner sees each clip's caption, length and size, and picks one by its exact name for a scene it fits (a clip is never matched by guessing). It plays muted in the scene's frame from the shot's start; when the scene outlasts it, the last frame holds, and the planner can give the scene a `hold` so the action finishes.
+
+Each clip is converted once per run (H.264, 30 fps, no sound, never enlarged, phone rotation applied) into `visuals/clips/`. Clips need at least 720 pixels on their short side, in either orientation, and up to 200 MB; the first 60 seconds are used. In the studio, upload clips like images. With `describe_images: true`, one frame from the middle of each clip is described.
+
+```yaml
+# captions.yaml
+report-in-two-clicks.mov: Creating a cost report in two clicks
+```
+
 ## Close-ups and layout
 
 Discovery also measures each page's **regions**: sections, forms, tables, figures and large images, each with an id and a label taken from its heading (masked text is left out), up to 12 per page. The planner can point a product scene at one (`visual_request.region: r3`). At capture time the regions are measured again in the same browser session as the screenshot and matched by label, so the box always fits the image even if lazy content moved the page. The scene opens on the page, then the camera glides to the region and outlines it. The camera never enlarges source pixels more than 1.3×, so a close-up stays sharp; a region it can't find is skipped with a note in the progress log.

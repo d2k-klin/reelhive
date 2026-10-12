@@ -31,7 +31,7 @@ Every video opens with a 3-second intro screen: the product name, a one-line tag
 | `voice.accent` | `us` \| `uk` | `us` | Kokoro voices: `af_heart`, `bf_emma`, `am_michael`, `bm_george` |
 | `voice.speed` | 0.8-1.2 | `1.0` | Kokoro speaking speed |
 | `tone` | text | `clear and direct` | |
-| `pacing` | `slow` \| `balanced` \| `fast` | `balanced` | How much narration the video carries. `balanced` aims for 145 words per minute of video (allowed 130-170); `slow` aims for 115 (100-135) and leaves room for the picture, good for short showcase cuts; `fast` aims for 160 (145-175) |
+| `pacing` | `slow` \| `balanced` \| `fast` | `balanced` | How fast the picture changes and how much narration the video carries. The screen changes with every beat, about every 5.5 s (`slow`), 4.5 s (`balanced`) or 4 s (`fast`); a 60-second balanced video has about 12 shots. `balanced` aims for 145 words per minute of video (allowed 130-170); `slow` aims for 115 (100-135) and leaves room for the picture, good for short showcase cuts; `fast` aims for 160 (145-175) |
 | `brand.colors` | up to 3 `#rrggbb` | none | Accent, background, text |
 | `brand.logo` | path | none | Copied into the run folder, shown in a corner |
 | `theme` | `default` \| `dark` \| `brand` | `default` | |
@@ -45,13 +45,14 @@ Medium pauses after the script. Edit `runs/<run>/script.json` if you like, then 
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `scenes` | list of 1-12 scenes | planned by the `scenes` agent | Each scene: `index`, `template`, `text` (per template, see [templates.md](templates.md)), `narration`, optional `feature`, `duration_override` (0.5-180 s), `voice_override` (gender, accent, speed), `visual_request` (`kind`, `image`, `route`, `region`, `prompt`), `hold` (0-3 s of stillness after the voice), and on `image-full` / `screenshot-pan` a `layout` (`center`, `split-left`, `split-right`) |
+| `scenes` | list of 1-40 scenes | planned by the `scenes` agent | Each scene: `index`, `template`, `text` (per template, see [templates.md](templates.md)), `narration`, optional `feature`, `duration_override` (0.5-180 s), `voice_override` (gender, accent, speed), `visual_request` (`kind`, `image`, `clip`, `route`, `region`, `prompt`), `hold` (0-3 s of stillness after the voice), and on `image-full` / `screenshot-pan` a `layout` (`center`, `split-left`, `split-right`) |
 | `music_track` | file name | chosen by the music agent | A track listed in `assets/music/manifest.json` |
 | `music_volume` | 0-1 | `0.3` | Music level under the voice, before ducking |
-| `captions` | true/false | `false` | Word-by-word captions: the narration in short phrases below the content, each word lighting up as it is spoken. Timed from the recorded voice (Kokoro's word timestamps), so they also work with `narration: false` for videos that autoplay muted |
+| `captions` | true/false | `false` | Word-by-word captions: the narration in short phrases below the content, each word lighting up as it is spoken. Timed from the recorded voice (Kokoro's word timestamps), so they also work with `narration: false` for videos that autoplay muted. With narration on, every video also gets `video.srt` and `video.vtt` subtitle files and a selectable subtitle track, whatever this setting |
 | `frame_review` | true/false | `false` | Send one rendered frame per shot to the review provider for an art director's review. The local layout checks always run; this adds a vision model's judgement and sends the frames (which can show your product). Skipped with Copilot |
 | `narration` | true/false | `true` | Mix the voice-over in. Off still voices each scene to time it, but the video has no voice |
 | `music` | true/false | `true` | Add background music. Off skips the music agent |
+| `sound_effects` | true/false | `true` | Let the sound designer add a few quiet effects (a whoosh on a key cut, a click as the camera lands on a control, a chime on the call to action) only where the picture earns one: at most one per started half minute, often none. Off skips it |
 
 High pauses twice: after the script (`reelhive approve runs/<run>`), and after the scenes are prepared, so you can review and approve every image (`reelhive approve-scenes runs/<run>`). In between, `reelhive regen runs/<run> --scene 3 --note "..."` redoes one scene and `reelhive preview runs/<run> --scene 3` renders it alone. The UI does the same with buttons. See [examples/briefs/high.yaml](../examples/briefs/high.yaml).
 

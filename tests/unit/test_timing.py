@@ -1,12 +1,17 @@
 import pytest
 
 from reelhive.nodes.timing_node import (
+    FINAL_HOLD,
     FPS,
+    LEAD,
     MAX_EXTRA,
+    SHOT,
     apply_timing,
     available_seconds,
+    beats_for,
     credit_for,
     place_urls,
+    tail_for,
     target_words,
 )
 from reelhive.schemas.scene_spec import (
@@ -43,7 +48,7 @@ def test_pads_short_speech_to_hit_the_target(brief):
 
 def test_padding_is_capped_so_the_duration_check_can_catch_thin_scripts(brief):
     spec = apply_timing(spec_with(3), narrated([2.0] * 3), brief)
-    assert spec.scenes[0].duration == pytest.approx(2.0 + 0.3 + 0.7 + MAX_EXTRA, abs=1 / FPS)
+    assert spec.scenes[0].duration == pytest.approx(2.0 + LEAD + tail_for(brief) + MAX_EXTRA, abs=1 / FPS)
     assert spec.duration < brief.duration * 0.95
 
 
@@ -53,10 +58,10 @@ def test_long_speech_trims_tails_but_not_below_the_minimum(brief):
 
 
 def test_credit_counts_toward_target_and_env_var_removes_it(brief, monkeypatch):
-    assert target_words(brief) == round((60 - INTRO_SECONDS - CREDIT_SECONDS) * 145 / 60)
+    with_credit = target_words(brief)
     monkeypatch.setenv("REELHIVE_DISABLE_CREDIT", "true")
     assert credit_for(brief) is None
-    assert target_words(brief) == round((60 - INTRO_SECONDS) * 145 / 60)
+    assert target_words(brief) > with_credit  # the credit's 1.5 s go back to the narration
     spec = apply_timing(spec_with(6), narrated([8.0] * 6), brief)
     assert spec.credit is None
 
@@ -67,12 +72,21 @@ def test_corner_credit_takes_no_time(brief):
     assert credit and credit.mode == "corner" and credit.duration == 0
 
 
-def test_short_videos_leave_room_for_scene_padding(brief):
-    short = brief.model_copy(update={"duration": 15})  # 3 features -> 6 scenes in 10.5s
-    words = target_words(short)
-    speech = words / 161 * 60
-    assert speech + 6 * (0.3 + 0.3) <= 10.5 + 0.2  # voice plus minimum padding fits
-    assert target_words(brief) == round((60 - INTRO_SECONDS - CREDIT_SECONDS) * 145 / 60)  # long videos are unchanged
+@pytest.mark.parametrize("duration", [15, 30, 60, 180])
+def test_the_voice_plus_every_scenes_pause_fits_the_target(brief, duration):
+    sized = brief.model_copy(update={"duration": duration})
+    beats = beats_for(sized)
+    speech = target_words(sized) / 161 * 60
+    padding = beats * (LEAD + tail_for(sized)) + FINAL_HOLD
+    assert speech + padding <= duration - INTRO_SECONDS - CREDIT_SECONDS + 0.2
+
+
+@pytest.mark.parametrize("pacing", ["slow", "balanced", "fast"])
+def test_one_beat_per_average_shot(brief, pacing):
+    paced = brief.model_copy(update={"pacing": pacing})
+    seconds = (60 - INTRO_SECONDS - CREDIT_SECONDS - FINAL_HOLD) / beats_for(paced)
+    assert seconds == pytest.approx(SHOT[pacing][0], rel=0.15)  # the screen changes about every SHOT seconds
+    assert beats_for(brief.model_copy(update={"duration": 180})) == round((180 - 5.5) / SHOT["balanced"][0])
 
 
 def test_intro_opens_the_video_and_counts_toward_the_target(brief):
@@ -120,3 +134,17 @@ def test_site_address_is_placed_by_code_and_never_overwritten(brief):
     bare = SceneSpec(intro=Intro(title="Example"), scenes=[closing.model_copy(update={"text": CtaText(headline="Go")})])
     place_urls(bare, brief)  # the fixture brief gives no address
     assert bare.intro and bare.intro.url is None and bare.scenes[0].text.url is None  # type: ignore[union-attr]
+
+
+def test_the_script_writer_must_write_about_one_beat_per_shot():
+    from pydantic import ValidationError
+
+    from reelhive.agents.script_writer import script_model
+
+    model = script_model(12)
+    beat = {"role": "feature", "narration": "One short idea."}
+    assert len(model(title="t", beats=[beat] * 10).beats) == 10  # a couple fewer is fine
+    with pytest.raises(ValidationError, match="at least 10"):
+        model(title="t", beats=[beat] * 6)  # six long beats would hold each screen for ten seconds
+    with pytest.raises(ValidationError, match="at most 14"):
+        model(title="t", beats=[beat] * 15)

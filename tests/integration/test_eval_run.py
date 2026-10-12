@@ -3,11 +3,10 @@
 import asyncio
 import json
 
-from conftest import VERDICT_PASS, FakeModel, make_plan, words
+from conftest import VERDICT_PASS, FakeModel, make_plan, make_script
 
 from evals.run import gate, run_eval_async
 from reelhive.config import Config
-from reelhive.nodes.timing_node import target_words
 from reelhive.schemas.brief import Brief
 
 JUDGE = {
@@ -25,20 +24,11 @@ SUGGESTIONS = {
 
 
 def script_for(brief: Brief, drop_feature: bool = False) -> dict:
-    roles = ["hook", *([] if brief.duration < 30 else ["problem"]), *(["feature"] * len(brief.features)), "cta"]
-    per = -(-target_words(brief) // len(roles))  # round up: a script that hits the target, not one just under it
-    notes = [None] * (len(roles) - len(brief.features) - 1) + list(range(1, len(brief.features) + 1)) + [None]
-    beats = []
-    for role, note in zip(roles, notes, strict=True):
-        covers = [note] if note and not (drop_feature and note == 1) else []
-        beats.append({"role": role, "narration": words(per), "covers": covers})
-    return {"title": "eval", "beats": beats}
+    return make_script(brief, drop=1 if drop_feature else None)
 
 
 def plan_for(brief: Brief, beats: int, drop_feature: bool) -> dict:
-    plan = make_plan(brief, drop_feature=1 if drop_feature else None)
-    if beats < len(plan["scenes"]):  # short briefs have no problem beat
-        plan["scenes"].pop(1)
+    plan = make_plan(brief, drop_feature=1 if drop_feature else None, beats=beats)
     plan["scenes"][0]["visual_request"] = {"kind": "concept", "prompt": "a lighthouse in fog"}
     plan["scenes"][-2]["visual_request"] = {"kind": "product_ui"}
     return plan

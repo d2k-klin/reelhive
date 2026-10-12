@@ -16,7 +16,7 @@ models:
   copilot:
     strong: YOUR_COPILOT_MODEL_ID  # reelhive models --provider copilot
     fast: YOUR_COPILOT_MODEL_ID
-# Optional per-node provider overrides (script, scenes, music, critic, fix):
+# Optional per-node provider overrides (research, script, scenes, music, critic, fix, review, sound, publish):
 nodes: {}                  # e.g. {script: copilot, scenes: claude, review: claude}; review needs vision for frame_review
 ollama_host: http://localhost:11434
 max_tokens: 8000
@@ -25,3 +25,11 @@ runs_dir: runs
 image_generation:
   model: gpt-image-1
   cost_per_image: null     # optional USD estimate for run.log.jsonl; null means unknown
+# Publishing (docs/publishing.md). App ids and secrets go in environment variables, never here.
+publishing:
+  redirect_port: 8765      # register http://localhost:8765/callback in each developer app
+  label_ai: true           # label posts as AI-generated where the platform supports it
+  youtube: {privacy: private, category_id: "28", notify_subscribers: false}
+  linkedin: {organization: null, visibility: PUBLIC}  # urn:li:organization:123 posts as that page
+  tiktok: {mode: draft, privacy: SELF_ONLY}           # draft: sent to your TikTok inbox; direct: posted at once
+  instagram: {share_to_feed: true, account: null}

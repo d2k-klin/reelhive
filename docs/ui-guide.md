@@ -90,7 +90,7 @@ For an authenticated app, choose **Sign in to your app**, complete the login in 
 
 ### Use supplied images
 
-Select **images** or **auto**, write a useful caption, then drop PNG, JPEG, or WebP files into the upload area. Each file can be up to 10 MB and 30 megapixels. ReelHive re-encodes uploads and stores them inside the run.
+Select **images** or **auto**, write a useful caption, then drop PNG, JPEG, or WebP files, or short video clips (MP4, MOV, WebM), into the upload area. Images can be up to 10 MB and 30 megapixels, and clips up to 200 MB. ReelHive re-encodes images and stores uploads inside the run. A clip plays muted in the scene the planner picks it for; its caption is how the planner knows what it shows ([visuals.md](visuals.md#your-own-clips)).
 
 You can also point at a local directory. A `captions.yaml` file in that directory can map filenames to descriptions. **Let AI describe my images** sends those image pixels to the selected scenes provider; leave it off to keep supplied-image pixels local.
 
@@ -138,7 +138,7 @@ When every resolved image is approved, **Approve all and render** becomes availa
 
 ## 6. Follow production and quality checks
 
-During production, the run page shows five stages: **Story**, **Create**, **Timing**, **Review**, and **Video**. Research comes before writing; scene design, narration, and music can work in parallel; visuals follow scene design. Timing joins their results, then quality review can request repairs before video creation. Each task shows its real state and elapsed time when available. The connection badge shows whether live server-sent events are connected; temporary disconnects replay missed events after reconnection.
+During production, the run page shows five stages: **Story**, **Create**, **Timing**, **Review**, and **Video** (drawing, reviewing, sound design and the sound mix). Research comes before writing; scene design, narration, and music can work in parallel; visuals follow scene design. Timing joins their results, then quality review can request repairs before video creation. Each task shows its real state and elapsed time when available. The connection badge shows whether live server-sent events are connected; temporary disconnects replay missed events after reconnection.
 
 ![Readable production stages and compact run title](ui-guide/07-production-progress.png)
 
@@ -154,8 +154,10 @@ When the status reaches **Done**, the final section provides:
 
 - an inline video player;
 - **Download MP4** for the finished video;
+- **Subtitles (.srt)** and **(.vtt)** when the video is narrated;
 - **Download all files (.zip)**: everything the production made (brief, product research, script, scene plan, audio, video and run log), to archive, re-run from the CLI, or share for troubleshooting;
-- **Reveal folder** to open the local run directory.
+- **Reveal folder** to open the local run directory;
+- **Publish**: choose platforms, draft the posts, edit them, and publish after confirming. See [publishing.md](publishing.md).
 
 To try a variation, choose **Edit brief and make a new video** at the top of any production. It opens **New video** with that production's brief filled in; change what you like and create the video again. This starts a new run and leaves the original untouched.
 
@@ -196,6 +198,8 @@ Choose **Settings** to manage non-secret configuration and inspect local readine
 ![Provider, default, storage, and readiness settings](ui-guide/05-settings.png)
 
 The **Providers** panel shows available integrations. **Test** sends a minimal live request, so it verifies authentication and model access and may incur a small provider charge. Strong-tier agents write and critique the script; fast-tier agents plan scenes and choose music. Enable **Per-agent overrides** when a specific node should use another provider.
+
+**Publishing accounts** lists YouTube, LinkedIn, TikTok and Instagram: whether the developer app's environment variables are set, who is signed in, **Connect** (opens the platform's sign-in in a new tab) and **Sign out**. Tokens stay in `~/.reelhive/accounts` and are never shown.
 
 Provider secrets are never accepted in the UI or saved to `config.yaml`. Set them in the environment before launch:
 

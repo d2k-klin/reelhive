@@ -29,6 +29,9 @@ EVENT_TYPES = {
     "run.queued",
     "run.cancelled",
     "spec.edited",
+    "publish.drafted",  # the publishing job's copy is ready for approval (or blocked, with failures)
+    "publish.posted",  # one platform's post is live (platform, url, note)
+    "publish.failed",  # one platform's post failed (platform, error)
 }
 _LOG_LOCKS: dict[Path, threading.Lock] = {}
 _LOG_LOCKS_GUARD = threading.Lock()

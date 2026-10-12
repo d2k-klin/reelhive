@@ -44,6 +44,53 @@ class Defaults(BaseModel):
     credit: Literal["end", "corner"] = "end"
 
 
+class _Settings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class YouTubeSettings(_Settings):
+    privacy: Literal["private", "unlisted", "public"] = "private"
+    category_id: str = Field("28", pattern=r"^\d+$", description="YouTube category; 28 is Science & Technology")
+    notify_subscribers: bool = False
+
+
+class LinkedInSettings(_Settings):
+    organization: str | None = Field(
+        None, pattern=r"^urn:li:organization:\d+$", description="Post as this page; otherwise as the signed-in member"
+    )
+    visibility: Literal["PUBLIC", "CONNECTIONS"] = "PUBLIC"
+    api_version: str = Field("202609", pattern=r"^\d{6}$", description="LinkedIn-Version header (YYYYMM)")
+
+
+class TikTokSettings(_Settings):
+    mode: Literal["draft", "direct"] = Field(
+        "draft", description="draft: sent to your TikTok inbox to finish in the app; direct: posted straight away"
+    )
+    privacy: Literal["PUBLIC_TO_EVERYONE", "MUTUAL_FOLLOW_FRIENDS", "FOLLOWER_OF_CREATOR", "SELF_ONLY"] = "SELF_ONLY"
+    allow_comments: bool = True
+    allow_duet: bool = False
+    allow_stitch: bool = False
+
+
+class InstagramSettings(_Settings):
+    share_to_feed: bool = True
+    account: str | None = Field(None, description="Instagram username to post as, when several are linked")
+    config_id: str | None = Field(
+        None, description="Facebook Login for Business configuration id, if your app uses one"
+    )
+
+
+class Publishing(_Settings):
+    """Where and how videos are published. Client ids and secrets come from environment variables only."""
+
+    redirect_port: int = Field(8765, ge=1024, le=65535, description="Loopback port for sign-in redirects")
+    label_ai: bool = Field(True, description="Label posts as AI-generated where the platform supports it")
+    youtube: YouTubeSettings = YouTubeSettings()
+    linkedin: LinkedInSettings = LinkedInSettings()
+    tiktok: TikTokSettings = TikTokSettings()
+    instagram: InstagramSettings = InstagramSettings()
+
+
 class Config(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -59,6 +106,7 @@ class Config(BaseModel):
     ollama_host: str = "http://localhost:11434"
     image_generation: ImageGeneration | None = None
     max_tokens: int = Field(8000, ge=1)
+    publishing: Publishing = Publishing()
     runs_dir: Path = Path("runs")
 
     def provider_for(self, node: str, tier: str) -> str:

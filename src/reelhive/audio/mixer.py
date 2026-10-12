@@ -124,8 +124,13 @@ def mix(run_dir: Path, spec: SceneSpec, narration: bool = True) -> Path:
     return out
 
 
-def mux_args(video: Path, audio: Path, out: Path, subtitles: Path | None = None) -> list[str]:
-    """The reviewed cut, the mix and, when given, a soft (selectable) English subtitle track."""
+def mux_args(
+    video: Path, audio: Path, out: Path, subtitles: Path | None = None, duration: float | None = None
+) -> list[str]:
+    """The reviewed cut, the mix and, when given, a soft (selectable) English subtitle track.
+
+    The length is the spec's `duration` when given. `-shortest` alone would count the subtitle stream too, which
+    ends with the last spoken word, and cut the closing frame and the credit."""
     # The metadata tag is always written, even with the visible credit off (plan §3.7).
     inputs = ["-i", str(video), "-i", str(audio)]
     maps = ["-map", "0:v", "-map", "1:a"]
@@ -141,7 +146,7 @@ def mux_args(video: Path, audio: Path, out: Path, subtitles: Path | None = None)
         "aac",
         "-b:a",
         "192k",
-        "-shortest",
+        *(["-t", f"{duration:.3f}"] if duration else ["-shortest"]),
         "-movflags",
         "+faststart",
         "-metadata",
@@ -150,8 +155,8 @@ def mux_args(video: Path, audio: Path, out: Path, subtitles: Path | None = None)
     ]
 
 
-def mux(video: Path, audio: Path, out: Path, subtitles: Path | None = None) -> Path:
-    _run(mux_args(video, audio, out, subtitles))
+def mux(video: Path, audio: Path, out: Path, subtitles: Path | None = None, duration: float | None = None) -> Path:
+    _run(mux_args(video, audio, out, subtitles, duration))
     return out
 
 

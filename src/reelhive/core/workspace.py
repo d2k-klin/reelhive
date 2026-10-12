@@ -27,6 +27,7 @@ from reelhive.config import Config
 from reelhive.core.events import EventBus
 from reelhive.core.service import Service
 from reelhive.schemas.brief import Brief, Images, Screenshots
+from reelhive.schemas.publish import Platform, PostCopy, PublishJob
 from reelhive.schemas.scene_spec import SceneSpec
 from reelhive.schemas.script import Script
 from reelhive.visuals import clips
@@ -35,6 +36,7 @@ BUSY = {"drafting", "producing", "queued", "regenerating", "capturing"}
 # The first bytes of each accepted document type: PDF, then Office/OpenDocument zip, then legacy Office.
 DOCUMENT_MAGIC = {".pdf": b"%PDF-", ".pptx": b"PK\x03\x04", ".odp": b"PK\x03\x04", ".ppt": b"\xd0\xcf\x11\xe0"}
 MEDIA_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".wav"}
+# Publishing never exposes account tokens: they live outside the run folder (publish/accounts.py).
 DOWNLOADS = {
     "video.mp4",
     "video.srt",
@@ -57,6 +59,8 @@ class RunView(BaseModel):
     report: list[str] = []
     queue_position: int | None = None
     video: bool = False
+    subtitles: bool = False
+    publish: PublishJob | None = None
     created_at: datetime
 
 
@@ -103,6 +107,12 @@ class Workspace:
         config = Config.model_validate_json((path / "config.json").read_text())
         return self.factory(config)
 
+    def publisher(self, run_id: str) -> Service:
+        """The run's models with this machine's current publishing settings (accounts and platforms aren't per run)."""
+        path = self.path(run_id)
+        config = Config.model_validate_json((path / "config.json").read_text())
+        return self.factory(config.model_copy(update={"publishing": self.config.publishing}))
+
     def details(self, run_id: str) -> RunView:
         path = self.path(run_id)
         state = json.loads((path / "status.json").read_text())
@@ -125,6 +135,8 @@ class Workspace:
             report=state.get("report", []),
             queue_position=position,
             video=(path / "video.mp4").exists(),
+            subtitles=(path / "video.srt").exists(),
+            publish=self.factory(config).publish_job(path),
             # config.json is written once, when the run is created
             created_at=datetime.fromtimestamp((path / "config.json").stat().st_mtime, tz=UTC),
         )
@@ -463,6 +475,64 @@ class Workspace:
         if finish:
             state["finish"].set()
         return {k: v for k, v in state.items() if k != "finish"}
+
+    # Publishing: accounts are per machine; drafting and posting run in the background like other operations.
+
+    def accounts(self) -> list[dict[str, Any]]:
+        from reelhive.publish.oauth import redirect_uri
+        from reelhive.publish.platforms import overview
+
+        return overview(redirect_uri(self.config.publishing))
+
+    def connect_start(self, platform: Platform) -> dict[str, str]:
+        """Start a sign-in; the studio opens the returned consent URL and polls `connect_status`."""
+        from reelhive.publish import oauth
+
+        consent = oauth.begin(platform, self.config.publishing)
+        key = uuid.uuid4().hex
+        self.logins[key] = {"status": "waiting", "platform": platform}
+        ready = threading.Event()
+
+        def job():
+            try:
+                code = oauth.wait_for_code(consent, self.config.publishing.redirect_port, ready=ready)
+                account = oauth.finish(consent, code, self.config.publishing)
+                self.logins[key].update(status="connected", account=account.public())
+            except Exception as error:
+                self.logins[key].update(status="failed", error=str(error))
+            finally:
+                ready.set()
+
+        self.pool.submit(job)
+        ready.wait(5)  # the listener is up before the browser can redirect to it
+        if self.logins[key]["status"] == "failed":
+            raise ValueError(self.logins[key]["error"])
+        return {"id": key, "url": consent.url}
+
+    def connect_status(self, key: str) -> dict[str, Any]:
+        if key not in self.logins or "platform" not in self.logins[key]:
+            raise FileNotFoundError("sign-in not found")
+        return dict(self.logins[key])
+
+    def disconnect(self, platform: Platform) -> None:
+        from reelhive.publish import accounts
+
+        accounts.remove(platform)
+
+    def draft_posts(self, run_id: str, platforms: list[Platform]) -> None:
+        path = self.path(run_id)
+        Service.require_status(path, {"done"})
+        self.submit(run_id, lambda: self.publisher(run_id).draft_posts(path, platforms), production=False)
+
+    def save_posts(self, run_id: str, posts: PostCopy) -> PublishJob:
+        return self.publisher(run_id).save_posts(self.path(run_id), posts)
+
+    def publish(self, run_id: str) -> None:
+        path = self.path(run_id)
+        job = self.service(run_id).publish_job(path)
+        if job is None or job.posts is None:
+            raise ValueError("draft and review the posts first")
+        self.submit(run_id, lambda: self.publisher(run_id).publish(path), production=False)
 
     def delete(self, run_id: str) -> None:
         if run_id in self.jobs and not self.jobs[run_id].done():

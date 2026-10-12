@@ -12,6 +12,7 @@ Guidance:
 - Blurry close-ups (`sharpness`): choose a larger `visual_request.region` on the same page, or clear it to show the whole page.
 - Frame review reasons: fix what each reason names for its scene: the focal point, hierarchy, crowding, composition or consistency. Change `layout`, `hold`, `visual_request.region`, the template or the on-screen text, and keep the narration unless the reason is about it.
 - A scene showing a clip keeps its `visual_request.clip` unless a failure is about that clip. Don't add a clip the scene didn't have; you can't see the catalog.
+- Shots that stay too long (`shot_length`): split each named scene into two or three scenes, dividing its narration at sentence or clause boundaries. Every new scene gets its own on-screen text and visual (another region of the page, a stat, a bullet), and the note numbers stay in `covers` of the scene that tells them. Return every scene, renumbered in order.
 - When you change a scene's direction, set `layout`, `hold` and `visual_request` explicitly; fields you leave out keep their current values.
 - The intro screen is not a scene. Return `intro` only when a failure names it, such as a misspelled or wrongly capitalised name; otherwise leave it out. It carries the product name and a one-line tagline, never details, and never a URL (the address is added automatically).
 

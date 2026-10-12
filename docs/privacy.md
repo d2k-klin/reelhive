@@ -13,7 +13,10 @@ ReelHive runs on your machine. This page lists what, if anything, leaves it, and
 | Your images | No, unless `describe_images: true` |
 | Rendered frames | No, unless `frame_review: true`: then one still per shot goes to your review provider |
 | Image prompts | Yes, to OpenAI, only when `generate` is on |
-| Audio, video, login state | No |
+| Your video clips | No (a poster frame per clip only with `describe_images: true`) |
+| Audio, video, login state | No, until you publish |
+| The finished video, its subtitles and the post copy | Only when you publish, and only to the platforms you approve: straight from your machine to each platform under your account ([publishing.md](publishing.md)). The copy is drafted by your agent provider from the brief and narration |
+| Publishing sign-ins (tokens) | No: kept in `~/.reelhive/accounts`, owner-only, sent only to the platform they belong to |
 
 ## The ReelHive credit
 

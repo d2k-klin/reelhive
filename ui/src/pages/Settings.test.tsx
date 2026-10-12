@@ -11,11 +11,12 @@ vi.mock('../api/client',()=>({request:vi.fn()}));
 let config:Config;
 beforeEach(()=>{
  localStorage.clear();vi.mocked(request).mockReset();
- config={provider:'claude',ollama_host:'http://localhost:11434',max_tokens:8000,runs_dir:'runs',models:{claude:{strong:'claude-strong',fast:'claude-fast'},copilot:{strong:'saved-model',fast:'auto'}},defaults:{level:'low',format:'16:9',voice:{gender:'female',accent:'us',speed:1},credit:'end'}};
+ config={provider:'claude',ollama_host:'http://localhost:11434',max_tokens:8000,runs_dir:'runs',models:{claude:{strong:'claude-strong',fast:'claude-fast'},copilot:{strong:'saved-model',fast:'auto'}},defaults:{level:'low',format:'16:9',voice:{gender:'female',accent:'us',speed:1},credit:'end'},publishing:{redirect_port:8765,label_ai:true,youtube:{privacy:'private',category_id:'28',notify_subscribers:false},linkedin:{organization:null,visibility:'PUBLIC',api_version:'202609'},tiktok:{mode:'draft',privacy:'SELF_ONLY',allow_comments:true,allow_duet:false,allow_stitch:false},instagram:{share_to_feed:true,account:null,config_id:null}}};
  vi.mocked(request).mockImplementation(async(path,method,body)=>{
   if(path==='/settings')return method==='PUT'?body:config;
   if(path==='/providers/copilot/models')return ['claude-opus-5.5','other-model'];
   if(path==='/doctor')return [];
+  if(path==='/publish/accounts')return [{platform:'youtube',title:'YouTube',configured:true,env:[],setup:'',redirect_uri:'http://localhost:8765/callback',account:{name:'CostHive',expires_at:null}}];
   return {};
  });
 });
@@ -55,12 +56,19 @@ describe('Copilot model settings',()=>{
   await waitFor(()=>expect(request).toHaveBeenCalledWith('/providers/copilot/models'));
  });
 
+ it('lists publishing accounts without tokens and offers sign-out',async()=>{
+  renderSettings();
+  expect(await screen.findByText('Signed in as CostHive')).toBeTruthy();
+  expect(screen.getByRole('button',{name:'Sign out'})).toBeTruthy();
+  expect(screen.getByText('http://localhost:8765/callback')).toBeTruthy();
+ });
+
  it('preserves configured models on discovery failure and supports refresh',async()=>{
   config={...config,provider:'copilot'};
   vi.mocked(request).mockImplementation(async(path)=>{
    if(path==='/settings')return config;
    if(path==='/providers/copilot/models')throw new Error('Copilot is not signed in');
-   return path==='/doctor'?[]:{};
+   return path==='/doctor'||path==='/publish/accounts'?[]:{};
   });
   renderSettings();
   await screen.findByRole('alert');

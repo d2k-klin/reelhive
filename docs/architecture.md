@@ -1,6 +1,6 @@
 # Architecture
 
-ReelHive turns a brief into a video in two Strands graphs, driven by one core service that the CLI (and, from M3, the local UI) sit on top of.
+ReelHive turns a brief into a video in two Strands graphs (and publishes it with two more), driven by one core service that the CLI (and, from M3, the local UI) sit on top of.
 
 ![ReelHive architecture: entry points, core service, the draft and production graphs, run folder, rendering pipeline, quality gates and evals](architecture.png)
 
@@ -18,19 +18,19 @@ A Strands graph runs to completion, so human approval points sit between graph r
 draft:        brief ─► research ─► script
 
 production:   ┌─► scenes ─► visuals ─┐
-              ├─► narrate ───────────┼─► timing ─► critic ─┬─(pass)──────────────────────► render ─► review ─┬─(pass)─► master
+              ├─► narrate ───────────┼─► timing ─► critic ─┬─(pass)──────────────────────► render ─► review ─┬─(pass)─► sound ─► master
               └─► music ─────────────┘                     └─(fail)─► fix ─► recheck ─(pass)─┘                │
                                                                       ▲                                       │
                                                                       └──────────(fail, rounds left)──────────┘
 ```
 
-`critic` judges the plan before anything is drawn. `review` judges the cut the renderer actually drew and sends it back through `fix` when it falls short, so the production graph is a real cycle: the builder resets revisited nodes (`reset_on_revisit`), a failed review reopens `fix`, `recheck` and `render` in the run's checkpoint, a new render reopens `review` and `master`, and `MAX_REVIEW_ROUNDS` (2) plus the execution cap bound the loop. The edges read the run's state, so a run resumed after a crash re-enters the loop where it was instead of re-rendering an unrepaired cut.
+`critic` judges the plan before anything is drawn. `review` judges the cut the renderer actually drew and sends it back through `fix` when it falls short, so the production graph is a real cycle: the builder resets revisited nodes (`reset_on_revisit`), a failed review reopens `fix`, `recheck` and `render` in the run's checkpoint, a new render reopens `review`, `sound` and `master`, and `MAX_REVIEW_ROUNDS` (2) plus the execution cap bound the loop. The edges read the run's state, so a run resumed after a crash re-enters the loop where it was instead of re-rendering an unrepaired cut.
 
 | Node | Kind | Job | Code |
 | --- | --- | --- | --- |
 | `brief` | deterministic | Validate, fill the level's defaults, make paths absolute, save `brief.yaml` | `nodes/brief_node.py` |
 | `research` | agent, fast + crawl | Read the product website (same origin, ≤10 pages, masks honoured) and the brief's documents, and write `research.json`: what it is, correct names, offerings, pains, facts, what each note refers to. Uses a public App URL when no website is given; skipped with no source | `agents/researcher.py` |
-| `script` | agent, strong | Narration as beats, sized to the target duration | `agents/script_writer.py` |
+| `script` | agent, strong | Narration as beats, one beat per shot: the count comes from the duration and the pacing's shot length, and its output model holds the writer to it | `agents/script_writer.py` |
 | `scenes` | agent, fast | Director as well as designer: a template, on-screen text, a visual request (with a close-up region), a `layout` and a `hold` per beat; the intro follows an opening hook | `agents/scene_planner.py` |
 | `visuals` | deterministic | Resolve each visual request: provided image, screenshot or generated image, else a text fallback | `visuals/resolver.py` |
 | `narrate` | deterministic | Kokoro TTS per beat, recording real durations and word timings (for captions) | `nodes/narrate_node.py` |
@@ -41,9 +41,24 @@ production:   ┌─► scenes ─► visuals ─┐
 | `recheck` | deterministic | Re-voice changed scenes, re-resolve visuals, re-time, run the gates again | `nodes/recheck_node.py` |
 | `render` | deterministic | Revideo draws the silent cut and reports the layout it measured on screen (`render/layout.json`) | `nodes/render_node.py`, `render/bridge.py` |
 | `review` | layout gates + optional vision agent | Gates on the measured geometry first; then, only when the brief opts in (`frame_review`), a vision agent scores one settled frame per shot | `agents/reviewer.py`, `render/frames.py` |
-| `master` | deterministic | ffmpeg mixes narration and music (ducking the music under the voice) and muxes them onto the reviewed cut | `nodes/master_node.py`, `audio/mixer.py` |
+| `sound` | agent, fast | Scores the approved cut with a few effects, or none, on the moments the renderer reported; the rules (budget, spacing, quiet under the voice) are validators of its per-run output model | `agents/sound_designer.py` |
+| `master` | deterministic | ffmpeg mixes narration, ducked music and effects and muxes them onto the reviewed cut; writes `video.srt`/`video.vtt` and a soft subtitle track | `nodes/master_node.py`, `audio/mixer.py`, `render/subtitles.py` |
 
 Deterministic nodes never call an LLM. Agent nodes return Pydantic-validated structured output; the image prompts are written by `scenes`, and `visuals` only executes them.
+
+## Publishing
+
+Publishing is two more graphs, run only when the user asks, with a person approving the copy between them (a post goes out under their name):
+
+```
+copy:   ready ─(gates pass)─► publish
+post:   ready ─(gates pass)─┬─► post_youtube
+                            ├─► post_linkedin       in parallel; each saves its result as it lands
+                            ├─► post_tiktok
+                            └─► post_instagram
+```
+
+`ready` (deterministic) checks the finished video, each developer app's credentials, the signed-in accounts and each platform's video rules before any model call or upload. `publish` (agent, strong) drafts the copy with an output model built from the chosen platforms, so each block is held to its platform's limits. The `post_<platform>` nodes upload through `publish/platforms/`; a platform that fails doesn't stop the others, and one already live is never posted again. See [publishing.md](publishing.md).
 
 ## Notes in, story out
 
@@ -55,8 +70,9 @@ The brief is raw material. The writers get the notes numbered, the product resea
 
 - total duration within ±5% of the target;
 - every key-point note told by at least one scene (scenes record the notes they tell in `covers`; wording is free);
-- narration pace within the brief's `pacing` range (`slow` 100-135, `balanced` 130-170, `fast` 145-175 words per minute of video, not counting the intro, the credit or planned holds; the floor follows the voice's measured rate, so a slow voice isn't asked for the impossible);
+- narration pace within the brief's `pacing` range (`slow` 100-135, `balanced` 130-170, `fast` 145-175 words per minute of video, not counting the intro, the credit, planned holds or the short pause between beats; the floor follows the voice's measured rate, so a slow voice isn't asked for the impossible);
 - on-screen text within each template's limits;
+- shot length: no screen held longer than the pacing allows (7 s balanced), and about one change every 4.5 s on average, so the picture keeps moving while the voice goes on;
 - reading time: at most four on-screen words per second a scene is settled on screen;
 - every scene voiced with its current narration;
 - every image present, inside the run folder and at the format's minimum resolution;
@@ -93,11 +109,13 @@ runs/2026-10-08T15-30-00-123456_cloud-bills-grow-silently/
 ├── checkpoint.json   # completed nodes and state, so `reelhive resume` continues after a crash or cancel
 ├── script.json       # the script (edit it before `reelhive approve` at medium)
 ├── spec.json         # the final scene spec
-├── visuals/          # copied, captured or generated images
-├── audio/            # scene_XX.wav, narration.wav, mix.wav
+├── visuals/          # copied, captured or generated images; clips/ (normalized clips), posters/
+├── audio/            # scene_XX.wav, narration.wav, effects.wav, mix.wav
 ├── documents/        # pages rendered from the brief's PDFs and decks
 ├── render/           # silent.mp4, layout.json (measured layout), frames/ (stills for the frame review)
-├── video.mp4
+├── video.mp4         # with a soft English subtitle track when narrated
+├── video.srt, video.vtt
+├── publish/          # job.json: the drafted posts and what each became (only after `reelhive publish`)
 └── run.log.jsonl     # every event
 ```
 
@@ -117,6 +135,7 @@ runs/2026-10-08T15-30-00-123456_cloud-bills-grow-silently/
 | `run.paused` / `script.approved` | approval stop and resume |
 | `suggestion.offered` / `suggestion.applied` / `version.restored` | M6 quick actions: what was offered (cached or not), which was applied, and undo |
 | `run.finished` | video path and duration, or the stop report |
+| `publish.drafted` / `publish.posted` / `publish.failed` | publishing: the drafted job (platforms, gates), one platform's live post (link, notes) or its failure |
 
 ## Providers
 

@@ -212,3 +212,33 @@ def test_copilot_cleans_up_on_timeout_or_cancellation(tmp_path, brief, monkeypat
     with pytest.raises(failure):
         asyncio.run(ScriptWriterNode().execute(ctx))
     assert client.session.closed and client.stopped
+
+
+def test_every_agent_node_can_be_overridden_per_provider_on_its_own_tier():
+    from typing import get_args
+
+    from reelhive.agents.critic import CriticNode
+    from reelhive.agents.fixer import FixerNode
+    from reelhive.agents.music_director import MusicDirectorNode
+    from reelhive.agents.publisher import PublishCopyNode
+    from reelhive.agents.researcher import ResearchNode
+    from reelhive.agents.reviewer import ReviewNode
+    from reelhive.agents.scene_planner import ScenePlannerNode
+    from reelhive.agents.script_writer import ScriptWriterNode
+    from reelhive.agents.sound_designer import SoundDesignerNode
+    from reelhive.config import Config
+    from reelhive.providers.factory import NODE_TIERS
+
+    agents = (
+        ResearchNode,
+        ScriptWriterNode,
+        ScenePlannerNode,
+        MusicDirectorNode,
+        CriticNode,
+        FixerNode,
+        ReviewNode,
+        SoundDesignerNode,
+        PublishCopyNode,
+    )
+    assert {a.name: a.tier for a in agents} == NODE_TIERS
+    assert set(get_args(get_args(Config.model_fields["nodes"].annotation)[0])) == set(NODE_TIERS)

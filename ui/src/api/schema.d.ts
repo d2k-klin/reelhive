@@ -517,6 +517,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/publish/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Publish Accounts */
+        get: operations["publish_accounts_api_publish_accounts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/publish/accounts/{platform}/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Connect */
+        post: operations["connect_api_publish_accounts__platform__connect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/publish/connect/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Connect Status */
+        get: operations["connect_status_api_publish_connect__key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/publish/accounts/{platform}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Disconnect */
+        delete: operations["disconnect_api_publish_accounts__platform__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Publish Job */
+        get: operations["publish_job_api_runs__run_id__publish_get"];
+        put?: never;
+        /** Publish */
+        post: operations["publish_api_runs__run_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/publish/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Draft Posts */
+        post: operations["draft_posts_api_runs__run_id__publish_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/runs/{run_id}/publish/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Posts */
+        put: operations["save_posts_api_runs__run_id__publish_posts_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/capture/test": {
         parameters: {
             query?: never;
@@ -589,6 +709,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Approve */
+        Approve: {
+            /**
+             * Confirm
+             * @description The user confirmed posting this copy publicly under their accounts
+             * @constant
+             */
+            confirm: true;
+        };
         /** Beat */
         Beat: {
             /**
@@ -896,6 +1025,32 @@ export interface components {
              */
             max_tokens: number;
             /**
+             * @default {
+             *       "redirect_port": 8765,
+             *       "label_ai": true,
+             *       "youtube": {
+             *         "category_id": "28",
+             *         "notify_subscribers": false,
+             *         "privacy": "private"
+             *       },
+             *       "linkedin": {
+             *         "api_version": "202609",
+             *         "visibility": "PUBLIC"
+             *       },
+             *       "tiktok": {
+             *         "allow_comments": true,
+             *         "allow_duet": false,
+             *         "allow_stitch": false,
+             *         "mode": "draft",
+             *         "privacy": "SELF_ONLY"
+             *       },
+             *       "instagram": {
+             *         "share_to_feed": true
+             *       }
+             *     }
+             */
+            publishing: components["schemas"]["Publishing"];
+            /**
              * Runs Dir
              * Format: path
              * @default runs
@@ -1030,6 +1185,11 @@ export interface components {
              * @enum {string}
              */
             credit: "end" | "corner";
+        };
+        /** DraftPosts */
+        DraftPosts: {
+            /** Platforms */
+            platforms: ("youtube" | "linkedin" | "tiktok" | "instagram")[];
         };
         /** FeatureCardScene */
         FeatureCardScene: {
@@ -1300,6 +1460,32 @@ export interface components {
              */
             describe_images: boolean;
         };
+        /** InstagramCopy */
+        InstagramCopy: {
+            /**
+             * Caption
+             * @description Reel caption: a hook line, then #hashtags
+             */
+            caption: string;
+        };
+        /** InstagramSettings */
+        InstagramSettings: {
+            /**
+             * Share To Feed
+             * @default true
+             */
+            share_to_feed: boolean;
+            /**
+             * Account
+             * @description Instagram username to post as, when several are linked
+             */
+            account?: string | null;
+            /**
+             * Config Id
+             * @description Facebook Login for Business configuration id, if your app uses one
+             */
+            config_id?: string | null;
+        };
         /**
          * Intro
          * @description The opening screen shown before the first scene; it has no narration.
@@ -1338,6 +1524,39 @@ export interface components {
              * @description What it is, in one short line: a claim, not details or key points
              */
             tagline?: string | null;
+        };
+        /** LinkedInCopy */
+        LinkedInCopy: {
+            /**
+             * Commentary
+             * @description The post text; a hook line first; up to 3 #hashtags at the end
+             */
+            commentary: string;
+            /**
+             * Title
+             * @description The video's title, shown with the player
+             */
+            title: string;
+        };
+        /** LinkedInSettings */
+        LinkedInSettings: {
+            /**
+             * Organization
+             * @description Post as this page; otherwise as the signed-in member
+             */
+            organization?: string | null;
+            /**
+             * Visibility
+             * @default PUBLIC
+             * @enum {string}
+             */
+            visibility: "PUBLIC" | "CONNECTIONS";
+            /**
+             * Api Version
+             * @description LinkedIn-Version header (YYYYMM)
+             * @default 202609
+             */
+            api_version: string;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -1381,6 +1600,44 @@ export interface components {
              * @description Beat the note is about (script quick actions)
              */
             beat?: number | null;
+        };
+        /**
+         * PostCopy
+         * @description The words that go out with the video, one block per platform.
+         */
+        PostCopy: {
+            youtube?: components["schemas"]["YouTubeCopy"] | null;
+            linkedin?: components["schemas"]["LinkedInCopy"] | null;
+            tiktok?: components["schemas"]["TikTokCopy"] | null;
+            instagram?: components["schemas"]["InstagramCopy"] | null;
+        };
+        /** PostResult */
+        PostResult: {
+            /**
+             * Status
+             * @default waiting
+             * @enum {string}
+             */
+            status: "waiting" | "publishing" | "published" | "failed";
+            /**
+             * Id
+             * @description The platform's id for the post or video
+             */
+            id?: string | null;
+            /**
+             * Url
+             * @description Where the post can be seen
+             */
+            url?: string | null;
+            /**
+             * Note
+             * @description Visibility notes, e.g. private until the app is audited
+             */
+            note?: string | null;
+            /** Error */
+            error?: string | null;
+            /** At */
+            at?: string | null;
         };
         /** ProblemScene */
         ProblemScene: {
@@ -1441,6 +1698,88 @@ export interface components {
             template: "problem";
             text: components["schemas"]["HookText"];
         };
+        /**
+         * PublishJob
+         * @description A run's publishing: which platforms, the copy, the gates' verdict, and what each post became.
+         */
+        PublishJob: {
+            /** Platforms */
+            platforms: ("youtube" | "linkedin" | "tiktok" | "instagram")[];
+            /**
+             * Status
+             * @default awaiting_approval
+             * @enum {string}
+             */
+            status: "blocked" | "awaiting_approval" | "publishing" | "published" | "partial" | "failed";
+            /** @description The copy per platform, written by the `publish` agent */
+            posts?: components["schemas"]["PostCopy"] | null;
+            /**
+             * Failures
+             * @description Why the job can't be published yet
+             */
+            failures?: string[];
+            /**
+             * Warnings
+             * @description Things that will publish but look off
+             */
+            warnings?: string[];
+            /**
+             * Results
+             * @description Per platform, including posts that went live in an earlier job
+             */
+            results?: {
+                [key: string]: components["schemas"]["PostResult"];
+            };
+        };
+        /**
+         * Publishing
+         * @description Where and how videos are published. Client ids and secrets come from environment variables only.
+         */
+        Publishing: {
+            /**
+             * Redirect Port
+             * @description Loopback port for sign-in redirects
+             * @default 8765
+             */
+            redirect_port: number;
+            /**
+             * Label Ai
+             * @description Label posts as AI-generated where the platform supports it
+             * @default true
+             */
+            label_ai: boolean;
+            /**
+             * @default {
+             *       "privacy": "private",
+             *       "category_id": "28",
+             *       "notify_subscribers": false
+             *     }
+             */
+            youtube: components["schemas"]["YouTubeSettings"];
+            /**
+             * @default {
+             *       "visibility": "PUBLIC",
+             *       "api_version": "202609"
+             *     }
+             */
+            linkedin: components["schemas"]["LinkedInSettings"];
+            /**
+             * @default {
+             *       "mode": "draft",
+             *       "privacy": "SELF_ONLY",
+             *       "allow_comments": true,
+             *       "allow_duet": false,
+             *       "allow_stitch": false
+             *     }
+             */
+            tiktok: components["schemas"]["TikTokSettings"];
+            /**
+             * @default {
+             *       "share_to_feed": true
+             *     }
+             */
+            instagram: components["schemas"]["InstagramSettings"];
+        };
         /** RunView */
         RunView: {
             /** Id */
@@ -1467,6 +1806,12 @@ export interface components {
              * @default false
              */
             video: boolean;
+            /**
+             * Subtitles
+             * @default false
+             */
+            subtitles: boolean;
+            publish?: components["schemas"]["PublishJob"] | null;
             /**
              * Created At
              * Format: date-time
@@ -1773,6 +2118,45 @@ export interface components {
             /** Fast */
             fast: string;
         };
+        /** TikTokCopy */
+        TikTokCopy: {
+            /**
+             * Caption
+             * @description Caption with 3-5 #hashtags; at most 2200 UTF-16 units
+             */
+            caption: string;
+        };
+        /** TikTokSettings */
+        TikTokSettings: {
+            /**
+             * Mode
+             * @description draft: sent to your TikTok inbox to finish in the app; direct: posted straight away
+             * @default draft
+             * @enum {string}
+             */
+            mode: "draft" | "direct";
+            /**
+             * Privacy
+             * @default SELF_ONLY
+             * @enum {string}
+             */
+            privacy: "PUBLIC_TO_EVERYONE" | "MUTUAL_FOLLOW_FRIENDS" | "FOLLOWER_OF_CREATOR" | "SELF_ONLY";
+            /**
+             * Allow Comments
+             * @default true
+             */
+            allow_comments: boolean;
+            /**
+             * Allow Duet
+             * @default false
+             */
+            allow_duet: boolean;
+            /**
+             * Allow Stitch
+             * @default false
+             */
+            allow_stitch: boolean;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -1920,6 +2304,44 @@ export interface components {
         YamlBrief: {
             /** Text */
             text: string;
+        };
+        /** YouTubeCopy */
+        YouTubeCopy: {
+            /**
+             * Title
+             * @description Video title: what it is and why to watch
+             */
+            title: string;
+            /**
+             * Description
+             * @description First two lines carry the hook and the link; then the details. No < or >
+             */
+            description: string;
+            /**
+             * Tags
+             * @description Search tags, without #
+             */
+            tags?: string[];
+        };
+        /** YouTubeSettings */
+        YouTubeSettings: {
+            /**
+             * Privacy
+             * @default private
+             * @enum {string}
+             */
+            privacy: "private" | "unlisted" | "public";
+            /**
+             * Category Id
+             * @description YouTube category; 28 is Science & Technology
+             * @default 28
+             */
+            category_id: string;
+            /**
+             * Notify Subscribers
+             * @default false
+             */
+            notify_subscribers: boolean;
         };
     };
     responses: never;
@@ -2901,6 +3323,253 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_accounts_api_publish_accounts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    connect_api_publish_accounts__platform__connect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platform: "youtube" | "linkedin" | "tiktok" | "instagram";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    connect_status_api_publish_connect__key__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    disconnect_api_publish_accounts__platform__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                platform: "youtube" | "linkedin" | "tiktok" | "instagram";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_job_api_runs__run_id__publish_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishJob"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_api_runs__run_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Approve"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    draft_posts_api_runs__run_id__publish_draft_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftPosts"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_posts_api_runs__run_id__publish_posts_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostCopy"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishJob"];
                 };
             };
             /** @description Validation Error */

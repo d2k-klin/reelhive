@@ -30,6 +30,10 @@ The Runs screen lists productions newest first with their start time. Open one t
 
 ![A finished production with the video player and download buttons](screenshots/finished.png)
 
+## Publish it
+
+A finished production has a **Publish** panel. Pick YouTube, LinkedIn, TikTok or Instagram, choose **Draft posts**, and edit the title, description or caption for each one. **Publish…** asks you once more, then posts under your own accounts and lists each link as it goes live. Connect accounts in **Settings → Publishing accounts**. Setup for each platform: [publishing.md](publishing.md).
+
 ## Quick actions
 
 On the Script and Scenes screens, the selected beat or scene gets 3-4 suggested edits as buttons (switch them off with **AI quick actions** in the corner of either screen, or in Settings; the choice is kept on this device), such as "Punchier hook" or "Shorten by ~2s", rendered with CopilotKit from an AG-UI tool call. One click regenerates just that beat or scene; **Undo** puts it back. The same works from the terminal:

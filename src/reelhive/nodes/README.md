@@ -12,8 +12,9 @@
 | [`visuals_node.py`](visuals_node.py) | `visuals`: calls `visuals/resolver.resolve`. |
 | [`timing_node.py`](timing_node.py) | `timing`: scene starts and lengths from real speech plus padding, landing on the target; also the credit rule, `target_words()` and the speech-rate constants. |
 | [`recheck_node.py`](recheck_node.py) | `recheck`: after `fix`, re-voice changed scenes, re-resolve visuals, re-time, run the hard checks again. |
-| [`render_node.py`](render_node.py) | `render`: writes `spec.json` and runs the renderer, which draws `render/silent.mp4` and reports the measured layout in `render/layout.json` (stops after `spec.json` in eval mode). A new cut reopens `review` and `master`. |
-| [`master_node.py`](master_node.py) | `master`: mixes narration and music and muxes them onto the reviewed cut as `video.mp4`. |
+| [`render_node.py`](render_node.py) | `render`: writes `spec.json` and runs the renderer, which draws `render/silent.mp4` and reports the measured layout in `render/layout.json` (stops after `spec.json` in eval mode). A new cut reopens `review`, `sound` and `master`. |
+| [`master_node.py`](master_node.py) | `master`: mixes narration, ducked music and any sound effects, muxes them onto the reviewed cut as `video.mp4`, and writes the subtitles (`video.srt`, `video.vtt` and a soft track) when there is narration. |
+| [`publish_nodes.py`](publish_nodes.py) | Publishing: `ready` (gates per platform before any model call or upload: the finished video, the developer app's credentials, a signed-in account, the platform's length and size rules) and `post_youtube`, `post_linkedin`, `post_tiktok`, `post_instagram`, which run in parallel and record each result as it lands. |
 
 ## Extending: a new deterministic node
 
@@ -30,4 +31,4 @@ Then wire it in [`../graphs/production.py`](../graphs/production.py). Emit `node
 
 ## Timing constants
 
-`PACE` holds each brief `pacing`'s narration range and target (balanced aims for 145), `FINAL_HOLD` lets the closing frame settle, `SPEECH_WPM` (161) is Kokoro's measured rate, and `LEAD` / `TAIL` / `TAIL_MIN` / `MAX_EXTRA` shape the padding. Changing them changes every video's length. Run the evals before and after (`reelhive eval`).
+`PACE` holds each brief `pacing`'s narration range and target (balanced aims for 145), `SHOT` its average and longest shot (`beats_for()` turns the average into the script's beat count), `FINAL_HOLD` lets the closing frame settle, `SPEECH_WPM` (161) is Kokoro's measured rate, and `LEAD` / `TAILS` (the pause after each beat, by pacing) / `TAIL_MIN` / `MAX_EXTRA` shape the padding. Changing them changes every video's length. Run the evals before and after (`reelhive eval`).

@@ -3782,7 +3782,7 @@
               }
             ]
           },
-          "maxItems": 12,
+          "maxItems": 40,
           "minItems": 1,
           "type": "array"
         },

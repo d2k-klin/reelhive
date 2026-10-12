@@ -18,4 +18,4 @@ class Beat(BaseModel):
 
 class Script(BaseModel):
     title: str
-    beats: list[Beat] = Field(min_length=2, max_length=12)
+    beats: list[Beat] = Field(min_length=2, max_length=40)

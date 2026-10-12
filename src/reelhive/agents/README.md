@@ -12,6 +12,8 @@
 | [`music_director.py`](music_director.py) | `music`: mood and BPM, then a library track | fast | `MusicChoice` |
 | [`critic.py`](critic.py) | `critic`: the hard checks (`hard_checks`, `run_gates`: duration, closing, features, pace, text limits, reading time, audio, images, product UI, voice fit, and image approval at `high`), then a rubric `Verdict` only if they pass | strong | `Verdict` |
 | [`reviewer.py`](reviewer.py) | `review`: the layout gates on what the renderer measured (`layout_checks`: every shot measured, safe area, overlap, type size, sharpness), then, only with `frame_review`, a vision review of one settled frame per shot. A failure reopens the repair loop | strong | `FrameVerdict` |
+| [`sound_designer.py`](sound_designer.py) | `sound`: scores the reviewed cut with a few effects, or none, only on moments the renderer reported and only with effects that suit them. The output model is built per run: moments and effects are closed sets, and the budget, spacing and levels under the voice are validators the model repairs within its own call | fast | `SoundPlan` |
+| [`publisher.py`](publisher.py) | `publish`: the post copy per chosen platform (YouTube title, description and tags; LinkedIn commentary; TikTok and Instagram captions), held to each platform's limits. Runs only when the user asks to publish; nothing is posted until they approve | strong | `PostCopy` |
 | [`fixer.py`](fixer.py) | `fix`: a corrected `ScenePlan` with narration, repairing plan failures and cut failures alike; emits `fix.diff` | strong | `ScenePlan` |
 | [`plan.py`](plan.py) | `PlannedScene` / `ScenePlan`, shared by planner and fixer; enforces template character limits so the model retries rather than us truncating. `keep_direction()` carries layout, hold and visual request a repair leaves out; `intro_position()` is the cold-open rule | – | – |
 | [`suggester.py`](suggester.py) | `suggest` (M6): 3-4 quick-action suggestions for one beat or scene, cached per version | fast | `Suggestions` |
@@ -20,7 +22,7 @@
 ## Extending: a new agent node
 
 1. Add the prompt as `prompts/<name>.md`.
-2. Subclass `AgentNode` with `name`, `tier`, `prompt`, `output`, `build_prompt(ctx)` and `apply(ctx, out)`. Put validation in the output model, so invalid output goes back to the model. `build_prompt` may return content blocks (text and images) for a vision node; skip Copilot first, it is text only (see `ReviewNode`).
+2. Subclass `AgentNode` with `name`, `tier`, `prompt`, `output` (a class attribute, or built per run in `execute` when the valid answers depend on the run, as `sound` and `publish` do), `build_prompt(ctx)` and `apply(ctx, out)`. Put validation in the output model, so invalid output goes back to the model. `build_prompt` may return content blocks (text and images) for a vision node; skip Copilot first, it is text only (see `ReviewNode`).
 3. Add the node name to the `nodes:` literal in `config.py` and to `NODE_TIERS` in `providers/factory.py`, so it can be overridden per provider.
 4. Wire it into a graph and test it with `FakeModel` (canned output keyed by the output model's class name).
 

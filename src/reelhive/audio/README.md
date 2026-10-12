@@ -8,7 +8,8 @@
 | --- | --- |
 | [`tts/`](tts) | Text-to-speech behind a small interface; Kokoro today. |
 | [`music_library.py`](music_library.py) | Loads `assets/music/manifest.json`; `pick_track(mood, bpm)` returns the closest tempo within the mood (any mood if none match). |
-| [`mixer.py`](mixer.py) | `narration_track()` places each scene's voice on one timeline; `mix_args()` / `mix()` loop and fade the music and duck it with `sidechaincompress`; `mux_args()` / `mux()` add the audio to the silent render and always write the `comment=Made with ReelHive by Mr.D` tag; `probe()` reads duration, streams, size and tags without ffprobe; `ffmpeg_exe()` uses the system ffmpeg or the one bundled with `imageio-ffmpeg`. |
+| [`sfx_library.py`](sfx_library.py) | Loads `assets/sfx/manifest.json`: each effect's length, `peak` and the moment kinds it suits. |
+| [`mixer.py`](mixer.py) | `narration_track()` places each scene's voice on one timeline; `effects_track()` places the sound effects at their levels; `mix_args()` / `mix()` loop and fade the music, duck it with `sidechaincompress` and sum voice, music and effects; `mux_args()` / `mux()` add the audio to the silent render and always write the `comment=Made with ReelHive by Mr.D` tag (plus a soft subtitle track when given); `probe()` reads duration, streams, display size (rotation applied) and tags without ffprobe; `ffmpeg_exe()` uses the system ffmpeg or the one bundled with `imageio-ffmpeg`. |
 
 ## Extending
 

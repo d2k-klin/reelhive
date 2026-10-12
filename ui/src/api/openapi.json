@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "ReelHive local API",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "paths": {
     "/api/health": {
@@ -1182,6 +1182,328 @@
         }
       }
     },
+    "/api/publish/accounts": {
+      "get": {
+        "summary": "Publish Accounts",
+        "operationId": "publish_accounts_api_publish_accounts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/publish/accounts/{platform}/connect": {
+      "post": {
+        "summary": "Connect",
+        "operationId": "connect_api_publish_accounts__platform__connect_post",
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "youtube",
+                "linkedin",
+                "tiktok",
+                "instagram"
+              ],
+              "type": "string",
+              "title": "Platform"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/publish/connect/{key}": {
+      "get": {
+        "summary": "Connect Status",
+        "operationId": "connect_status_api_publish_connect__key__get",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/publish/accounts/{platform}": {
+      "delete": {
+        "summary": "Disconnect",
+        "operationId": "disconnect_api_publish_accounts__platform__delete",
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "youtube",
+                "linkedin",
+                "tiktok",
+                "instagram"
+              ],
+              "type": "string",
+              "title": "Platform"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs/{run_id}/publish": {
+      "get": {
+        "summary": "Publish Job",
+        "operationId": "publish_job_api_runs__run_id__publish_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PublishJob"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Publish Job Api Runs  Run Id  Publish Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Publish",
+        "operationId": "publish_api_runs__run_id__publish_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Approve"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs/{run_id}/publish/draft": {
+      "post": {
+        "summary": "Draft Posts",
+        "operationId": "draft_posts_api_runs__run_id__publish_draft_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftPosts"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/runs/{run_id}/publish/posts": {
+      "put": {
+        "summary": "Save Posts",
+        "operationId": "save_posts_api_runs__run_id__publish_posts_put",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostCopy"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishJob"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/capture/test": {
       "post": {
         "summary": "Capture",
@@ -1337,6 +1659,21 @@
   },
   "components": {
     "schemas": {
+      "Approve": {
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "const": true,
+            "title": "Confirm",
+            "description": "The user confirmed posting this copy publicly under their accounts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "title": "Approve"
+      },
       "Beat": {
         "properties": {
           "role": {
@@ -1662,7 +1999,7 @@
                   }
                 },
                 "type": "array",
-                "maxItems": 12,
+                "maxItems": 40,
                 "minItems": 1
               },
               {
@@ -2002,6 +2339,32 @@
             "title": "Max Tokens",
             "default": 8000
           },
+          "publishing": {
+            "$ref": "#/components/schemas/Publishing",
+            "default": {
+              "redirect_port": 8765,
+              "label_ai": true,
+              "youtube": {
+                "category_id": "28",
+                "notify_subscribers": false,
+                "privacy": "private"
+              },
+              "linkedin": {
+                "api_version": "202609",
+                "visibility": "PUBLIC"
+              },
+              "tiktok": {
+                "allow_comments": true,
+                "allow_duet": false,
+                "allow_stitch": false,
+                "mode": "draft",
+                "privacy": "SELF_ONLY"
+              },
+              "instagram": {
+                "share_to_feed": true
+              }
+            }
+          },
           "runs_dir": {
             "type": "string",
             "format": "path",
@@ -2277,6 +2640,30 @@
         "additionalProperties": false,
         "type": "object",
         "title": "Defaults"
+      },
+      "DraftPosts": {
+        "properties": {
+          "platforms": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "youtube",
+                "linkedin",
+                "tiktok",
+                "instagram"
+              ]
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Platforms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "platforms"
+        ],
+        "title": "DraftPosts"
       },
       "FeatureCardScene": {
         "properties": {
@@ -2850,6 +3237,59 @@
         ],
         "title": "Images"
       },
+      "InstagramCopy": {
+        "properties": {
+          "caption": {
+            "type": "string",
+            "maxLength": 2200,
+            "minLength": 1,
+            "title": "Caption",
+            "description": "Reel caption: a hook line, then #hashtags"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "caption"
+        ],
+        "title": "InstagramCopy"
+      },
+      "InstagramSettings": {
+        "properties": {
+          "share_to_feed": {
+            "type": "boolean",
+            "title": "Share To Feed",
+            "default": true
+          },
+          "account": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account",
+            "description": "Instagram username to post as, when several are linked"
+          },
+          "config_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Config Id",
+            "description": "Facebook Login for Business configuration id, if your app uses one"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "InstagramSettings"
+      },
       "Intro": {
         "properties": {
           "title": {
@@ -2931,6 +3371,67 @@
         ],
         "title": "IntroText"
       },
+      "LinkedInCopy": {
+        "properties": {
+          "commentary": {
+            "type": "string",
+            "maxLength": 2800,
+            "minLength": 1,
+            "title": "Commentary",
+            "description": "The post text; a hook line first; up to 3 #hashtags at the end"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title",
+            "description": "The video's title, shown with the player"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "commentary",
+          "title"
+        ],
+        "title": "LinkedInCopy"
+      },
+      "LinkedInSettings": {
+        "properties": {
+          "organization": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^urn:li:organization:\\d+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization",
+            "description": "Post as this page; otherwise as the signed-in member"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "CONNECTIONS"
+            ],
+            "title": "Visibility",
+            "default": "PUBLIC"
+          },
+          "api_version": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "title": "Api Version",
+            "description": "LinkedIn-Version header (YYYYMM)",
+            "default": "202609"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "LinkedInSettings"
+      },
       "LoginRequest": {
         "properties": {
           "run_id": {
@@ -3007,6 +3508,130 @@
         },
         "type": "object",
         "title": "Note"
+      },
+      "PostCopy": {
+        "properties": {
+          "youtube": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/YouTubeCopy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "linkedin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LinkedInCopy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tiktok": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TikTokCopy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "instagram": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InstagramCopy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "PostCopy",
+        "description": "The words that go out with the video, one block per platform."
+      },
+      "PostResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "waiting",
+              "publishing",
+              "published",
+              "failed"
+            ],
+            "title": "Status",
+            "default": "waiting"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "The platform's id for the post or video"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "Where the post can be seen"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Visibility notes, e.g. private until the app is audited"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
+          }
+        },
+        "type": "object",
+        "title": "PostResult"
       },
       "ProblemScene": {
         "properties": {
@@ -3127,6 +3752,139 @@
         ],
         "title": "ProblemScene"
       },
+      "PublishJob": {
+        "properties": {
+          "platforms": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "youtube",
+                "linkedin",
+                "tiktok",
+                "instagram"
+              ]
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Platforms"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "blocked",
+              "awaiting_approval",
+              "publishing",
+              "published",
+              "partial",
+              "failed"
+            ],
+            "title": "Status",
+            "default": "awaiting_approval"
+          },
+          "posts": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PostCopy"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The copy per platform, written by the `publish` agent"
+          },
+          "failures": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Failures",
+            "description": "Why the job can't be published yet"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "description": "Things that will publish but look off"
+          },
+          "results": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PostResult"
+            },
+            "propertyNames": {
+              "enum": [
+                "youtube",
+                "linkedin",
+                "tiktok",
+                "instagram"
+              ]
+            },
+            "type": "object",
+            "title": "Results",
+            "description": "Per platform, including posts that went live in an earlier job"
+          }
+        },
+        "type": "object",
+        "required": [
+          "platforms"
+        ],
+        "title": "PublishJob",
+        "description": "A run's publishing: which platforms, the copy, the gates' verdict, and what each post became."
+      },
+      "Publishing": {
+        "properties": {
+          "redirect_port": {
+            "type": "integer",
+            "maximum": 65535.0,
+            "minimum": 1024.0,
+            "title": "Redirect Port",
+            "description": "Loopback port for sign-in redirects",
+            "default": 8765
+          },
+          "label_ai": {
+            "type": "boolean",
+            "title": "Label Ai",
+            "description": "Label posts as AI-generated where the platform supports it",
+            "default": true
+          },
+          "youtube": {
+            "$ref": "#/components/schemas/YouTubeSettings",
+            "default": {
+              "privacy": "private",
+              "category_id": "28",
+              "notify_subscribers": false
+            }
+          },
+          "linkedin": {
+            "$ref": "#/components/schemas/LinkedInSettings",
+            "default": {
+              "visibility": "PUBLIC",
+              "api_version": "202609"
+            }
+          },
+          "tiktok": {
+            "$ref": "#/components/schemas/TikTokSettings",
+            "default": {
+              "mode": "draft",
+              "privacy": "SELF_ONLY",
+              "allow_comments": true,
+              "allow_duet": false,
+              "allow_stitch": false
+            }
+          },
+          "instagram": {
+            "$ref": "#/components/schemas/InstagramSettings",
+            "default": {
+              "share_to_feed": true
+            }
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Publishing",
+        "description": "Where and how videos are published. Client ids and secrets come from environment variables only."
+      },
       "RunView": {
         "properties": {
           "id": {
@@ -3195,6 +3953,21 @@
             "type": "boolean",
             "title": "Video",
             "default": false
+          },
+          "subtitles": {
+            "type": "boolean",
+            "title": "Subtitles",
+            "default": false
+          },
+          "publish": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublishJob"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "created_at": {
             "type": "string",
@@ -3563,7 +4336,7 @@
               "$ref": "#/components/schemas/Beat"
             },
             "type": "array",
-            "maxItems": 12,
+            "maxItems": 40,
             "minItems": 2,
             "title": "Beats"
           }
@@ -3816,6 +4589,65 @@
           "fast"
         ],
         "title": "Tiers"
+      },
+      "TikTokCopy": {
+        "properties": {
+          "caption": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Caption",
+            "description": "Caption with 3-5 #hashtags; at most 2200 UTF-16 units"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "caption"
+        ],
+        "title": "TikTokCopy"
+      },
+      "TikTokSettings": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "direct"
+            ],
+            "title": "Mode",
+            "description": "draft: sent to your TikTok inbox to finish in the app; direct: posted straight away",
+            "default": "draft"
+          },
+          "privacy": {
+            "type": "string",
+            "enum": [
+              "PUBLIC_TO_EVERYONE",
+              "MUTUAL_FOLLOW_FRIENDS",
+              "FOLLOWER_OF_CREATOR",
+              "SELF_ONLY"
+            ],
+            "title": "Privacy",
+            "default": "SELF_ONLY"
+          },
+          "allow_comments": {
+            "type": "boolean",
+            "title": "Allow Comments",
+            "default": true
+          },
+          "allow_duet": {
+            "type": "boolean",
+            "title": "Allow Duet",
+            "default": false
+          },
+          "allow_stitch": {
+            "type": "boolean",
+            "title": "Allow Stitch",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TikTokSettings"
       },
       "ValidationError": {
         "properties": {
@@ -4165,6 +4997,68 @@
           "text"
         ],
         "title": "YamlBrief"
+      },
+      "YouTubeCopy": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title",
+            "description": "Video title: what it is and why to watch"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Description",
+            "description": "First two lines carry the hook and the link; then the details. No < or >"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 15,
+            "title": "Tags",
+            "description": "Search tags, without #"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "description"
+        ],
+        "title": "YouTubeCopy"
+      },
+      "YouTubeSettings": {
+        "properties": {
+          "privacy": {
+            "type": "string",
+            "enum": [
+              "private",
+              "unlisted",
+              "public"
+            ],
+            "title": "Privacy",
+            "default": "private"
+          },
+          "category_id": {
+            "type": "string",
+            "pattern": "^\\d+$",
+            "title": "Category Id",
+            "description": "YouTube category; 28 is Science & Technology",
+            "default": "28"
+          },
+          "notify_subscribers": {
+            "type": "boolean",
+            "title": "Notify Subscribers",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "YouTubeSettings"
       }
     }
   }

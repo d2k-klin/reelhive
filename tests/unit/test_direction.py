@@ -11,7 +11,7 @@ from reelhive.agents.reviewer import MAX_REVIEW_ROUNDS, MAX_ZOOM, MIN_TYPE, layo
 from reelhive.core.context import RunContext
 from reelhive.core.events import EventBus
 from reelhive.graphs.production import critic_failed, critic_passed, review_failed
-from reelhive.nodes.timing_node import FINAL_HOLD, LEAD, PACE, TAIL, apply_timing, target_words
+from reelhive.nodes.timing_node import FINAL_HOLD, LEAD, PACE, apply_timing, tail_for, target_words
 from reelhive.schemas.layout import Box, LayoutReport, ShotLayout
 from reelhive.schemas.scene_spec import (
     HookScene,
@@ -35,7 +35,7 @@ def test_holds_and_the_settled_ending_add_still_time_after_the_voice(brief):
     spec = SceneSpec(scenes=hooks(3))
     spec.scenes[1].hold = 2.0
     apply_timing(spec, {i: (f"s{i}", 3.0) for i in (1, 2, 3)}, brief)
-    base = 3.0 + LEAD + TAIL
+    base = 3.0 + LEAD + tail_for(brief)
     first, second, last = (s.duration for s in spec.scenes)
     assert second - first == pytest.approx(2.0, abs=1 / 30)
     assert last - first == pytest.approx(FINAL_HOLD, abs=1 / 30)

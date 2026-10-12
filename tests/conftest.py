@@ -129,38 +129,62 @@ def words(n: int, prefix: str = "") -> str:
     return " ".join([*prefix.split(), *(["word"] * (n - len(prefix.split())))])
 
 
-def make_script(brief: Brief, total_words: int = 141, drop: int | None = None) -> dict[str, Any]:
-    """One beat per key point (note numbers in `covers`); `drop` leaves that note untold."""
-    roles = ["hook", "problem", *(["feature"] * len(brief.features)), "cta"]
-    per = total_words // len(roles)
-    beats = []
-    for i, role in enumerate(roles):
-        note = i - 1 if role == "feature" else None
-        beats.append({"role": role, "narration": words(per), "covers": [note] if note and note != drop else []})
+def beat_notes(brief: Brief, beats: int | None = None) -> list[tuple[str, int | None]]:
+    """(role, key-point note) for each beat, as many beats as the video needs: a hook, a problem when there is room,
+    one beat per note, more feature beats that develop them, and the call to action."""
+    from reelhive.nodes.timing_node import beats_for
+
+    count = beats or beats_for(brief)
+    problem = [("problem", None)] if count >= len(brief.features) + 3 else []
+    told = [("feature", i) for i in range(1, len(brief.features) + 1)]
+    extra = [("feature", None)] * (count - 2 - len(problem) - len(told))
+    return [("hook", None), *problem, *told, *extra, ("cta", None)]
+
+
+def make_script(brief: Brief, total_words: int | None = None, drop: int | None = None) -> dict[str, Any]:
+    """One beat per shot (note numbers in `covers`), hitting the word target; `drop` leaves that note untold."""
+    from reelhive.nodes.timing_node import target_words
+
+    notes = beat_notes(brief)
+    per = -(-(total_words or target_words(brief)) // len(notes))
+    beats = [
+        {"role": role, "narration": words(per), "covers": [note] if note and note != drop else []}
+        for role, note in notes
+    ]
     return {"title": "CostHive launch", "beats": beats}
 
 
-def make_plan(brief: Brief, drop_feature: int | None = None, narration: list[str] | None = None) -> dict[str, Any]:
-    scenes: list[dict[str, Any]] = [
-        {"template": "hook", "headline": "Cloud bills grow silently", "secondary": "Find the waste in minutes"},
-        {"template": "hook", "headline": "Nobody owns the waste"},
-    ]
-    for i, f in enumerate(brief.features, start=1):
-        scenes.append(
-            {
-                "template": "feature-card",
-                "label": f"0{i}",
-                "headline": f[:40],
-                "secondary": f,
-                "covers": [] if i == drop_feature else [i],
-            }
-        )
-    scenes.append(
-        {"template": "cta", "headline": "Try CostHive free on GitHub", "secondary": "github.com/d2k-klin/costhive"}
-    )
+def make_plan(
+    brief: Brief, drop_feature: int | None = None, narration: list[str] | None = None, beats: int | None = None
+) -> dict[str, Any]:
+    scenes: list[dict[str, Any]] = []
+    for n, (role, note) in enumerate(beat_notes(brief, beats or (len(narration) if narration else None)), start=1):
+        if role == "hook":
+            scenes.append({"template": "hook", "headline": "Cloud bills grow silently", "secondary": "Find the waste"})
+        elif role == "problem":
+            scenes.append({"template": "hook", "headline": "Nobody owns the waste"})
+        elif role == "cta":
+            scenes.append(
+                {
+                    "template": "cta",
+                    "headline": "Try CostHive free on GitHub",
+                    "secondary": "github.com/d2k-klin/costhive",
+                }
+            )
+        else:
+            text = brief.features[note - 1] if note else f"Point {n}"
+            scenes.append(
+                {
+                    "template": "feature-card",
+                    "label": f"{n:02d}",
+                    "headline": text[:40],
+                    "secondary": text,
+                    "covers": [] if note is None or note == drop_feature else [note],
+                }
+            )
     if narration:
-        for s, n in zip(scenes, narration, strict=True):
-            s["narration"] = n
+        for s, line in zip(scenes, narration, strict=True):
+            s["narration"] = line
     return {"intro": {"title": "CostHive", "tagline": "Find and fix cloud waste"}, "scenes": scenes}
 
 

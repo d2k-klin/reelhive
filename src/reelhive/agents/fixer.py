@@ -6,11 +6,11 @@ from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode
 from reelhive.nodes.timing_node import (
     LEAD,
-    TAIL_MIN,
     available_seconds,
     holds,
     intro_seconds,
     place_urls,
+    tail_for,
     target_words,
 )
 from reelhive.schemas.scene_spec import Intro
@@ -21,7 +21,7 @@ def fit_words(ctx: RunContext) -> int:
     assert ctx.spec
     if not ctx.narrated:
         return target_words(ctx.brief)
-    padding = len(ctx.spec.scenes) * (LEAD + TAIL_MIN) + sum(holds(ctx.spec).values())
+    padding = len(ctx.spec.scenes) * (LEAD + tail_for(ctx.brief)) + sum(holds(ctx.spec).values())
     speech = available_seconds(ctx.brief, intro_seconds(ctx.spec)) - padding
     return max(10, round(min(speech * voice_wpm(ctx.spec, ctx.narrated) / 60, target_words(ctx.brief) * 1.15)))
 

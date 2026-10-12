@@ -22,8 +22,13 @@ from reelhive.schemas.scene_spec import (
 # room for the picture (short showcase cuts); `balanced` is the classic narrated explainer.
 PACE = {"slow": (100, 135, 115), "balanced": (130, 170, 145), "fast": (145, 175, 160)}
 SPEECH_WPM = 161  # measured Kokoro rate at speed 1.0 (docs/plan.md, M1 notes)
+# How long one shot stays on screen, per brief `pacing`: (average to aim for, longest allowed) in seconds. The
+# picture changes with every beat, so a beat is one short idea; a screen held much longer reads as a slideshow.
+SHOT = {"slow": (5.5, 8.0), "balanced": (4.5, 7.0), "fast": (4.0, 6.0)}
+MAX_BEATS = 40
 LEAD = 0.3  # silence before the voice starts in each scene (covers the fade-in)
-TAIL = 0.7  # breathing room after the voice
+# Breathing room after the voice, per pacing: a natural pause between sentences, shorter when the cut is quick.
+TAILS = {"slow": 0.6, "balanced": 0.5, "fast": 0.35}
 TAIL_MIN = 0.3
 MAX_EXTRA = 3.0  # most padding added per scene before we'd rather lengthen the script
 FINAL_HOLD = 1.0  # the closing frame settles this long after the last words, before the credit
@@ -50,18 +55,30 @@ def place_urls(spec: SceneSpec, brief: Brief) -> None:
         closing.text.url = display_url(brief.cta_url or brief.website)
 
 
+def tail_for(brief: Brief) -> float:
+    return TAILS[brief.pacing]
+
+
 def available_seconds(brief: Brief, intro: float = INTRO_SECONDS) -> float:
     """Seconds left for scenes once the intro and the end credit are counted into the target."""
     credit = credit_for(brief)
     return brief.duration - intro - (credit.duration if credit else 0.0)
 
 
+def beats_for(brief: Brief) -> int:
+    """Beats (and so shots) for the script: the time for scenes divided by the pacing's average shot, at least one
+    per key point plus a hook and a call to action."""
+    available = available_seconds(brief) - FINAL_HOLD
+    return max(len(brief.features) + 2, 4, min(MAX_BEATS, round(available / SHOT[brief.pacing][0])))
+
+
 def target_words(brief: Brief) -> int:
     """Words for the whole script. Short videos are capped so the voice plus each scene's minimum
     padding still fits the target (found by the M4 evals: 15-20s briefs overran by 6-8%)."""
     available = available_seconds(brief)
-    scenes = len(brief.features) + 3  # hook, problem, one per feature, cta
-    fits = (available - scenes * (LEAD + TAIL_MIN) - FINAL_HOLD) * SPEECH_WPM * brief.voice.speed / 60
+    scenes = beats_for(brief)
+    # Each scene's normal pause, not its minimum: with many short shots, squeezing every pause is no margin at all.
+    fits = (available - scenes * (LEAD + tail_for(brief)) - FINAL_HOLD) * SPEECH_WPM * brief.voice.speed / 60
     return round(min(available * PACE[brief.pacing][2] / 60, fits))
 
 
@@ -84,7 +101,8 @@ def apply_timing(
     opening = intro_seconds(spec)
     available = available_seconds(brief, opening)
     settle = holds(spec)
-    base = [narrated[s.index][1] + LEAD + TAIL + settle[s.index] for s in spec.scenes]
+    tail = tail_for(brief)
+    base = [narrated[s.index][1] + LEAD + tail + settle[s.index] for s in spec.scenes]
     flexible = sum(s.duration_override is None for s in spec.scenes)
     gap = available - sum(
         s.duration_override if s.duration_override is not None else length
@@ -93,7 +111,7 @@ def apply_timing(
     if gap >= 0:
         delta = min(MAX_EXTRA, gap / max(1, flexible))
     else:
-        delta = -min(TAIL - TAIL_MIN, -gap / max(1, flexible))
+        delta = -min(tail - TAIL_MIN, -gap / max(1, flexible))
     lengths = {s.index: length for s, length in zip(spec.scenes, base, strict=True)}
     end = 0.0
     for item in spec.timeline():

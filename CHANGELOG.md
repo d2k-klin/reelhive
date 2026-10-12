@@ -7,7 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-12
+
 ### Added
+- **Publishing** to YouTube, LinkedIn, TikTok and Instagram Reels, from your machine with your own developer apps
+  and accounts (`reelhive connect`, `accounts`, `disconnect`, `publish`, and a Publish panel in the studio). Two
+  Strands graphs with a human approval between them: `ready -> publish` drafts the copy per platform (held to each
+  platform's limits by a per-run output model), and `ready -> post_<platform>` posts to every chosen platform in
+  parallel. `ready` gates credentials, sign-ins and each platform's video rules before any model call or upload; a
+  platform that fails doesn't stop the others, one already live is never posted twice, and an interrupted upload is
+  never retried silently. Sign-in is OAuth with a loopback redirect, state and PKCE; tokens stay in
+  `~/.reelhive/accounts`, owner-only. The subtitles go up as captions on YouTube and LinkedIn, and posts are
+  labelled AI-generated where the platform supports it (`publishing.label_ai`). See docs/publishing.md.
+- **Sound design.** A `sound` agent between `review` and `master` may add a few quiet effects (whoosh, swish, click,
+  pop, chime, low impact; a CC0 library synthesized by `scripts/make_sfx.py`), only on moments the renderer reported
+  from its own clock (cuts, entrances landing, the camera closing in) and only with an effect that suits the moment.
+  The budget (one per started half minute, at most 3), spacing (5 s) and levels under the voice are validators the
+  model must satisfy; none is a valid answer, and often the right one. `sound_effects: false` turns it off.
+- **Your own video clips** as scene visuals: MP4, MOV, M4V or WebM in the media folder or uploaded in the studio
+  (up to 200 MB). The planner picks a clip by its exact name from its caption, length and size; the resolver
+  normalizes it once (H.264, 30 fps, muted, never enlarged, phone rotation applied) and the renderer plays it in the
+  device frame, holding the last frame if the scene runs longer.
+- **Subtitle files.** Every narrated video gets `video.srt`, `video.vtt` and a selectable subtitle track in the MP4,
+  with the same phrases as the burned-in captions (contract-tested against the renderer). Downloads in the studio.
+- The layout report now carries each shot's moments (`Moment`: cut, arrive, focus) as well as its geometry.
+- **Shorter shots.** The picture now changes about every 4.5 s (balanced; 5.5 s slow, 4 s fast) instead of once per
+  key point (about 9-10 s in a 60-second video). The script has one short beat per shot (`beats_for()`: the time for
+  scenes over the pacing's average shot), enforced by the script writer's per-run output model, and a new
+  `shot_length` hard check fails any screen held longer than the pacing allows (7 s balanced) or a slow average; `fix`
+  splits those scenes at sentence boundaries.
 - `documents`: PDFs and slide decks as sources. Research reads their text; their pages become scene images the
   planner can pick by name. Upload them in the studio (up to 50 MB each).
 - `context`: free-text extra info (facts, pricing, release notes) for every agent and for research.
@@ -30,6 +58,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with depth, a camera that closes in on regions, a drifting backdrop, a counting stat, and the bundled Inter font.
 
 ### Changed
+- `master` mixes narration, ducked music and sound effects, and writes the subtitles.
+- The pause after each beat follows pacing (`TAILS`: 0.6 / 0.5 / 0.35 s, was 0.7 s for all), the word target
+  budgets each scene's normal pause, and pace no longer counts the pause between beats as silence.
+- Scripts and high-level briefs take up to 40 beats or scenes (was 12).
+- `probe()` reports a clip's display size with its rotation applied.
+- Studio uploads accept clips; the upload request limit is 201 MB on `/api/uploads` only.
+- `httpx` is a direct dependency (the platform APIs).
 - The TTS interface returns a `Speech` (length and timed words) instead of seconds.
 - `render` is split into `render` (silent cut and layout report), `review` and `master` (audio mix and mux).
 - The intro follows an opening hook (a cold open) instead of always playing first (`SceneSpec.intro_at`).

@@ -21,6 +21,7 @@ from reelhive import __version__
 from reelhive.config import REPO_ROOT, Config, load_config
 from reelhive.core.workspace import RunView, Workspace
 from reelhive.schemas.brief import Brief, Screenshots
+from reelhive.schemas.publish import Platform, PostCopy, PublishJob
 from reelhive.schemas.scene_spec import SceneSpec
 from reelhive.schemas.script import Script
 from reelhive.schemas.voice import Voice
@@ -47,6 +48,14 @@ class CaptureRequest(BaseModel):
     run_id: str
     screenshots: Screenshots
     format: Literal["16:9", "9:16", "1:1"]
+
+
+class DraftPosts(BaseModel):
+    platforms: list[Platform] = Field(min_length=1, max_length=4)
+
+
+class Approve(BaseModel):
+    confirm: Literal[True] = Field(description="The user confirmed posting this copy publicly under their accounts")
 
 
 class LoginRequest(BaseModel):
@@ -91,6 +100,7 @@ def create_app(
     def health():
         return {
             "status": "ok",
+            "version": __version__,
             "credit_disabled": os.getenv("REELHIVE_DISABLE_CREDIT", "").lower() in {"true", "1", "yes"},
         }
 
@@ -323,6 +333,40 @@ def create_app(
     ):
         data = await file.read(clips.MAX_BYTES + 1)  # clips; documents are held to 50 MB and images to 10 MB
         return await asyncio.to_thread(ws.upload, run_id, data, file.filename or "", caption, logo)
+
+    @app.get("/api/publish/accounts")
+    def publish_accounts():
+        return ws.accounts()
+
+    @app.post("/api/publish/accounts/{platform}/connect")
+    def connect(platform: Platform):
+        return ws.connect_start(platform)
+
+    @app.get("/api/publish/connect/{key}")
+    def connect_status(key: str):
+        return ws.connect_status(key)
+
+    @app.delete("/api/publish/accounts/{platform}", status_code=204)
+    def disconnect(platform: Platform):
+        ws.disconnect(platform)
+
+    @app.get("/api/runs/{run_id}/publish", response_model=PublishJob | None)
+    def publish_job(run_id: str):
+        return ws.service(run_id).publish_job(ws.path(run_id))
+
+    @app.post("/api/runs/{run_id}/publish/draft", status_code=202)
+    def draft_posts(run_id: str, value: DraftPosts):
+        ws.draft_posts(run_id, value.platforms)
+        return {"ok": True}
+
+    @app.put("/api/runs/{run_id}/publish/posts", response_model=PublishJob)
+    def save_posts(run_id: str, posts: PostCopy):
+        return ws.save_posts(run_id, posts)
+
+    @app.post("/api/runs/{run_id}/publish", status_code=202)
+    def publish(run_id: str, value: Approve):
+        ws.publish(run_id)
+        return {"ok": True}
 
     @app.post("/api/capture/test", response_model=list[str])
     def capture(value: CaptureRequest):

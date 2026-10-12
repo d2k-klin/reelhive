@@ -6,20 +6,21 @@
 
 | Path | What it is |
 | --- | --- |
-| [`cli.py`](cli.py) | Typer CLI: `init`, `run`, `approve`, `approve-scenes`, `regen`, `resume`, `preview`, `ui`, `doctor`, `voices`, `login`, `capture`, `models`, `eval`, `suggest`. Parses arguments, prints progress, calls the service. No logic of its own. |
-| [`config.py`](config.py) | `config.yaml` model (provider, models per tier, per-node overrides, image generation) and `REPO_ROOT`. |
+| [`cli.py`](cli.py) | Typer CLI: `init`, `run`, `approve`, `approve-scenes`, `regen`, `resume`, `preview`, `ui`, `doctor`, `voices`, `login`, `capture`, `models`, `eval`, `suggest`, `publish`, `connect`, `accounts`, `disconnect`. Parses arguments, prints progress, calls the service. No logic of its own. |
+| [`config.py`](config.py) | `config.yaml` model (provider, models per tier, per-node overrides, image generation, publishing) and `REPO_ROOT`. |
 | [`levels.py`](levels.py) | What each customization level fills from defaults and where it pauses for approval. |
 | [`doctor.py`](doctor.py) | The checks behind `reelhive doctor` (Python, Node, browsers, ffmpeg, espeak-ng, Kokoro, keys, Copilot, credit). |
 | [`core/`](core) | The service, the workspace (jobs for the UI), the run context with checkpoints, and the event stream. Start reading here. |
 | [`server/`](server) | The loopback-only FastAPI app behind `reelhive ui`. |
-| [`graphs/`](graphs) | The draft and production Strands graphs: just topology. |
+| [`graphs/`](graphs) | The draft, production and publishing Strands graphs: just topology. |
 | [`nodes/`](nodes) | Deterministic graph nodes plus the `FunctionNode` / `AgentNode` base classes. |
-| [`agents/`](agents) | LLM nodes (script, scenes, music, critic, fix) and the on-demand `suggest` agent, with their prompts. |
-| [`schemas/`](schemas) | Pydantic models: the brief, the script and the scene spec (the render contract). |
+| [`agents/`](agents) | LLM nodes (research, script, scenes, music, critic, fix, review, sound, publish) and the on-demand `suggest` agent, with their prompts. |
+| [`schemas/`](schemas) | Pydantic models: the brief, the script, the scene spec (the render contract), the layout report and publishing. |
 | [`providers/`](providers) | Which model runs each agent: Claude, Bedrock, OpenAI, Ollama, or GitHub Copilot. |
-| [`visuals/`](visuals) | Provided images, Playwright screenshots, login, image generation and the per-scene resolver. |
-| [`audio/`](audio) | TTS, the music library and the ffmpeg mixer. |
-| [`render/`](render) | The bridge that runs the Node renderer and streams its progress. |
+| [`visuals/`](visuals) | Provided images and clips, Playwright screenshots, login, image generation and the per-scene resolver. |
+| [`audio/`](audio) | TTS, the music and sound-effect libraries and the ffmpeg mixer. |
+| [`render/`](render) | The bridge that runs the Node renderer and streams its progress, the frame stills, and the subtitle files. |
+| [`publish/`](publish) | Publishing to YouTube, LinkedIn, TikTok and Instagram: accounts, sign-in and one adapter per platform. |
 
 ## How a run flows
 
@@ -27,7 +28,8 @@
 cli.py ───────────────────────────────┐
 server/app.py ─► core/workspace.py ───┴─► core/service.py ─┬─► graphs/draft.py       brief ─► script
                                                            └─► graphs/production.py  scenes, visuals, narrate, music ─► timing
-                                                                                     ─► critic ─► [fix ─► recheck] ─► render
+                                                                                     ─► critic ─► [fix ─► recheck] ─► render ─► review ─► sound ─► master
+                                                           └─► graphs/publish.py     ready ─► publish (copy) │ approval │ ready ─► post_<platform> ×4
 every node ─► core/events.py ─► terminal, UI (server-sent events), run.log.jsonl
 ```
 

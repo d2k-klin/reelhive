@@ -62,3 +62,5 @@ See the illustrated [UI user guide](ui-guide.md) for launch options and the comp
 | `reelhive suggest <run> --beat N [--apply K]` | Quick-action suggestions for one beat or scene; apply one |
 | `reelhive undo <run> --scene N \| --script` | Restore the previous version after a regeneration |
 | `reelhive eval --providers a,b` | Compare providers on the eval set |
+| `reelhive connect <platform>` / `reelhive accounts` / `reelhive disconnect <platform>` | Sign in to YouTube, LinkedIn, TikTok or Instagram for publishing; see who is signed in |
+| `reelhive publish <run> --to youtube,linkedin` | Draft the posts for a finished video, show them, and publish after you confirm ([publishing.md](publishing.md)) |

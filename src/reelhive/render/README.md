@@ -8,7 +8,10 @@
 | --- | --- |
 | [`bridge.py`](bridge.py) | `render(spec, out, on_progress)`: runs `node_modules/.bin/tsx render.ts <spec> <out>` in `renderer/` with `DISABLE_TELEMETRY=true`, parses `progress <0..1>` lines into `on_progress`, and keeps the last 40 output lines for `RenderError`. |
 
-The output is a **silent** MP4. `nodes/render_node.py` then mixes and muxes the audio with `audio/mixer.py`.
+| [`frames.py`](frames.py) | `keyframes()`: one settled still per shot for the opt-in frame review. |
+| [`subtitles.py`](subtitles.py) | `cues()` builds the same short phrases the renderer burns in, from the same word timings; `srt()`, `vtt()` and `write()` make `video.srt` and `video.vtt`. The phrasing constants are contract-tested against `renderer/src/components/captions.tsx`. |
+
+The output is a **silent** MP4. `nodes/master_node.py` then mixes and muxes the audio with `audio/mixer.py`, and writes the subtitles with `subtitles.py`.
 
 ## Extending
 

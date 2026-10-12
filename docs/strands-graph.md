@@ -65,3 +65,15 @@ A graph runs to completion, so a human pause can't live inside one. The draft gr
 ## Structured output and repair
 
 `Agent.invoke_async(..., structured_output_model=Model)` registers a tool built from the Pydantic model. Validation errors go back to the model as a tool error, so it retries within the same call. ReelHive adds one more explicit repair turn if that still fails, and then fails the node. Template character limits are enforced in a `model_validator`, so a headline that's too long is fixed by the model, not truncated by us.
+
+## Output models built per run
+
+Sometimes the valid answers depend on the run. The `sound` node may only choose a moment the renderer reported and an effect from the library, and the `publish` node must write one block for each platform the user picked. Both build their output model in `execute`, before calling the agent: closed sets become `Literal` fields, and the rules (budget, spacing, levels under the voice, each platform's limits) become `model_validator`s. Strands registers the model as the structured-output tool, so a plan that breaks a rule comes back to the model as a tool error and is repaired within the same call. Nothing is clamped or truncated afterwards, and the Copilot path gets the same model, because it reads `node.output` from the instance.
+
+## Branches that must not fail together
+
+The publishing graph fans out from `ready` to one `post_<platform>` node per platform. They are independent, so each one catches its own failure, records it in the job, and completes. A raised exception would fail the whole graph and stop the others mid-upload. Each node saves the job (`publish/job.json`) the moment its post lands, so a crash never forgets a live post, and a node whose platform is already published returns at once. Retrying is safe: run the same graph again.
+
+## A gate on both sides of a human
+
+Publishing is two graphs with a person in between: `ready -> publish` drafts, the user approves, and `ready -> post_*` posts. `ready` runs in both graphs, because accounts and settings can change while the draft waits for approval. It's the same pattern as `critic` and `review`: the cheapest deterministic check runs first, and a failed gate ends the graph with no node ready. No model is called and nothing is sent.

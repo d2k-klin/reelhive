@@ -9,7 +9,10 @@
 | [`brief.py`](brief.py) | `Brief`, `Voice`, `Brand`, `Visuals` (`Screenshots`, `Images`, `Generate`) | User input. `extra="forbid"`: a typo is an error. Shortcuts like `visuals: {url: ...}` expand here. |
 | [`script.py`](script.py) | `Script`, `Beat` (each beat lists the key-point notes it tells in `covers`) | The draft graph's output; what a medium or high user edits before `approve`. |
 | [`voice.py`](voice.py) | `Voice` | Gender, accent, speed; shared by the brief and per-scene `voice_override`. |
-| [`scene_spec.py`](scene_spec.py) | `SceneSpec`, one scene class per template (8), `Theme`, `Credit`, `VisualRequest`, `VisualAsset` | **The render contract.** At `high` the brief carries a list of these scenes directly, with `duration_override`, `voice_override` and `image_approved`. Character limits live here as `max_length`. `FORMATS`, `CREDIT_TEXT` and `TEMPLATES` too. |
+| [`scene_spec.py`](scene_spec.py) | `SceneSpec`, one scene class per template (8), `Theme`, `Credit`, `VisualRequest` (an image, route, region or `clip`), `VisualAsset` (an image, or a `video` clip with its length and size), `SoundCue` | **The render contract.** At `high` the brief carries a list of these scenes directly, with `duration_override`, `voice_override` and `image_approved`. Character limits live here as `max_length`. `FORMATS`, `CREDIT_TEXT` and `TEMPLATES` too. |
+
+| [`layout.py`](layout.py) | `LayoutReport`, `ShotLayout`, `Box`, `Moment` | What the renderer measured per shot (for the `review` gates) and the moments it timed (cuts, landings, close-ups) that the `sound` node may score. |
+| [`publish.py`](publish.py) | `PostCopy` (one copy model per platform, with its limits), `PublishJob`, `PostResult` | Publishing: what the `publish` agent writes and the user edits, and what each post became (`publish/job.json`). |
 
 ## The render contract
 

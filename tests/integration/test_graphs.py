@@ -43,7 +43,7 @@ def test_pass_path_renders_a_video(config, brief):
     assert info["has_subtitles"] and (result.run_dir / "video.srt").read_text().startswith("1\n00:00:")
     assert info["duration"] == pytest.approx(brief.duration, rel=0.05)
     assert sorted(model.calls) == ["MusicChoice", "ScenePlan", "Script", "Verdict"]
-    assert len(tts.calls) == 6
+    assert len(tts.calls) == len(make_script(brief)["beats"])  # one voiced beat per shot
 
     started = [d["node"] for d in of_type(events, "node.started")]
     assert started[:3] == ["brief", "research", "script"]  # research is skipped without a website
@@ -67,7 +67,8 @@ def test_pass_path_renders_a_video(config, brief):
 def test_hard_check_failure_takes_the_fix_path(config, brief):
     script = make_script(brief, drop=1)  # the writer forgot key point 1
     fixed_narration = [b["narration"] for b in script["beats"]]
-    fixed_narration[2] = words(23, "now telling the first key point")  # the fixer weaves it into scene 3
+    told = next(i for i, b in enumerate(script["beats"]) if b["role"] == "feature")  # where note 1 should have been
+    fixed_narration[told] = words(len(fixed_narration[told].split()), "now telling the first key point")
     svc, model, tts = service(
         config,
         {
@@ -84,8 +85,8 @@ def test_hard_check_failure_takes_the_fix_path(config, brief):
     assert {(d["node"], d["check"]) for d in gates if not d["passed"]} == {("critic", "features")}
     assert all(d["passed"] for d in gates if d["node"] == "recheck")
     diff = of_type(events, "fix.diff")[0]["changes"]
-    assert [c["scene"] for c in diff] == [3]
-    assert len(tts.calls) == 7  # six beats + the one re-voiced scene
+    assert [c["scene"] for c in diff] == [told + 1]
+    assert len(tts.calls) == len(script["beats"]) + 1  # every beat + the one re-voiced scene
     assert of_type(events, "node.skipped") == []
 
 
@@ -127,7 +128,7 @@ def test_disabling_the_credit_keeps_the_metadata_tag(config, brief, monkeypatch)
     svc, _, _ = service(
         config,
         {
-            "Script": make_script(brief, total_words=145),
+            "Script": make_script(brief),  # sized for the time the missing credit gives back
             "ScenePlan": make_plan(brief),
             "MusicChoice": MUSIC,
             "Verdict": VERDICT_PASS,
@@ -144,7 +145,8 @@ def test_node_errors_fail_the_run(config, brief):
     plan["scenes"].pop()  # one scene short of the beats
     svc, _, _ = service(config, {"Script": make_script(brief), "ScenePlan": plan, "MusicChoice": MUSIC})
     events = []
-    with pytest.raises(Exception, match="returned 5 scenes for 6 beats"):
+    beats = len(make_script(brief)["beats"])
+    with pytest.raises(Exception, match=f"returned {beats - 1} scenes for {beats} beats"):
         svc.run(brief, on_event=events.append)
     assert of_type(events, "run.finished")[0]["status"] == "failed"
 
@@ -200,7 +202,7 @@ def test_the_intro_follows_the_hook_and_the_address_shows_twice(config, brief):
     assert spec["intro_at"] == 1 and spec["scenes"][0]["start"] == 0.0
     assert spec["scenes"][1]["start"] == pytest.approx(spec["scenes"][0]["duration"] + 3.0, abs=1 / 30)
     assert spec["scenes"][-1]["text"]["url"] == "costhive.dev/pricing"
-    assert len(tts.calls) == 6  # the intro has no narration
+    assert len(tts.calls) == len(spec["scenes"])  # the intro has no narration
     assert probe(result.video)["duration"] == pytest.approx(brief.duration, rel=0.05)
     assert any(d["task"] == "Intro: CostHive" for d in of_type(events, "node.task"))
 

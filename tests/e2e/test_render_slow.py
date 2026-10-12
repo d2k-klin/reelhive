@@ -5,7 +5,7 @@ import pytest
 from reelhive.audio import mixer
 from reelhive.audio.music_library import pick_track
 from reelhive.audio.tts.kokoro import KokoroTTS
-from reelhive.nodes.timing_node import LEAD, TAIL
+from reelhive.nodes.timing_node import LEAD, TAILS
 from reelhive.render.bridge import render
 from reelhive.schemas.scene_spec import CREDIT_TEXT, Credit, CtaScene, CtaText, SceneSpec
 
@@ -22,7 +22,7 @@ def test_one_scene_renders_with_voice_music_and_credit(tmp_path):
     starts = [w.start for w in speech.words]
     assert starts == sorted(starts) and speech.words[-1].end <= seconds
 
-    duration = round(seconds + LEAD + TAIL, 2)
+    duration = round(seconds + LEAD + TAILS["balanced"], 2)
     spec = SceneSpec(
         duration=duration + 1.5,
         scenes=[

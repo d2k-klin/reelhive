@@ -79,3 +79,29 @@ def test_loopback_bind_validation():
         assert "127.0.0.1" in str(error)
     else:
         raise AssertionError("non-loopback bind was accepted")
+
+
+def test_publishing_api_needs_explicit_approval_and_never_returns_tokens(tmp_path, monkeypatch):
+    from reelhive.publish import accounts
+    from reelhive.publish.accounts import Account
+
+    monkeypatch.setenv("REELHIVE_HOME", str(tmp_path / "home"))
+    accounts.save(Account(platform="youtube", name="CostHive", id="UC1", access_token="secret-token"))
+    workspace = Workspace(Config(runs_dir=tmp_path / "runs"))
+    run = workspace.create(sample_brief(), start=False)
+    origin = {"origin": "http://127.0.0.1"}
+    with TestClient(create_app(workspace=workspace, token="t"), base_url="http://127.0.0.1") as client:
+        listed = client.get("/api/publish/accounts?token=t")
+        assert listed.status_code == 200 and "secret-token" not in listed.text
+        assert next(a for a in listed.json() if a["platform"] == "youtube")["account"]["name"] == "CostHive"
+        # Posting is public: the request must carry the user's confirmation.
+        assert client.post(f"/api/runs/{run.id}/publish?token=t", headers=origin, json={}).status_code == 422
+        refused = client.post(f"/api/runs/{run.id}/publish?token=t", headers=origin, json={"confirm": True})
+        assert refused.status_code == 422 and "draft" in refused.text
+        draft = client.post(
+            f"/api/runs/{run.id}/publish/draft?token=t", headers=origin, json={"platforms": ["youtube"]}
+        )
+        assert draft.status_code == 422 and "expected done" in draft.text  # only a finished video is published
+        assert client.post("/api/publish/accounts/myspace/connect?token=t", headers=origin).status_code == 422
+        assert client.delete("/api/publish/accounts/youtube?token=t", headers=origin).status_code == 204
+    assert accounts.load("youtube") is None

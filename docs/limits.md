@@ -8,11 +8,12 @@ Values below are enforced by the code, so a brief outside them is rejected with 
 | --- | --- |
 | Duration | 15 to 180 seconds (default 60). The 3-second intro and the end credit card (1.5 s) count toward the target |
 | Duration accuracy | The finished video must land within ±5% of the target (for example 171-189 s for 180 s), or the critic repairs it |
-| Narration pace | By `pacing`: `slow` 100-135, `balanced` 130-170, `fast` 145-175 words per minute, not counting the intro, credit or planned holds; the floor lowers for a slower voice |
+| Narration pace | By `pacing`: `slow` 100-135, `balanced` 130-170, `fast` 145-175 words per minute, not counting the intro, credit, planned holds or the short pause between beats; the floor lowers for a slower voice |
+| Shot length | By `pacing`, the average time a screen stays up and the longest any may: `slow` 5.5 s / 8 s, `balanced` 4.5 s / 7 s, `fast` 4 s / 6 s. A scene whose length you set yourself (`duration_override`) is exempt |
 | Hold | 0 to 3 seconds of stillness after a scene's voice; the closing scene always settles for 1 second |
 | Captions | Phrases of up to 4 words or 28 characters, broken after punctuation; the band takes 16% of the frame's short side |
 | Review repair rounds | 2 after the first failed review; then the run stops with the report |
-| Scenes | 2 to 12 beats per script; at most 12 scenes in a high-level brief |
+| Scenes | One beat per shot: the time for scenes divided by the pacing's average shot (at least one per key point, plus a hook and a call to action), 2 to 40 beats; at most 40 scenes in a high-level brief |
 | Key points | 1 to 8 per brief |
 | Scene length override | 0.5 to 180 seconds |
 | Voice speed | 0.8 to 1.2 |
@@ -57,7 +58,8 @@ On top of the character limits:
 
 | Limit | Value |
 | --- | --- |
-| Upload formats | PNG, JPEG, WebP |
+| Upload formats | PNG, JPEG, WebP; clips as MP4, MOV, M4V, WebM |
+| Clips | Up to 200 MB; the first 60 seconds are used, muted. At least 720 px on the short side, either orientation; never enlarged |
 | Upload size | 10 MB and 30 megapixels per image (re-encoded on save); requests over 11 MB are refused |
 | Minimum scene image size | 1280×720 for `16:9`, 720×1280 for `9:16`, 720×720 for `1:1` |
 | Screenshot routes | Up to 10; with none given, up to 10 same-origin pages are discovered |
@@ -66,6 +68,19 @@ On top of the character limits:
 | Page load | 30 seconds per page; images must finish loading within 10 seconds |
 | Sign-in window | 10 minutes to finish signing in |
 | Generated images | 0 to 20 per run (default 6); failed attempts count, and product UI is never generated |
+
+## Sound effects
+
+| Limit | Value |
+| --- | --- |
+| Effects per video | One per started half minute, at most 3 (15-29 s: 1; 30-59 s: 2; 60 s and longer: 3); none is a valid answer |
+| Spacing | At least 5 seconds apart |
+| Level | -30 to -10 dB; at most -20 dB where it overlaps the voice, -24 dB when its peak lands on a word |
+| Placement | Only on moments the renderer reported (a cut, an entrance landing, the camera closing in), with an effect that suits it |
+
+## Publishing
+
+Per-platform video and copy limits are in [publishing.md](publishing.md#limits).
 
 ## Runs and providers
 

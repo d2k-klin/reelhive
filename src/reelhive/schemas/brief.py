@@ -116,7 +116,7 @@ class Brief(Options):
     )
     visuals: Visuals = Visuals()
 
-    scenes: list[Scene] | None = Field(None, min_length=1, max_length=12)
+    scenes: list[Scene] | None = Field(None, min_length=1, max_length=40)
     music_track: str | None = None
     music_volume: float = Field(0.3, ge=0, le=1)
     captions: bool = Field(

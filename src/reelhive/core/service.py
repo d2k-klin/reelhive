@@ -21,6 +21,7 @@ from reelhive.graphs.production import FINISHING, build_production_graph
 from reelhive.graphs.production import NODES as PRODUCTION_NODES
 from reelhive.levels import LEVELS
 from reelhive.schemas.brief import Brief
+from reelhive.schemas.publish import Platform, PostCopy, PostResult, PublishJob
 from reelhive.schemas.scene_spec import SceneSpec
 from reelhive.schemas.script import Script
 
@@ -70,6 +71,7 @@ class Service:
         *,
         spec_only: bool = False,
         image_generator: Any = None,
+        http: Any = None,
     ) -> None:
         self.config = config
         self._models = models
@@ -77,6 +79,7 @@ class Service:
         self._renderer = renderer
         self.spec_only = spec_only
         self.image_generator = image_generator
+        self.http = http  # an httpx.Client for publishing; None makes a real one per platform
 
     def _dependencies(self) -> None:
         if self._models is None:
@@ -115,6 +118,7 @@ class Service:
             config=self.config,
             spec_only=self.spec_only,
             image_generator=self.image_generator,
+            http=self.http,
         )
 
     @staticmethod
@@ -435,6 +439,106 @@ class Service:
         finally:
             spec_path.unlink(missing_ok=True)
         return out
+
+    # Publishing: copy is drafted by one graph and posted by another, after the user approves it.
+
+    @staticmethod
+    def _publish_context(ctx: RunContext, nodes: list[str]) -> None:
+        """Publishing nodes run again on every request (a later job may pick other platforms)."""
+        ctx.completed.difference_update(nodes)
+
+    def draft_posts(
+        self, run_dir: Path, platforms: list[Platform], on_event: Callable[[Event], None] | None = None
+    ) -> PublishJob:
+        """Check the chosen platforms and draft the copy for each; nothing is posted."""
+        from reelhive.graphs.publish import COPY_NODES, build_copy_graph
+
+        run_dir = run_dir.resolve()
+        self.require_status(run_dir, {"done"})
+        ctx = self.load(run_dir, on_event)
+        previous = self.publish_job(run_dir)
+        if previous and previous.status == "publishing":
+            raise ValueError("this run is being published; wait for it to finish")
+        ctx.publish = PublishJob(platforms=platforms)
+        if previous:  # keep what is already live, so it is never posted twice
+            ctx.publish.results = {p: r for p, r in previous.results.items() if r.status == "published"}
+        self._publish_context(ctx, list(COPY_NODES))
+        asyncio.run(build_copy_graph().invoke_async("Draft the posts", {"ctx": ctx}))
+        job = ctx.publish
+        job.status = "blocked" if job.failures or job.posts is None else "awaiting_approval"
+        ctx.save_publish()
+        ctx.events.emit(
+            "publish.drafted", platforms=job.platforms, status=job.status, failures=job.failures, warnings=job.warnings
+        )
+        return job
+
+    def publish_job(self, run_dir: Path) -> PublishJob | None:
+        """The run's publishing job. One left `publishing` with no process holding its lock was interrupted: posts
+        caught mid-upload are marked failed, since only the platform knows whether they went through."""
+        path = run_dir / "publish" / "job.json"
+        if not path.is_file():
+            return None
+        job = PublishJob.model_validate_json(path.read_text())
+        if job.status == "publishing" and not (run_dir / ".publish.lock").exists():
+            for result in job.results.values():
+                if result.status == "publishing":
+                    result.status = "failed"
+                    result.error = "interrupted during upload: check the platform before publishing again"
+            job.settle()
+            if job.status == "publishing":
+                job.status = "failed"
+        return job
+
+    def save_posts(self, run_dir: Path, posts: PostCopy) -> PublishJob:
+        """The user's edits to the drafted copy, held to the same platform limits."""
+        job = self.publish_job(run_dir)
+        if job is None or job.posts is None:
+            raise ValueError("draft the posts first")
+        if job.status == "publishing":
+            raise ValueError("this run is being published; wait for it to finish")
+        job.posts = posts
+        job = PublishJob.model_validate(job.model_dump())  # copy must still match the chosen platforms
+        temporary = run_dir / "publish" / "job.tmp"
+        temporary.write_text(job.model_dump_json(indent=2))
+        temporary.replace(run_dir / "publish" / "job.json")
+        return job
+
+    def publish(self, run_dir: Path, on_event: Callable[[Event], None] | None = None) -> PublishJob:
+        """Post the approved copy to every chosen platform that isn't live yet, in parallel. Calling this is the
+        approval: the CLI and the studio ask the user to confirm first."""
+        from reelhive.graphs.publish import build_post_graph, post_names
+
+        run_dir = run_dir.resolve()
+        lock = run_dir / ".publish.lock"
+        try:
+            with lock.open("x"):
+                pass
+        except FileExistsError as e:
+            raise ValueError(f"this run is already being published; if no other process is, delete {lock}") from e
+        try:
+            ctx = self.load(run_dir, on_event)
+            job = ctx.publish = self.publish_job(run_dir)
+            if job is None or job.posts is None:
+                raise ValueError("draft and review the posts first")
+            if job.status not in ("awaiting_approval", "partial", "failed"):
+                raise ValueError(f"publishing is {job.status}; nothing to post")
+            pending = [p for p in job.platforms if job.results.get(p, PostResult()).status != "published"]
+            job.status = "publishing"
+            ctx.save_publish()
+            self._publish_context(ctx, ["ready", *post_names(pending)])
+            try:
+                asyncio.run(build_post_graph(pending).invoke_async("Publish the video", {"ctx": ctx}))
+            finally:
+                if job.failures:  # `ready` found a problem: nothing was sent
+                    job.status = "blocked"
+                else:
+                    job.settle()
+                    if job.status == "publishing":
+                        job.status = "failed"
+                ctx.save_publish()
+            return job
+        finally:
+            lock.unlink(missing_ok=True)
 
     def cancel(self, run_dir: Path) -> None:
         (run_dir / "cancel.requested").touch()

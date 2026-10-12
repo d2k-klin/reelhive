@@ -60,3 +60,37 @@ def test_phrasing_matches_the_burned_in_captions():
     assert float(constants["MAX_CHARS"]) == subtitles.MAX_CHARS
     assert float(constants["LINGER"]) == subtitles.LINGER
     assert "/[.,!?;:]$/" in source and subtitles.BREAK.pattern == "[.,!?;:]$"
+
+
+def test_a_subtitle_track_never_shortens_the_video(tmp_path):
+    """The last caption ends with the last word; the closing frame and credit run on after it."""
+    import subprocess
+
+    from reelhive.audio import mixer
+
+    ffmpeg = mixer.ffmpeg_exe()
+    video, audio = tmp_path / "silent.mp4", tmp_path / "mix.wav"
+    subprocess.run(
+        [
+            ffmpeg,
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=c=black:s=320x180:r=30:d=6",
+            "-pix_fmt",
+            "yuv420p",
+            str(video),
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [ffmpeg, "-loglevel", "error", "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", "6", str(audio)],
+        check=True,
+    )
+    srt = tmp_path / "video.srt"
+    srt.write_text("1\n00:00:00,500 --> 00:00:02,000\nHello\n")
+    out = mixer.mux(video, audio, tmp_path / "video.mp4", srt, duration=6.0)
+    info = mixer.probe(out)
+    assert info["has_subtitles"] and abs(info["duration"] - 6.0) < 0.1

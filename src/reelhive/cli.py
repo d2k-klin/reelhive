@@ -1,7 +1,8 @@
 """ReelHive command-line interface.
 
-* ``run``    — brief in, video out.
-* ``doctor`` — check every dependency and API key.
+* ``run``     — brief in, video out.
+* ``doctor``  — check every dependency and API key.
+* ``publish`` — draft the posts for a finished video and publish them after you confirm.
 """
 
 from __future__ import annotations
@@ -18,6 +19,8 @@ from reelhive import __version__
 from reelhive.config import load_config
 from reelhive.core.events import Event
 from reelhive.schemas.brief import Brief
+from reelhive.schemas.publish import PLATFORMS as PLATFORM_NAMES
+from reelhive.schemas.publish import Platform
 
 app = typer.Typer(add_completion=False, help="Turn a short brief into a narrated, scored video.")
 console = Console()
@@ -70,6 +73,10 @@ def _printer(verbose: bool):
             console.print(f"  critic: {'pass' if d['passed'] else 'fail'} [dim]({scores})[/dim]")
             for reason in d["reasons"]:
                 console.print(f"    [yellow]• {reason}[/yellow]")
+        elif e.type == "publish.posted":
+            console.print(f"  [green]✓ {d['platform']}[/green] {d.get('url') or ''} [dim]{d.get('note') or ''}[/dim]")
+        elif e.type == "publish.failed":
+            console.print(f"  [red]✗ {d['platform']}[/red] {d['error']}")
         elif e.type == "fix.diff":
             console.print(f"  [yellow]fix changed {len(d['changes'])} scenes[/yellow]")
         elif e.type == "agent.text" and verbose:
@@ -445,3 +452,115 @@ def undo(
         console.print(f"[red]{e}[/red]")
         raise typer.Exit(1) from e
     console.print("[green]Restored the previous version.[/green]")
+
+
+def _platform(name: str) -> Platform:
+    if name not in PLATFORM_NAMES:
+        console.print(f"[red]Unknown platform {name}; choose from {', '.join(PLATFORM_NAMES)}.[/red]")
+        raise typer.Exit(2)
+    return name
+
+
+@app.command()
+def connect(
+    platform: str = typer.Argument(..., help="youtube, linkedin, tiktok or instagram"),
+    config_file: Path = typer.Option(None, "--config", exists=True),
+):
+    """Sign in to a platform to publish to it (opens the browser; uses your own developer app)."""
+    from reelhive.publish.oauth import begin, redirect_uri
+    from reelhive.publish.oauth import connect as sign_in
+
+    settings = load_config(config_file).publishing
+    name = _platform(platform)
+    try:
+        begin(name, settings)  # fails early when the app's credentials are missing
+        console.print(f"Opening the browser to sign in. Redirect URI to register: {redirect_uri(settings)}")
+        account = sign_in(name, settings)
+    except Exception as e:
+        console.print(f"[red]Sign-in failed:[/red] {e}")
+        raise typer.Exit(1) from e
+    console.print(f"[green]Connected {platform}:[/green] {account.name}")
+
+
+@app.command()
+def accounts(config_file: Path = typer.Option(None, "--config", exists=True)):
+    """Show which platforms are set up and signed in."""
+    import datetime as dt
+
+    from reelhive.publish.oauth import redirect_uri
+    from reelhive.publish.platforms import overview
+
+    settings = load_config(config_file).publishing
+    table = Table("Platform", "Developer app", "Signed in as", "Token expires")
+    for row in overview(redirect_uri(settings)):
+        account = row["account"]
+        expires = account and account["expires_at"]
+        table.add_row(
+            row["title"],
+            "[green]set[/green]" if row["configured"] else f"[yellow]set {' and '.join(row['env'])}[/yellow]",
+            account["name"] if account else "[dim]not connected[/dim]",
+            dt.datetime.fromtimestamp(expires).strftime("%Y-%m-%d") if expires else "—",
+        )
+    console.print(table)
+    console.print(f"[dim]Redirect URI to register in each app: {redirect_uri(settings)}[/dim]")
+
+
+@app.command()
+def disconnect(platform: str = typer.Argument(..., help="youtube, linkedin, tiktok or instagram")):
+    """Forget a platform's saved sign-in on this machine."""
+    from reelhive.publish import accounts as saved
+
+    removed = saved.remove(_platform(platform))
+    console.print("[green]Signed out.[/green]" if removed else "[dim]Was not signed in.[/dim]")
+
+
+@app.command()
+def publish(
+    run_dir: Path = typer.Argument(..., exists=True, file_okay=False, help="A finished run folder."),
+    to: str = typer.Option(..., "--to", help="Comma-separated: youtube,linkedin,tiktok,instagram"),
+    draft_only: bool = typer.Option(False, "--draft-only", help="Write the posts for review; post nothing."),
+    yes: bool = typer.Option(False, "--yes", help="Post without asking (after reviewing publish/job.json)."),
+    redraft: bool = typer.Option(False, "--redraft", help="Write new copy even if a draft exists."),
+    config_file: Path = typer.Option(None, "--config", exists=True),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+):
+    """Draft the posts for a finished video, show them, and publish after you confirm."""
+    from reelhive.config import Config
+    from reelhive.core.service import Service
+
+    platforms = [_platform(p.strip()) for p in to.split(",") if p.strip()]
+    run_config = Config.model_validate_json((run_dir / "config.json").read_text())
+    service = Service(run_config.model_copy(update={"publishing": load_config(config_file).publishing}))
+    try:
+        job = service.publish_job(run_dir)
+        if redraft or job is None or job.posts is None or set(job.platforms) != set(platforms):
+            job = service.draft_posts(run_dir, platforms, on_event=_printer(verbose))
+    except Exception as e:
+        console.print(f"[red]Drafting failed:[/red] {e}")
+        raise typer.Exit(1) from e
+    for warning in job.warnings:
+        console.print(f"[yellow]! {warning}[/yellow]")
+    if job.status == "blocked":
+        for failure in job.failures:
+            console.print(f"[red]✗ {failure}[/red]")
+        raise typer.Exit(1)
+    assert job.posts
+    for platform in job.platforms:
+        console.rule(platform)
+        console.print(yaml.safe_dump(getattr(job.posts, platform).model_dump(), sort_keys=False, allow_unicode=True))
+    console.print(f"[dim]Edit the copy in {run_dir / 'publish' / 'job.json'} or in the studio before posting.[/dim]")
+    if draft_only:
+        return
+    if not yes and not typer.confirm(f"Post this video publicly to {', '.join(job.platforms)} now?", default=False):
+        console.print("Nothing was posted.")
+        return
+    try:
+        job = service.publish(run_dir, on_event=_printer(verbose))
+    except Exception as e:
+        console.print(f"[red]Publishing failed:[/red] {e}")
+        raise typer.Exit(1) from e
+    for failure in job.failures:
+        console.print(f"[red]✗ {failure}[/red]")
+    console.print(f"Publishing: [bold]{job.status}[/bold]")
+    if job.status not in ("published",):
+        raise typer.Exit(1)

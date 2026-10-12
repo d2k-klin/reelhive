@@ -16,16 +16,17 @@
 
 Making a short product video usually means writing a script, recording a voice-over, grabbing screenshots, finding music and editing it all together. ReelHive does that work for you.
 
-You write a few rough notes: who the video is for, the story you want to tell, the points that matter and how it should end. Add your product's website if you have one. A team of AI agents then takes over the storytelling:
+You write a few rough notes: who the video is for, the story you want to tell, the points that matter and how it should end. Add your product's website if you have one, and your own screenshots, images or short video clips. A team of AI agents then takes over the storytelling:
 
 1. **Research.** They read your website to learn what the product is, how its names are spelled and what it offers.
 2. **Write.** They turn your notes into a story, with narration sized to the length you asked for and a polished closing line.
 3. **Design.** They direct every scene: a hook before the title screen, a layout for each point, on-screen headlines, the screenshots, slides or images to show and which part of a page to close in on.
 4. **Produce.** A natural-sounding voice reads the narration, background music is picked to match the mood, and every scene is timed to the voice. Optional captions light up each word as it is spoken.
 5. **Check.** A reviewer checks the plan against the brief (the length, the pace, every key point told), then the rendered cut itself: nothing clipped, overlapping, too small or blurry, and optionally an AI art director looks at every shot. Anything that fails is fixed and drawn again.
-6. **Render.** You get a finished video, plus the script and every file that went into it.
+6. **Render.** You get a finished video with subtitles, plus the script and every file that went into it. Where a moment earns it, a sound designer adds a quiet effect or two; usually it adds none.
+7. **Publish.** If you like, the agents draft the post for each platform and, once you approve, publish the video to YouTube, LinkedIn, TikTok and Instagram under your own accounts.
 
-Everything runs on your own machine. Only text goes to the AI service you choose, and your images and recordings stay with you. See [Privacy](docs/privacy.md).
+Everything runs on your own machine. Only text goes to the AI service you choose, and your images and recordings stay with you until you choose to publish. See [Privacy](docs/privacy.md).
 
 ## You decide how much to control
 
@@ -58,6 +59,7 @@ Requirements, choosing your AI service and your first terminal run are in [Getti
 | [Visuals](docs/visuals.md) | Screenshots, your own images and generated images |
 | [AI providers](docs/providers.md) | Choosing and configuring the AI service |
 | [Limits](docs/limits.md) | Durations, text lengths, image sizes, voices and formats |
+| [Publishing](docs/publishing.md) | Posting the finished video to YouTube, LinkedIn, TikTok and Instagram |
 | [Privacy and credit](docs/privacy.md) | What leaves your machine, and the ReelHive credit |
 | [Architecture](docs/architecture.md) | How the agents and steps fit together |
 | [All docs](docs/README.md) | Everything else, including the plan and learning notes |
