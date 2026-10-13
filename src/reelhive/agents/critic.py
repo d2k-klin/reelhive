@@ -10,7 +10,7 @@ from typing import Any
 from pydantic import BaseModel, Field, ValidationError
 from strands.types.event_loop import Usage
 
-from reelhive.agents.plan import brief_block, research_block
+from reelhive.agents.plan import READ_WPS, brief_block, research_block, screen_words
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode, _no_usage
 from reelhive.nodes.timing_node import LEAD, PACE, SHOT, TAIL_MIN, holds
@@ -18,14 +18,6 @@ from reelhive.schemas.brief import Brief
 from reelhive.schemas.scene_spec import Intro, SceneSpec
 
 DURATION_TOLERANCE = 0.05
-READ_WPS = 4.0  # on-screen words a viewer can take in per second while also listening
-
-
-def screen_words(scene: Any) -> int:
-    """Words a viewer has to read in a scene: headline, supporting text and bullets (labels and URLs are glanced)."""
-    text = scene.text
-    parts = [getattr(text, f, None) or "" for f in ("headline", "subline", "body")]
-    return sum(len(p.split()) for p in parts + list(getattr(text, "items", None) or []))
 
 
 @dataclass

@@ -21,7 +21,7 @@ production:   ┌─► scenes ─► visuals ─┐
 ## Things that are not obvious
 
 - Strands runs a node as soon as **any** incoming edge is satisfied. The fan-in to `timing` therefore uses `all_branches_done` on each of its three edges.
-- `render` and `fix` each have two conditional incoming edges (`render`: critic passed, recheck passed; `fix`: critic failed, review failed with rounds left). If `recheck` fails, or the review still fails after `MAX_REVIEW_ROUNDS`, nothing is ready, the graph ends, and the service reports the failures.
+- `render` has two conditional incoming edges (critic passed, recheck passed) and `fix` three (critic failed; recheck failed with repairs left, up to `MAX_PLAN_REPAIRS`; review failed with rounds left). If `recheck` still fails after the last repair, or the review after `MAX_REVIEW_ROUNDS`, nothing is ready, the graph ends, and the service reports the failures.
 - Conditions read the run through `invocation_state["ctx"]`; a condition opts in by having an `invocation_state` keyword parameter.
 - The review loop is a real cycle. `reset_on_revisit(True)` lets Strands run a node again; the run's checkpoint says what is done, so the node that makes a result stale reopens it there (a failed review reopens `fix`, `recheck` and `render`; a new render reopens `review`, `sound` and `master`). The edges read `review_passed` and `review_rounds`, so a run resumed at `critic` goes back into the repair loop instead of re-rendering an unrepaired cut. `set_max_node_executions` allows exactly the bounded rounds.
 

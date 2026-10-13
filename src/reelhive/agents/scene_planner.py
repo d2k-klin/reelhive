@@ -5,10 +5,18 @@ import json
 
 from strands.types.event_loop import Usage
 
-from reelhive.agents.plan import ScenePlan, brief_block, intro_position, notes_block, research_block
+from reelhive.agents.plan import (
+    ScenePlan,
+    brief_block,
+    intro_position,
+    notes_block,
+    reading_budget,
+    research_block,
+    scene_plan_model,
+)
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode
-from reelhive.nodes.timing_node import place_urls
+from reelhive.nodes.timing_node import SPEECH_WPM, place_urls
 from reelhive.schemas.scene_spec import FORMATS, Intro, IntroText, SceneSpec
 from reelhive.visuals.resolver import catalog, theme_for
 
@@ -43,6 +51,10 @@ class ScenePlannerNode(AgentNode):
             )
             place_urls(ctx.spec, ctx.brief)
             return {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}
+        assert ctx.script
+        self.output = scene_plan_model(
+            [len(b.narration.split()) for b in ctx.script.beats], SPEECH_WPM * ctx.brief.voice.speed / 60
+        )
         if ctx.brief.visuals.images and getattr(ctx.brief.visuals.images, "describe_images", False):
             from reelhive.visuals.provided import describe
 
@@ -51,8 +63,11 @@ class ScenePlannerNode(AgentNode):
 
     def build_prompt(self, ctx: RunContext) -> str:
         assert ctx.script
+        rate = SPEECH_WPM * ctx.brief.voice.speed / 60
         beats = "\n".join(
-            f"{i}. [{b.role}] {b.narration}" + (f" (covers key points {b.covers})" if b.covers else "")
+            f"{i}. [{b.role}] {b.narration}"
+            + (f" (covers key points {b.covers})" if b.covers else "")
+            + f" [at most {reading_budget(len(b.narration.split()), 0.0, rate)} on-screen words]"
             for i, b in enumerate(ctx.script.beats, start=1)
         )
         entries = [{k: v for k, v in entry.items() if k not in ("file", "poster")} for entry in ctx.visual_catalog]

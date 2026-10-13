@@ -50,6 +50,20 @@ SCENE_MODELS: dict[str, type[BaseModel]] = {
 
 
 VISUAL_TEMPLATES = ("image-full", "screenshot-pan")
+READ_WPS = 4.0  # on-screen words a viewer can take in per second while also listening
+
+
+def screen_words(scene: Any) -> int:
+    """Words a viewer has to read in a scene: headline, supporting text and bullets (labels and URLs are glanced)."""
+    return text_words(scene.text)
+
+
+def text_words(text: Any) -> int:
+    """The same count for a scene's text alone."""
+    parts = [getattr(text, f, None) or "" for f in ("headline", "subline", "body")]
+    return sum(len(p.split()) for p in parts + list(getattr(text, "items", None) or []))
+
+
 COLD_OPEN = ("hook", "problem")  # a first scene of these plays before the intro screen
 
 
@@ -133,6 +147,49 @@ class ScenePlan(BaseModel):
         " failures name it",
     )
     scenes: list[PlannedScene] = Field(min_length=1)
+
+
+def reading_budget(narration_words: int, hold: float, words_per_second: float) -> int:
+    """On-screen words a scene can carry: what a viewer reads (READ_WPS) while its narration plays, plus its hold.
+    The same rule as the `reading_time` hard check, applied before the scene is voiced, so it can't fail later."""
+    return max(3, int(READ_WPS * (narration_words / words_per_second + hold)))
+
+
+def scene_plan_model(beat_words: list[int], words_per_second: float, max_words: int = 0) -> type[ScenePlan]:
+    """`ScenePlan` that holds each scene's on-screen text to its reading budget. A scene's narration is its own when
+    the model writes one (the fixer), else the beat's at the same position (the planner). Over budget goes back to
+    the model as a validation error, so the text is cut or the idea split before anything is voiced."""
+
+    class Plan(ScenePlan):
+        @model_validator(mode="after")
+        def readable(self) -> Plan:
+            problems = []
+            for i, scene in enumerate(self.scenes):
+                if max_words and scene.narration and len(scene.narration.split()) > max_words:
+                    problems.append(
+                        f"scene {i + 1}: narration of {len(scene.narration.split())} words, at most {max_words} per"
+                        " shot; split the scene"
+                    )
+                spoken = (
+                    len(scene.narration.split()) if scene.narration else beat_words[i] if i < len(beat_words) else 0
+                )
+                if not spoken:
+                    continue
+                budget = reading_budget(spoken, scene.hold, words_per_second)
+                shown = text_words(scene.text())
+                if shown > budget:
+                    problems.append(
+                        f"scene {i + 1}: {shown} on-screen words, at most {budget} for {spoken} words of narration"
+                    )
+            if problems:
+                raise ValueError(
+                    "scenes must be short and readable: fewer on-screen words or bullets, a narration that fits one "
+                    "shot, or the idea split across scenes: " + "; ".join(problems)
+                )
+            return self
+
+    Plan.__name__ = Plan.__qualname__ = "ScenePlan"  # the output tool keeps its name
+    return Plan
 
 
 def brief_block(ctx_brief: BaseModel) -> str:

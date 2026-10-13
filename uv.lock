@@ -1787,7 +1787,7 @@ wheels = [
 
 [[package]]
 name = "reelhive"
-version = "0.5.0"
+version = "0.5.1"
 source = { editable = "." }
 dependencies = [
     { name = "ag-ui-protocol" },

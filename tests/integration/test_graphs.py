@@ -9,6 +9,7 @@ from conftest import VERDICT_PASS, FakeModel, StubTTS, make_plan, make_script, s
 from reelhive.audio.mixer import probe
 from reelhive.core.events import replay
 from reelhive.core.service import Service
+from reelhive.graphs.production import MAX_PLAN_REPAIRS
 from reelhive.schemas.scene_spec import CREDIT_TEXT, IntroText
 
 MUSIC = {"mood": "tech", "bpm": 110, "reason": "fits a developer audience"}
@@ -92,13 +93,13 @@ def test_hard_check_failure_takes_the_fix_path(config, brief):
 
 def test_recheck_failure_stops_with_a_report(config, brief):
     broken = make_plan(brief, drop_feature=2)
-    svc, _, _ = service(
-        config,
-        {"Script": make_script(brief, drop=2), "ScenePlan": [broken, copy.deepcopy(broken)], "MusicChoice": MUSIC},
-    )
+    plans = [broken] + [copy.deepcopy(broken) for _ in range(MAX_PLAN_REPAIRS)]  # the planner, then every repair
+    svc, _, _ = service(config, {"Script": make_script(brief, drop=2), "ScenePlan": plans, "MusicChoice": MUSIC})
     result, events = run(svc, brief)
 
     assert result.status == "stopped" and result.video is None
+    started = [d["node"] for d in of_type(events, "node.started")]
+    assert started.count("fix") == started.count("recheck") == MAX_PLAN_REPAIRS  # bounded, then it stops
     assert any("key points not told" in line and brief.features[1] in line for line in result.report)
     assert [d["node"] for d in of_type(events, "node.skipped")] == ["render", "review", "sound", "master"]
     assert of_type(events, "run.finished")[0]["status"] == "stopped"

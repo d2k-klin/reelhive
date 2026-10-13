@@ -1,7 +1,17 @@
 from __future__ import annotations
 
+from strands.types.event_loop import Usage
+
 from reelhive.agents.critic import scenes_block, voice_wpm
-from reelhive.agents.plan import ScenePlan, brief_block, intro_position, keep_direction, notes_block, research_block
+from reelhive.agents.plan import (
+    ScenePlan,
+    brief_block,
+    intro_position,
+    keep_direction,
+    notes_block,
+    research_block,
+    scene_plan_model,
+)
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode
 from reelhive.nodes.timing_node import (
@@ -9,6 +19,7 @@ from reelhive.nodes.timing_node import (
     available_seconds,
     holds,
     intro_seconds,
+    max_beat_words,
     place_urls,
     tail_for,
     target_words,
@@ -32,13 +43,21 @@ class FixerNode(AgentNode):
     prompt = "fixer"
     output = ScenePlan
 
+    async def execute(self, ctx: RunContext) -> Usage:
+        assert ctx.spec
+        # A scene keeps its current narration unless the fixer rewrites it, so that is its reading budget's base.
+        current = [len(s.narration.split()) for s in ctx.spec.scenes]
+        self.output = scene_plan_model(current, voice_wpm(ctx.spec, ctx.narrated) / 60, max_beat_words(ctx.brief))
+        return await super().execute(ctx)
+
     def build_prompt(self, ctx: RunContext) -> str:
         assert ctx.spec
         failures = "\n".join(f"- {f}" for f in ctx.failures)
         return (
             f"{brief_block(ctx.brief)}\n\n"
             f"Target: about {fit_words(ctx)} narration words in total "
-            f"(this voice speaks about {round(voice_wpm(ctx.spec, ctx.narrated))} words per minute).\n"
+            f"(this voice speaks about {round(voice_wpm(ctx.spec, ctx.narrated))} words per minute), "
+            f"at most {max_beat_words(ctx.brief)} per scene so each stays one short shot.\n"
             f"Idea for the closing call to action: {ctx.brief.closing}\n"
             f"{notes_block(ctx.brief)}{research_block(ctx)}\n\n"
             f"Current scenes:\n{scenes_block(ctx.spec, ctx.narrated)}\n\nFailures:\n{failures}"
@@ -69,5 +88,6 @@ class FixerNode(AgentNode):
             for i in sorted(before.keys() | after.keys())
             if before.get(i) != after.get(i)
         ]
+        ctx.completed.discard("recheck")  # a new plan is checked again
         ctx.events.emit("fix.diff", node=self.name, changes=changes)
         ctx.events.emit("node.task", node=self.name, task=f"{len(changes)} scenes changed")

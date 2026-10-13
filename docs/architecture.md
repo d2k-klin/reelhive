@@ -78,7 +78,7 @@ The brief is raw material. The writers get the notes numbered, the product resea
 - every image present, inside the run folder and at the format's minimum resolution;
 - no generated image in a `product_ui` scene.
 
-If `recheck` still fails, no edge is satisfied, the graph ends, and the service stops the run with the failure report instead of rendering a bad video.
+If `recheck` still fails, the plan goes back to `fix` (a bounded cycle: at most `MAX_PLAN_REPAIRS`, 3, fixes in a row), so a near miss such as a shot 0.1 s too long is repaired rather than fatal. After the last repair no edge is satisfied, the graph ends, and the service stops the run with the failure report instead of rendering a bad video.
 
 ## Reviewing the cut
 

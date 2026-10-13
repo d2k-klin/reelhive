@@ -126,7 +126,7 @@ class Service:
         """Edits invalidate every verdict and cut: check, render and review again from `critic`."""
         ctx.completed.difference_update(FINISHING)
         ctx.critic_passed = ctx.recheck_passed = False
-        ctx.review_passed, ctx.review_rounds = None, 0
+        ctx.review_passed, ctx.review_rounds, ctx.plan_rounds = None, 0, 0
 
     @staticmethod
     def _status(ctx: RunContext, status: str, report: list[str] | None = None) -> None:

@@ -22,6 +22,7 @@ from reelhive.schemas.scene_spec import (
 # room for the picture (short showcase cuts); `balanced` is the classic narrated explainer.
 PACE = {"slow": (100, 135, 115), "balanced": (130, 170, 145), "fast": (145, 175, 160)}
 SPEECH_WPM = 161  # measured Kokoro rate at speed 1.0 (docs/plan.md, M1 notes)
+SLOW_SPEECH_WPM = 125  # the same voice on names, numbers and acronyms ("ISO 27001, SOC 2"): measured 122-141
 # How long one shot stays on screen, per brief `pacing`: (average to aim for, longest allowed) in seconds. The
 # picture changes with every beat, so a beat is one short idea; a screen held much longer reads as a slideshow.
 SHOT = {"slow": (5.5, 8.0), "balanced": (4.5, 7.0), "fast": (4.0, 6.0)}
@@ -70,6 +71,13 @@ def beats_for(brief: Brief) -> int:
     per key point plus a hook and a call to action."""
     available = available_seconds(brief) - FINAL_HOLD
     return max(len(brief.features) + 2, 4, min(MAX_BEATS, round(available / SHOT[brief.pacing][0])))
+
+
+def max_beat_words(brief: Brief) -> int:
+    """Most words one beat may carry so its shot stays under the pacing's longest, even read at the slow rate of a
+    technical line."""
+    seconds = SHOT[brief.pacing][1] - LEAD - tail_for(brief)
+    return max(6, int(seconds * SLOW_SPEECH_WPM * brief.voice.speed / 60))
 
 
 def target_words(brief: Brief) -> int:

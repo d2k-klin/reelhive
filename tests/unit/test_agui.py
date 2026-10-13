@@ -10,6 +10,7 @@ from reelhive.config import Config
 from reelhive.core.events import replay
 from reelhive.core.service import Service
 from reelhive.core.workspace import Workspace
+from reelhive.graphs.production import MAX_PLAN_REPAIRS
 from reelhive.server.app import create_app
 
 THREE = {
@@ -210,7 +211,7 @@ def test_approving_a_stopped_run_rechecks_instead_of_replaying(tmp_path, brief):
     model = FakeModel(
         {
             "Script": make_script(brief, drop=1),
-            "ScenePlan": [plan, plan, make_plan(brief)],
+            "ScenePlan": [plan] * (1 + MAX_PLAN_REPAIRS) + [make_plan(brief)],  # planner, every repair, then fixed
             "MusicChoice": {"mood": "tech", "bpm": 110, "reason": "x"},
             "Verdict": [VERDICT_PASS] * 3,
         }

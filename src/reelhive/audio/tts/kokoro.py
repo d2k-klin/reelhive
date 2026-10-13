@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from reelhive.audio.tts.base import Speech, estimate_words
+from reelhive.audio.tts.base import Speech, estimate_words, shift_words, trim_silence
 from reelhive.schemas.scene_spec import Word
 
 SAMPLE_RATE = 24000
@@ -43,8 +43,10 @@ class KokoroTTS:
             chunks.append(audio)
             offset += seconds
         audio = np.concatenate(chunks) if chunks else np.zeros(SAMPLE_RATE // 2, dtype=np.float32)
+        audio, cut = trim_silence(audio, SAMPLE_RATE)
+        seconds = len(audio) / SAMPLE_RATE
         sf.write(out, audio, SAMPLE_RATE)
-        return Speech(len(audio) / SAMPLE_RATE, words)
+        return Speech(seconds, shift_words(words, cut, seconds))
 
 
 def chunk_words(tokens: list[Any], text: str, offset: float, seconds: float) -> list[Word]:

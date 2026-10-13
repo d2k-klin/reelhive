@@ -58,3 +58,20 @@ def test_word_timings_survive_a_checkpoint(tmp_path, brief):
     restored = RunContext(tmp_path, brief, EventBus(), {}, None, None)
     restored.restore()
     assert restored.words == ctx.words
+
+
+def test_engine_padding_is_trimmed_and_words_follow_the_cut():
+    import numpy as np
+
+    from reelhive.audio.tts.base import GUARD_AFTER, GUARD_BEFORE, shift_words, trim_silence
+
+    rate = 24000
+    voice = np.full(rate, 0.2, dtype=np.float32)  # one second of sound
+    padded = np.concatenate([np.zeros(int(0.3 * rate)), voice, np.zeros(int(0.5 * rate))]).astype(np.float32)
+    trimmed, cut = trim_silence(padded, rate)
+    assert cut == pytest.approx(0.3 - GUARD_BEFORE, abs=0.011)
+    assert len(trimmed) / rate == pytest.approx(1.0 + GUARD_BEFORE + GUARD_AFTER, abs=0.02)
+    [word] = shift_words([Word(text="Hi", start=0.35, end=1.25)], cut, len(trimmed) / rate)
+    assert word.start == pytest.approx(0.35 - cut, abs=1e-3) and word.end <= len(trimmed) / rate
+    silent = np.zeros(rate, dtype=np.float32)
+    assert trim_silence(silent, rate) == (silent, 0.0)  # nothing to trim against

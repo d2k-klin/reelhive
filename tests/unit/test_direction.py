@@ -148,3 +148,20 @@ def test_a_resumed_run_reenters_the_repair_loop_and_the_loop_is_bounded():
     assert edges(critic_passed=True, review_passed=False, review_rounds=1) == (False, True, True)
     # Out of rounds: nothing is ready, so the graph ends and the run stops with the report.
     assert edges(critic_passed=True, review_passed=False, review_rounds=MAX_REVIEW_ROUNDS + 1) == (False, False, False)
+
+
+def test_the_plan_holds_each_scene_to_what_can_be_read_while_its_narration_plays():
+    from pydantic import ValidationError
+
+    from reelhive.agents.plan import reading_budget, scene_plan_model
+
+    rate = 161 / 60
+    assert reading_budget(9, 0.0, rate) == 13 and reading_budget(9, 2.0, rate) == 21  # a hold buys reading time
+    plan = scene_plan_model([9], rate)
+    bullets = {"template": "bullets", "headline": "Mapped to your frameworks", "items": ["ISO 27001 controls"] * 5}
+    with pytest.raises(ValidationError, match="scene 1: 19 on-screen words, at most 13 for 9 words of narration"):
+        plan(scenes=[bullets])
+    assert plan(scenes=[{**bullets, "hold": 2.0}])  # or give it a moment to read
+    longer = " ".join(["word"] * 15)  # the fixer may lengthen the narration instead
+    assert plan(scenes=[{**bullets, "narration": longer}])
+    assert plan.__name__ == "ScenePlan"

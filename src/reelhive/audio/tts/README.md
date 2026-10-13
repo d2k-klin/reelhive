@@ -6,8 +6,8 @@
 
 | File | What it is |
 | --- | --- |
-| [`base.py`](base.py) | `TTS` protocol: `synth(text, out, gender, accent, speed) -> Speech`. Writes a WAV and returns its real length (which `timing` uses) and its words with their times (which captions use). `estimate_words()` spreads words over the audio for engines without timestamps. |
-| [`kokoro.py`](kokoro.py) | `KokoroTTS`: lazy-loads torch and Kokoro (US and UK pipelines), maps gender and accent to voices (`af_heart`, `bf_emma`, `am_michael`, `bm_george`), writes 24 kHz mono WAV. `chunk_words()` joins Kokoro's per-token timestamps across chunks, punctuation attached to its word. |
+| [`base.py`](base.py) | `TTS` protocol: `synth(text, out, gender, accent, speed) -> Speech`. Writes a WAV and returns its real length (which `timing` uses) and its words with their times (which captions use). `estimate_words()` spreads words over the audio for engines without timestamps. `trim_silence()` / `shift_words()` cut the silence an engine pads a clip with and move the word times to match, so a clip's length is its speech and timing's own pauses (`LEAD`, `TAILS`) are the only gaps. |
+| [`kokoro.py`](kokoro.py) | `KokoroTTS`: lazy-loads torch and Kokoro (US and UK pipelines), maps gender and accent to voices (`af_heart`, `bf_emma`, `am_michael`, `bm_george`), writes 24 kHz mono WAV trimmed to the speech (Kokoro pads every clip with about 0.3 s before and 0.5 s after). `chunk_words()` joins Kokoro's per-token timestamps across chunks, punctuation attached to its word. |
 
 Kokoro speaks about 161 words per minute at speed 1.0 (measured; `SPEECH_WPM` in `nodes/timing_node.py`). The script's word target and the eval stand-in both depend on it.
 

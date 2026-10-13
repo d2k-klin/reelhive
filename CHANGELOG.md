@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-13
+
+### Fixed
+- Long videos with many short beats overran their target (a 99-second brief drafted at 117 s) and could stop after
+  the repair. Kokoro pads every clip with about 0.8 s of silence, which the timing model counted as speech and then
+  padded again; with 21 beats that was 17 s. Clips are now trimmed to their speech (`trim_silence()`, word times
+  shifted to match), so the voice flows and the draft lands on the target.
+- The scene planner and the fixer are held to a reading budget per scene: on-screen words a viewer can read while
+  that scene's narration plays (4 words a second, more with a `hold`). It is a validator of their per-run output
+  model, so a five-item list on a short beat is fixed before anything is voiced, instead of failing the
+  `reading_time` check after the repair and stopping the run. The planner sees each beat's budget in its prompt.
+- Dense beats (names, numbers, acronyms) ran past the longest shot: the voice reads them at about 125 wpm, not
+  161. The script writer's and fixer's output models now cap words per beat at what one shot holds at that rate
+  (12 balanced).
+- A plan that still failed its checks after one repair stopped the run, even on a near miss. `recheck` now sends it
+  back to `fix` while repairs are left (`MAX_PLAN_REPAIRS`, 3): a bounded cycle like the cut-review loop.
+
 ## [0.5.0] - 2026-10-12
 
 ### Added

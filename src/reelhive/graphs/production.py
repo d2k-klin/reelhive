@@ -2,8 +2,8 @@
 
     ┌─► scenes ─► visuals ─┐
     ├─► narrate ┼─► timing ─► critic ─┬─(pass)──────────────────────► render ─► review ─┬─(pass)─► sound ─► master
-    └─► music ──┘                     └─(fail)─► fix ─► recheck ─(pass)─┘                │
-                                                 ▲                                       │
+    └─► music ──┘                     └─(fail)─► fix ⇄ recheck ─(pass)─┘                │
+                                                 ▲   (fail, repairs left)                │
                                                  └──────────(fail, rounds left)──────────┘
 
 `critic` judges the plan before anything is drawn; `review` judges the cut the renderer actually drew
@@ -11,11 +11,12 @@
 short. `sound` scores the approved cut on the moments the renderer reported, so it runs once, after the loop.
 Strands runs a node as soon as ANY incoming edge is satisfied, so:
   * the fan-in to `timing` uses a condition that waits for all three branches;
-  * `render` and `fix` each have two conditional incoming edges;
+  * `render` has two conditional incoming edges and `fix` three (critic, recheck and review failures);
+  * a plan that still fails after `fix` goes round again while MAX_PLAN_REPAIRS allows;
   * the review loop is a real cycle: the graph resets revisited nodes, `review` reopens the repair path in
     the run's checkpoint, and `MAX_REVIEW_ROUNDS` plus the execution cap bound it.
-If recheck fails, or the review still fails after the last round, nothing is ready to run, the graph ends,
-and the service stops the run with the failure report.
+If recheck still fails after the last repair, or the review after its last round, nothing is ready to run, the
+graph ends, and the service stops the run with the failure report.
 """
 
 from __future__ import annotations
@@ -41,6 +42,7 @@ BRANCHES = ("visuals", "narrate", "music")
 FINISHING = ("critic", "fix", "recheck", "render", "review", "sound", "master")
 NODES = ("scenes", *BRANCHES, "timing", *FINISHING)
 REPAIR_LOOP = ("fix", "recheck", "render", "review")
+MAX_PLAN_REPAIRS = 3  # fixes of the plan in a row (the first from `critic`, more while `recheck` still fails)
 
 
 def all_branches_done(state: GraphState) -> bool:
@@ -70,6 +72,12 @@ def critic_failed(state: GraphState, *, invocation_state: dict[str, Any], **_: A
 
 def recheck_passed(state: GraphState, *, invocation_state: dict[str, Any], **_: Any) -> bool:
     return bool(_ctx(invocation_state).recheck_passed)
+
+
+def recheck_failed(state: GraphState, *, invocation_state: dict[str, Any], **_: Any) -> bool:
+    """The repaired plan still fails its checks and another repair is allowed."""
+    ctx = _ctx(invocation_state)
+    return not ctx.recheck_passed and ctx.plan_rounds < MAX_PLAN_REPAIRS
 
 
 def review_passed(state: GraphState, *, invocation_state: dict[str, Any], **_: Any) -> bool:
@@ -108,10 +116,11 @@ def build_production_graph(stage: str = "all") -> Graph:
         b.add_edge("critic", "fix", condition=critic_failed)
         b.add_edge("fix", "recheck")
         b.add_edge("recheck", "render", condition=recheck_passed)
+        b.add_edge("recheck", "fix", condition=recheck_failed)
         b.add_edge("render", "review")
         b.add_edge("review", "sound", condition=review_passed)
         b.add_edge("sound", "master")
         b.add_edge("review", "fix", condition=review_failed)
         b.reset_on_revisit(True)
-    b.set_max_node_executions(len(NODES) + MAX_REVIEW_ROUNDS * len(REPAIR_LOOP))
+    b.set_max_node_executions(len(NODES) + MAX_REVIEW_ROUNDS * len(REPAIR_LOOP) + MAX_PLAN_REPAIRS * 2)
     return b.build()

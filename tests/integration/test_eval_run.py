@@ -7,6 +7,7 @@ from conftest import VERDICT_PASS, FakeModel, make_plan, make_script
 
 from evals.run import gate, run_eval_async
 from reelhive.config import Config
+from reelhive.graphs.production import MAX_PLAN_REPAIRS
 from reelhive.schemas.brief import Brief
 
 JUDGE = {
@@ -89,7 +90,7 @@ def test_smoke_eval_compares_providers_and_gates(tmp_path):
     assert good["judge_suggestion_specific"] == 4 and good["judge_suggestion_variety"] == 3  # M6 metric
     assert good["judge_storyline"] == 5 and good["tokens"] > 0 and "script" in good["node_seconds"]
 
-    assert lossy["feature_coverage"] < 1 and lossy["success"] < 1 and lossy["fix_iterations"] == 1
+    assert lossy["feature_coverage"] < 1 and lossy["success"] < 1 and lossy["fix_iterations"] == MAX_PLAN_REPAIRS
     assert any("Feature coverage" in p for p in gate({"good": lossy}, {"good": good}))
     assert gate({"good": good}, {"good": good}) == []
 

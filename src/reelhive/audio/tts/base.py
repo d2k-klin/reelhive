@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
 
+import numpy as np
+
 from reelhive.schemas.scene_spec import Word
 
 
@@ -20,6 +22,40 @@ class TTS(Protocol):
     """Text to a WAV file. Piper (German) plugs in here later."""
 
     def synth(self, text: str, out: Path, gender: str, accent: str, speed: float) -> Speech: ...
+
+
+SILENCE = 0.01  # amplitude below which a 10 ms window counts as silence (about -40 dBFS)
+GUARD_BEFORE = 0.04  # seconds kept before the first sound, so no onset is clipped
+GUARD_AFTER = 0.08  # and after the last, so a trailing consonant can decay
+
+
+def trim_silence(audio: np.ndarray, rate: int) -> tuple[np.ndarray, float]:
+    """The clip without the silence an engine pads it with, and the seconds cut from its start (to shift word
+    times by). Kokoro adds about 0.3 s before and 0.5 s after every clip; timing adds its own pauses (LEAD, TAILS),
+    so left in, every beat would carry both, and a script of many short beats would run long."""
+    window = max(1, int(rate * 0.01))
+    frames = len(audio) // window
+    if frames == 0:
+        return audio, 0.0
+    peaks = np.abs(audio[: frames * window]).reshape(frames, window).max(axis=1)
+    loud = np.flatnonzero(peaks > SILENCE)
+    if not len(loud):
+        return audio, 0.0
+    start = max(0, loud[0] * window - int(GUARD_BEFORE * rate))
+    end = min(len(audio), (loud[-1] + 1) * window + int(GUARD_AFTER * rate))
+    return audio[start:end], start / rate
+
+
+def shift_words(words: list[Word], by: float, seconds: float) -> list[Word]:
+    """Word times moved `by` seconds earlier, kept inside a clip `seconds` long."""
+    return [
+        Word(
+            text=w.text,
+            start=round(min(max(0.0, w.start - by), seconds), 3),
+            end=round(min(max(0.0, w.end - by), seconds), 3),
+        )
+        for w in words
+    ]
 
 
 def estimate_words(text: str, start: float, seconds: float) -> list[Word]:

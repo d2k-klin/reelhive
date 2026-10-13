@@ -24,7 +24,7 @@ Copy:
 - On-screen text complements the narration; it does not repeat it word for word. Headlines are short and punchy.
 - Copy each beat's `covers` into the scene.
 - Respect the character limits in the field descriptions. Leave `narration` empty.
-- Limit what the viewer has to read at once. A scene gets about four on-screen words per second it is on screen after its entrance, so short scenes take a headline alone. Split an idea across scenes rather than crowding one.
+- Limit what the viewer has to read at once. Each beat shows its on-screen word budget (about four words per second of its narration); headline, subline, body and bullets together must stay within it. Short beats take a headline alone; a list of bullets needs a beat long enough to read it, or a `hold`.
 
 Visuals:
 - For every scene set visual_request.kind to product_ui, concept or none.

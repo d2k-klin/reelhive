@@ -9,7 +9,8 @@ from reelhive.visuals.resolver import resolve
 
 
 class RecheckNode(FunctionNode):
-    """Re-voice scenes whose narration the fixer changed, re-time, and run the hard checks again."""
+    """Re-voice scenes whose narration the fixer changed, re-time, and run the hard checks again. A failure reopens
+    `fix` for another round while the graph allows it."""
 
     name = "recheck"
 
@@ -30,3 +31,8 @@ class RecheckNode(FunctionNode):
         apply_timing(ctx.spec, ctx.narrated, ctx.brief, ctx.words)
         ctx.failures = run_gates(ctx, self.name)
         ctx.recheck_passed = not ctx.failures
+        if ctx.failures:
+            # A near miss (a shot 0.1 s too long) gets another repair rather than stopping the run; the graph
+            # bounds how many (MAX_PLAN_REPAIRS).
+            ctx.plan_rounds += 1
+            ctx.completed.discard("fix")

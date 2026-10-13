@@ -9,6 +9,8 @@ Values below are enforced by the code, so a brief outside them is rejected with 
 | Duration | 15 to 180 seconds (default 60). The 3-second intro and the end credit card (1.5 s) count toward the target |
 | Duration accuracy | The finished video must land within ±5% of the target (for example 171-189 s for 180 s), or the critic repairs it |
 | Narration pace | By `pacing`: `slow` 100-135, `balanced` 130-170, `fast` 145-175 words per minute, not counting the intro, credit, planned holds or the short pause between beats; the floor lowers for a slower voice |
+| Words per beat | At most what one shot holds when read at the slow rate of a technical line (125 wpm): 12 balanced, 14 slow, 11 fast |
+| Plan repairs | Up to 3 fixes in a row while the hard checks still fail, then the run stops with the report |
 | Shot length | By `pacing`, the average time a screen stays up and the longest any may: `slow` 5.5 s / 8 s, `balanced` 4.5 s / 7 s, `fast` 4 s / 6 s. A scene whose length you set yourself (`duration_override`) is exempt |
 | Hold | 0 to 3 seconds of stillness after a scene's voice; the closing scene always settles for 1 second |
 | Captions | Phrases of up to 4 words or 28 characters, broken after punctuation; the band takes 16% of the frame's short side |

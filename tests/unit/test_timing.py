@@ -141,10 +141,26 @@ def test_the_script_writer_must_write_about_one_beat_per_shot():
 
     from reelhive.agents.script_writer import script_model
 
-    model = script_model(12)
+    model = script_model(12, 12)
     beat = {"role": "feature", "narration": "One short idea."}
     assert len(model(title="t", beats=[beat] * 10).beats) == 10  # a couple fewer is fine
     with pytest.raises(ValidationError, match="at least 10"):
         model(title="t", beats=[beat] * 6)  # six long beats would hold each screen for ten seconds
     with pytest.raises(ValidationError, match="at most 14"):
         model(title="t", beats=[beat] * 15)
+
+
+def test_a_beat_too_long_for_one_shot_is_sent_back(brief):
+    from pydantic import ValidationError
+
+    from reelhive.agents.script_writer import script_model
+    from reelhive.nodes.timing_node import max_beat_words
+
+    cap = max_beat_words(brief)
+    assert cap == 12  # 7 s balanced shot, less the pause, read at the slow rate of a technical line
+    model = script_model(4, cap)
+    short = {"role": "feature", "narration": " ".join(["word"] * cap)}
+    long = {"role": "feature", "narration": "It maps to ISO 27001, SOC 2, NIST, CIS and the EU CRA, every one."}
+    assert model(title="t", beats=[short] * 4)
+    with pytest.raises(ValidationError, match="beat 2: 15 words"):
+        model(title="t", beats=[short, long, short, short])
