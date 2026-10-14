@@ -879,6 +879,12 @@ export interface components {
              */
             captions: boolean;
             /**
+             * Cold Open
+             * @description Open on the hook and show the intro screen after it, instead of opening with the intro
+             * @default false
+             */
+            cold_open: boolean;
+            /**
              * Frame Review
              * @description Send one rendered frame per shot to the review provider for a visual review (vision model)
              * @default false
@@ -1876,7 +1882,7 @@ export interface components {
             intro?: components["schemas"]["Intro"] | null;
             /**
              * Intro At
-             * @description Scenes played before the intro screen: 0 opens with it, 1 is a cold open after the hook
+             * @description Scenes played before the intro screen: 0 opens with it (the default), 1 is a cold open
              * @default 0
              */
             intro_at: number;

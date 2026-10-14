@@ -132,4 +132,4 @@ def test_saving_scenes_keeps_the_intro_words_editable_but_not_its_address(config
     saved = service.load(first.run_dir).spec
     assert saved and saved.intro
     assert (saved.intro.title, saved.intro.url, saved.intro.duration) == ("CostHive Pro", "costhive.dev", 3.0)
-    assert saved.intro_at == 1 and saved.scenes[1].start == pytest.approx(saved.scenes[0].duration + 3.0, abs=1 / 30)
+    assert saved.intro_at == 0 and saved.scenes[0].start == pytest.approx(3.0, abs=1 / 30)  # the intro opens it

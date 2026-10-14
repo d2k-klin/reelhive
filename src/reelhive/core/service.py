@@ -309,7 +309,7 @@ class Service:
             ):
                 narrate(ctx, scene.index, scene.narration)
         resolve(ctx)
-        ctx.spec.intro_at = intro_position(ctx.spec.scenes)
+        ctx.spec.intro_at = intro_position(ctx.spec.scenes, ctx.brief.cold_open)
         apply_timing(ctx.spec, ctx.narrated, ctx.brief, ctx.words)
         self._reopen_finishing(ctx)
         ctx.checkpoint()

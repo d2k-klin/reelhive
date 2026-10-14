@@ -6,6 +6,7 @@ from reelhive.nodes.timing_node import (
     LEAD,
     MAX_EXTRA,
     SHOT,
+    SPEECH_WPM,
     apply_timing,
     available_seconds,
     beats_for,
@@ -76,7 +77,7 @@ def test_corner_credit_takes_no_time(brief):
 def test_the_voice_plus_every_scenes_pause_fits_the_target(brief, duration):
     sized = brief.model_copy(update={"duration": duration})
     beats = beats_for(sized)
-    speech = target_words(sized) / 161 * 60
+    speech = target_words(sized) / SPEECH_WPM * 60
     padding = beats * (LEAD + tail_for(sized)) + FINAL_HOLD
     assert speech + padding <= duration - INTRO_SECONDS - CREDIT_SECONDS + 0.2
 
@@ -157,10 +158,27 @@ def test_a_beat_too_long_for_one_shot_is_sent_back(brief):
     from reelhive.nodes.timing_node import max_beat_words
 
     cap = max_beat_words(brief)
-    assert cap == 12  # 7 s balanced shot, less the pause, read at the slow rate of a technical line
+    assert cap == 15  # 8 s balanced shot, less the pause, read at the slow rate of a technical line
     model = script_model(4, cap)
     short = {"role": "feature", "narration": " ".join(["word"] * cap)}
-    long = {"role": "feature", "narration": "It maps to ISO 27001, SOC 2, NIST, CIS and the EU CRA, every one."}
+    long = {
+        "role": "feature",
+        "narration": "It maps every control to ISO 27001, SOC 2, NIST, CIS and the EU CRA, every one of them.",
+    }
     assert model(title="t", beats=[short] * 4)
-    with pytest.raises(ValidationError, match="beat 2: 15 words"):
+    with pytest.raises(ValidationError, match="beat 2: 19 words"):
         model(title="t", beats=[short, long, short, short])
+
+
+def test_a_script_far_over_its_word_target_is_sent_back():
+    from pydantic import ValidationError
+
+    from reelhive.agents.script_writer import script_model
+
+    model = script_model(4, 12, target=40)
+    beat = {"role": "feature", "narration": " ".join(["word"] * 11)}
+    assert model(title="t", beats=[beat] * 4)  # 44 words: within 10% of 40
+    with pytest.raises(ValidationError, match="the script is 48 words; the video holds about 40"):
+        model(title="t", beats=[{**beat, "narration": " ".join(["word"] * 12)}] * 4)
+    short = {"role": "feature", "narration": "Few words."}
+    assert model(title="t", beats=[short] * 4)  # under target is padded by timing, never rejected

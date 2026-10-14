@@ -73,7 +73,7 @@ class FixerNode(AgentNode):
         if out.intro and not ctx.brief.intro:  # the brief's own intro text is never rewritten
             ctx.spec.intro = Intro(**out.intro.model_dump())
         place_urls(ctx.spec, ctx.brief)
-        ctx.spec.intro_at = intro_position(ctx.spec.scenes)
+        ctx.spec.intro_at = intro_position(ctx.spec.scenes, ctx.brief.cold_open)
         for scene in ctx.spec.scenes:
             prior = previous.get(scene.index)
             keep_direction(out.scenes[scene.index - 1], scene, prior)

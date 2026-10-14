@@ -12,7 +12,7 @@ Every scene uses one template. Limits are enforced three times: by the agent's s
 | `cta` | The closing call to action | `headline` (60, usually the closing message), `subline` (60, optional), `url` (60, set from the brief, shown small below) |
 | `image-full` | A provided or generated image on a raised card, with its headline | `headline` (48), `subline` (80); `layout` |
 | `screenshot-pan` | A full-page screenshot in an optional browser or phone frame: the page first, then a close-up of the scene's region or a gentle pan | `headline` (48), `subline` (80); `layout` |
-| `intro` | Not a scene: the 3-second product reveal with no narration, after the opening hook (a cold open) or first | `title` (40, the exact product name), `tagline` (80, optional), `url` (60, set from the brief, shown small) |
+| `intro` | Not a scene: the 3-second product reveal with no narration that opens the video (or follows the hook with `cold_open`) | `title` (40, the exact product name), `tagline` (80, optional), `url` (60, set from the brief, shown small) |
 | `credit` | Not a scene: the "Made with ReelHive by Mr.D" end card (1.5 s) or corner badge | fixed text |
 
 Product scenes take a `layout`: `center` (the device above its text, for the first full view), `split-left` or `split-right` (the device on one side, the explanation on the other). On 9:16 a split stacks, with the text left-aligned. Every scene can also take a `hold` of up to 3 seconds: the settled frame stays after the voice ends so it can be read. The closing scene always settles for a second and stays on screen under the credit.

@@ -40,6 +40,6 @@ Direction (you are also the director; the renderer handles motion and transition
 - Vary the composition across the video instead of repeating one shot. For product scenes, alternate `layout`: `center` for the first full view of the product, then `split-left` or `split-right` for scenes where the text explains what the picture shows. Consecutive product scenes that alternate sides read as one sequence.
 - Close in on what matters. A screenshot page in the catalog lists `regions` (sections, forms, tables, images, each with an `id` and a label). When a scene is about one part of a page, set `visual_request.region` to that region's `id`, for example the pricing table for a pricing scene. The viewer first sees the page, then the camera moves to the region. Use a region only from the same page as the `route`, never invent one, and leave it empty for the first full view.
 - Give important moments room: set `hold` (seconds, up to 3) on a scene whose picture needs a moment after the voice ends, such as the product reveal or a key screen. Most scenes need none; the closing frame is held automatically.
-- The video opens on the hook and the intro screen follows it, so the first scene should grab attention on its own.
+- The video opens with the intro screen (the product name and tagline), then the hook, so the first scene grabs attention right after the product is named.
 
 Return the plan by calling the output tool.

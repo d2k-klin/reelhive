@@ -258,7 +258,9 @@ class SceneSpec(BaseModel):
     captions: bool = Field(False, description="Show the narration as word-by-word captions; set from the brief")
     intro: Intro | None = None
     intro_at: int = Field(
-        0, ge=0, description="Scenes played before the intro screen: 0 opens with it, 1 is a cold open after the hook"
+        0,
+        ge=0,
+        description="Scenes played before the intro screen: 0 opens with it (the default), 1 is a cold open",
     )
     scenes: list[Scene] = Field(min_length=1)
     credit: Credit | None = None

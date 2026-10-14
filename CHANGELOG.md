@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-10-14
+
+### Changed
+- Shots hold a little longer: about 5.5 s on average at `balanced` (6.5 s slow, 4.5 s fast), the longest 8 s (9 s,
+  6.5 s). A 99-second video has about 17 shots instead of 21; a beat may carry up to 15 words.
+- The word target uses Kokoro's measured rate on real product scripts (145 wpm, was 161 measured on plain text), so
+  long drafts land on the target instead of overrunning by about 15% and losing narration to the repair.
+- The script writer's output model holds the script to at most 10% over its word target (under is fine), so an
+  overlong draft is shortened by the writer itself, within its call.
+- The intro screen opens the video again. The cold open (the hook first, the intro after it) is now the brief's
+  `cold_open: true`, or **Hook before intro** in the studio.
+
 ## [0.5.1] - 2026-10-13
 
 ### Fixed

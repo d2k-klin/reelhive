@@ -52,10 +52,11 @@ def test_the_intro_plays_after_the_hook_when_the_spec_says_so(brief):
         SceneSpec(intro=Intro(title="x"), intro_at=4, scenes=hooks(3))
 
 
-def test_cold_open_follows_a_hook_but_not_a_product_shot():
-    assert intro_position(hooks(2)) == 1
+def test_the_intro_opens_the_video_unless_the_brief_asks_for_a_cold_open():
+    assert intro_position(hooks(2)) == 0  # the product is named first
+    assert intro_position(hooks(2), cold_open=True) == 1  # a hook first, then the title screen
     shot = ScreenshotScene(index=1, narration="x", text=HookText(headline="h"))
-    assert intro_position([shot]) == 0
+    assert intro_position([shot], cold_open=True) == 0  # only a hook or problem plays before the intro
 
 
 def test_pacing_sets_how_much_narration_the_script_gets(brief):
@@ -155,7 +156,7 @@ def test_the_plan_holds_each_scene_to_what_can_be_read_while_its_narration_plays
 
     from reelhive.agents.plan import reading_budget, scene_plan_model
 
-    rate = 161 / 60
+    rate = 161 / 60  # a fixed rate keeps the budget arithmetic below readable
     assert reading_budget(9, 0.0, rate) == 13 and reading_budget(9, 2.0, rate) == 21  # a hold buys reading time
     plan = scene_plan_model([9], rate)
     bullets = {"template": "bullets", "headline": "Mapped to your frameworks", "items": ["ISO 27001 controls"] * 5}

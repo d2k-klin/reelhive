@@ -3818,6 +3818,12 @@
       "title": "Captions",
       "type": "boolean"
     },
+    "cold_open": {
+      "default": false,
+      "description": "Open on the hook and show the intro screen after it, instead of opening with the intro",
+      "title": "Cold Open",
+      "type": "boolean"
+    },
     "frame_review": {
       "default": false,
       "description": "Send one rendered frame per shot to the review provider for a visual review (vision model)",

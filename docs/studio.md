@@ -16,7 +16,7 @@ Set duration, format, voice, tone, theme and brand colors, then choose the backg
 
 ## Direct the scenes
 
-Every video has a 3-second intro screen: the product name, a one-line tagline and your site address in small letters. When the video opens on a hook, the intro follows it (a cold open), so the first second grabs attention before the product is named. At the high level you can edit it, and every scene, before anything is rendered: its words, its layout, how long it holds, and which part of a page the camera closes in on.
+Every video has a 3-second intro screen: the product name, a one-line tagline and your site address in small letters. It opens the video; turn on **Hook before intro** to open on the first line of the story instead and show the title screen after it. At the high level you can edit it, and every scene, before anything is rendered: its words, its layout, how long it holds, and which part of a page the camera closes in on.
 
 ![The intro title and tagline fields above the scene timeline](screenshots/scene-editor.png)
 

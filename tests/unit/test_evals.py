@@ -10,6 +10,7 @@ from PIL import Image
 from evals.harness import DATASET, EstimateTTS, PromptRecorder, load_set, serve_site
 from evals.report import to_html, to_markdown
 from evals.run import METRICS, aggregate, gate
+from reelhive.nodes.timing_node import SPEECH_WPM
 
 
 def test_dataset_covers_the_plan_matrix():
@@ -35,7 +36,7 @@ def test_dataset_covers_the_plan_matrix():
 
 
 def test_estimate_tts_matches_kokoro_rate(tmp_path):
-    seconds = EstimateTTS().synth(" ".join(["word"] * 161), tmp_path / "a.wav", "female", "us", 1.0).seconds
+    seconds = EstimateTTS().synth(" ".join(["word"] * SPEECH_WPM), tmp_path / "a.wav", "female", "us", 1.0).seconds
     assert seconds == pytest.approx(60, abs=0.1)
     assert sf.info(tmp_path / "a.wav").duration == pytest.approx(60, abs=0.1)
 

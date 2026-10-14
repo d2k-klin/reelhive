@@ -44,7 +44,7 @@ class ScenePlannerNode(AgentNode):
                 width=width,
                 height=height,
                 intro=opening_for(ctx, None),
-                intro_at=intro_position(ctx.brief.scenes),
+                intro_at=intro_position(ctx.brief.scenes, ctx.brief.cold_open),
                 scenes=[s.model_copy(deep=True) for s in ctx.brief.scenes],
                 theme=theme_for(ctx),
                 music_volume=ctx.brief.music_volume,
@@ -90,7 +90,7 @@ class ScenePlannerNode(AgentNode):
             width=width,
             height=height,
             intro=opening_for(ctx, out.intro),
-            intro_at=intro_position(out.scenes),
+            intro_at=intro_position(out.scenes, ctx.brief.cold_open),
             scenes=[
                 p.to_scene(i, b.narration).model_copy(update={"covers": p.covers or b.covers})
                 for i, (p, b) in enumerate(zip(out.scenes, beats, strict=True), 1)

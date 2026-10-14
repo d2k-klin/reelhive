@@ -76,16 +76,16 @@ def test_a_screen_held_too_long_fails_the_shot_length_check(brief):
     spec, narrated = good_spec(brief)
     assert by_name(hard_checks(spec, brief, narrated))["shot_length"].passed
     long = spec.scenes[2]
-    long.duration = 9.0  # one scene lingers
+    long.duration = 9.5  # one scene lingers
     check = by_name(hard_checks(spec, brief, narrated))["shot_length"]
-    assert not check.passed and f"scene {long.index}: 9.0s" in check.message
-    long.duration_override = 9.0  # unless the user set that length themselves
+    assert not check.passed and f"scene {long.index}: 9.5s" in check.message
+    long.duration_override = 9.5  # unless the user set that length themselves
     assert by_name(hard_checks(spec, brief, narrated))["shot_length"].passed
 
 
 def test_few_long_beats_fail_on_the_average_even_under_the_longest(brief):
     spec, narrated = good_spec(brief)
     for scene in spec.scenes:
-        scene.duration = 6.5  # each under 7 s, but far over a 4.5 s average
+        scene.duration = 7.5  # each under 8 s, but far over a 5.5 s average
     check = by_name(hard_checks(spec, brief, narrated))["shot_length"]
     assert not check.passed and "on average" in check.message

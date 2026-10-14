@@ -21,15 +21,15 @@ from reelhive.schemas.scene_spec import (
 # Narration density per brief `pacing`: (lowest, highest, target) words per minute of video. `slow` leaves
 # room for the picture (short showcase cuts); `balanced` is the classic narrated explainer.
 PACE = {"slow": (100, 135, 115), "balanced": (130, 170, 145), "fast": (145, 175, 160)}
-SPEECH_WPM = 161  # measured Kokoro rate at speed 1.0 (docs/plan.md, M1 notes)
+SPEECH_WPM = 145  # Kokoro at speed 1.0 on real product scripts, clips trimmed (measured 138-154; plain text ~161)
 SLOW_SPEECH_WPM = 125  # the same voice on names, numbers and acronyms ("ISO 27001, SOC 2"): measured 122-141
 # How long one shot stays on screen, per brief `pacing`: (average to aim for, longest allowed) in seconds. The
 # picture changes with every beat, so a beat is one short idea; a screen held much longer reads as a slideshow.
-SHOT = {"slow": (5.5, 8.0), "balanced": (4.5, 7.0), "fast": (4.0, 6.0)}
+SHOT = {"slow": (6.5, 9.0), "balanced": (5.5, 8.0), "fast": (4.5, 6.5)}
 MAX_BEATS = 40
 LEAD = 0.3  # silence before the voice starts in each scene (covers the fade-in)
 # Breathing room after the voice, per pacing: a natural pause between sentences, shorter when the cut is quick.
-TAILS = {"slow": 0.6, "balanced": 0.5, "fast": 0.35}
+TAILS = {"slow": 0.6, "balanced": 0.5, "fast": 0.3}
 TAIL_MIN = 0.3
 MAX_EXTRA = 3.0  # most padding added per scene before we'd rather lengthen the script
 FINAL_HOLD = 1.0  # the closing frame settles this long after the last words, before the credit

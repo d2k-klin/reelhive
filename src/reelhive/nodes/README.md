@@ -31,4 +31,4 @@ Then wire it in [`../graphs/production.py`](../graphs/production.py). Emit `node
 
 ## Timing constants
 
-`PACE` holds each brief `pacing`'s narration range and target (balanced aims for 145), `SHOT` its average and longest shot (`beats_for()` turns the average into the script's beat count), `FINAL_HOLD` lets the closing frame settle, `SPEECH_WPM` (161) is Kokoro's measured rate, and `LEAD` / `TAILS` (the pause after each beat, by pacing) / `TAIL_MIN` / `MAX_EXTRA` shape the padding. Changing them changes every video's length. Run the evals before and after (`reelhive eval`).
+`PACE` holds each brief `pacing`'s narration range and target (balanced aims for 145), `SHOT` its average and longest shot (`beats_for()` turns the average into the script's beat count), `FINAL_HOLD` lets the closing frame settle, `SPEECH_WPM` (145) is Kokoro's measured rate on real scripts, and `LEAD` / `TAILS` (the pause after each beat, by pacing) / `TAIL_MIN` / `MAX_EXTRA` shape the padding. Changing them changes every video's length. Run the evals before and after (`reelhive eval`).

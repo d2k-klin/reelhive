@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "ReelHive local API",
-    "version": "0.5.0"
+    "version": "0.5.2"
   },
   "paths": {
     "/api/health": {
@@ -2032,6 +2032,12 @@
             "description": "Show the narration on screen, phrase by phrase, highlighting each word as it is spoken",
             "default": false
           },
+          "cold_open": {
+            "type": "boolean",
+            "title": "Cold Open",
+            "description": "Open on the hook and show the intro screen after it, instead of opening with the intro",
+            "default": false
+          },
           "frame_review": {
             "type": "boolean",
             "title": "Frame Review",
@@ -4052,7 +4058,7 @@
             "type": "integer",
             "minimum": 0.0,
             "title": "Intro At",
-            "description": "Scenes played before the intro screen: 0 opens with it, 1 is a cold open after the hook",
+            "description": "Scenes played before the intro screen: 0 opens with it (the default), 1 is a cold open",
             "default": 0
           },
           "scenes": {

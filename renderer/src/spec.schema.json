@@ -1738,7 +1738,7 @@
     },
     "intro_at": {
       "default": 0,
-      "description": "Scenes played before the intro screen: 0 opens with it, 1 is a cold open after the hook",
+      "description": "Scenes played before the intro screen: 0 opens with it (the default), 1 is a cold open",
       "minimum": 0,
       "title": "Intro At",
       "type": "integer"

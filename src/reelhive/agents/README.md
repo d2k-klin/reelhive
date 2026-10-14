@@ -15,7 +15,7 @@
 | [`sound_designer.py`](sound_designer.py) | `sound`: scores the reviewed cut with a few effects, or none, only on moments the renderer reported and only with effects that suit them. The output model is built per run: moments and effects are closed sets, and the budget, spacing and levels under the voice are validators the model repairs within its own call | fast | `SoundPlan` |
 | [`publisher.py`](publisher.py) | `publish`: the post copy per chosen platform (YouTube title, description and tags; LinkedIn commentary; TikTok and Instagram captions), held to each platform's limits. Runs only when the user asks to publish; nothing is posted until they approve | strong | `PostCopy` |
 | [`fixer.py`](fixer.py) | `fix`: a corrected `ScenePlan` with narration, repairing plan failures and cut failures alike; emits `fix.diff` | strong | `ScenePlan` |
-| [`plan.py`](plan.py) | `PlannedScene` / `ScenePlan`, shared by planner and fixer; enforces template character limits so the model retries rather than us truncating. `keep_direction()` carries layout, hold and visual request a repair leaves out; `intro_position()` is the cold-open rule | – | – |
+| [`plan.py`](plan.py) | `PlannedScene` / `ScenePlan`, shared by planner and fixer; enforces template character limits so the model retries rather than us truncating. `keep_direction()` carries layout, hold and visual request a repair leaves out; `intro_position()` puts the intro first, or after the hook with the brief's `cold_open` | – | – |
 | [`suggester.py`](suggester.py) | `suggest` (M6): 3-4 quick-action suggestions for one beat or scene, cached per version | fast | `Suggestions` |
 | [`prompts/`](prompts) | The system prompts, one Markdown file per agent | – | – |
 

@@ -31,7 +31,7 @@ production:   ┌─► scenes ─► visuals ─┐
 | `brief` | deterministic | Validate, fill the level's defaults, make paths absolute, save `brief.yaml` | `nodes/brief_node.py` |
 | `research` | agent, fast + crawl | Read the product website (same origin, ≤10 pages, masks honoured) and the brief's documents, and write `research.json`: what it is, correct names, offerings, pains, facts, what each note refers to. Uses a public App URL when no website is given; skipped with no source | `agents/researcher.py` |
 | `script` | agent, strong | Narration as beats, one beat per shot: the count comes from the duration and the pacing's shot length, and its output model holds the writer to it | `agents/script_writer.py` |
-| `scenes` | agent, fast | Director as well as designer: a template, on-screen text, a visual request (with a close-up region), a `layout` and a `hold` per beat; the intro follows an opening hook | `agents/scene_planner.py` |
+| `scenes` | agent, fast | Director as well as designer: a template, on-screen text, a visual request (with a close-up region), a `layout` and a `hold` per beat; the intro opens the video (after the hook with `cold_open`) | `agents/scene_planner.py` |
 | `visuals` | deterministic | Resolve each visual request: provided image, screenshot or generated image, else a text fallback | `visuals/resolver.py` |
 | `narrate` | deterministic | Kokoro TTS per beat, recording real durations and word timings (for captions) | `nodes/narrate_node.py` |
 | `music` | agent, fast + lookup | Mood and BPM, then the closest track in `assets/music` | `agents/music_director.py` |
@@ -72,7 +72,7 @@ The brief is raw material. The writers get the notes numbered, the product resea
 - every key-point note told by at least one scene (scenes record the notes they tell in `covers`; wording is free);
 - narration pace within the brief's `pacing` range (`slow` 100-135, `balanced` 130-170, `fast` 145-175 words per minute of video, not counting the intro, the credit, planned holds or the short pause between beats; the floor follows the voice's measured rate, so a slow voice isn't asked for the impossible);
 - on-screen text within each template's limits;
-- shot length: no screen held longer than the pacing allows (7 s balanced), and about one change every 4.5 s on average, so the picture keeps moving while the voice goes on;
+- shot length: no screen held longer than the pacing allows (8 s balanced), and about one change every 5.5 s on average, so the picture keeps moving while the voice goes on;
 - reading time: at most four on-screen words per second a scene is settled on screen;
 - every scene voiced with its current narration;
 - every image present, inside the run folder and at the format's minimum resolution;

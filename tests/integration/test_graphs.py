@@ -184,7 +184,7 @@ def test_render_progress_is_logged_per_percent_not_per_frame(config, brief):
     assert len(finalized) == 1 and finalized[0]["progress"] == 1.0
 
 
-def test_the_intro_follows_the_hook_and_the_address_shows_twice(config, brief):
+def test_the_intro_opens_the_video_and_the_address_shows_twice(config, brief):
     brief.cta_url = "https://www.costhive.dev/pricing/?ref=x"
     svc, _, tts = service(
         config,
@@ -199,13 +199,25 @@ def test_the_intro_follows_the_hook_and_the_address_shows_twice(config, brief):
         "url": "costhive.dev/pricing",
         "duration": 3.0,
     }
-    # A cold open: the hook plays first, then the title screen, then the rest.
-    assert spec["intro_at"] == 1 and spec["scenes"][0]["start"] == 0.0
-    assert spec["scenes"][1]["start"] == pytest.approx(spec["scenes"][0]["duration"] + 3.0, abs=1 / 30)
+    # The title screen opens the video; the hook follows it.
+    assert spec["intro_at"] == 0 and spec["scenes"][0]["start"] == pytest.approx(3.0, abs=1 / 30)
     assert spec["scenes"][-1]["text"]["url"] == "costhive.dev/pricing"
     assert len(tts.calls) == len(spec["scenes"])  # the intro has no narration
     assert probe(result.video)["duration"] == pytest.approx(brief.duration, rel=0.05)
     assert any(d["task"] == "Intro: CostHive" for d in of_type(events, "node.task"))
+
+
+def test_a_cold_open_plays_the_hook_before_the_intro(config, brief):
+    brief.cold_open = True
+    svc, _, _ = service(
+        config,
+        {"Script": make_script(brief), "ScenePlan": make_plan(brief), "MusicChoice": MUSIC, "Verdict": VERDICT_PASS},
+    )
+    result, _ = run(svc, brief)
+    spec = json.loads((result.run_dir / "spec.json").read_text())
+    assert spec["intro_at"] == 1 and spec["scenes"][0]["start"] == 0.0
+    # Boundaries snap to whole frames, so the second scene starts within a frame of hook + intro.
+    assert spec["scenes"][1]["start"] == pytest.approx(spec["scenes"][0]["duration"] + 3.0, abs=1.5 / 30)
 
 
 def test_the_briefs_own_intro_text_beats_the_agents(config, brief):

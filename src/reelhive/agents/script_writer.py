@@ -10,9 +10,10 @@ from reelhive.nodes.timing_node import SHOT, beats_for, max_beat_words, target_w
 from reelhive.schemas.script import Beat, Script
 
 BEAT_SLACK = 2  # the writer may use a couple of beats more or fewer than the target, where the story needs it
+WORD_SLACK = 0.10  # and run up to 10% over the word target; under is fine (timing pads it), over makes it long
 
 
-def script_model(beats: int, max_words: int) -> type[Script]:
+def script_model(beats: int, max_words: int, target: int | None = None) -> type[Script]:
     """`Script` with the beat count this video needs, each beat short enough for one shot: the count sets how often
     the screen changes, the cap how long any one screen stays. Out of range goes back to the model as a validation
     error."""
@@ -28,8 +29,15 @@ def script_model(beats: int, max_words: int) -> type[Script]:
                 for i, b in enumerate(self.beats, 1)
                 if (n := len(b.narration.split())) > max_words
             ]
-            if long:
-                raise ValueError(f"each beat is one shot of at most {max_words} words; split these: {long}")
+            problems = [f"each beat is one shot of at most {max_words} words; split these: {long}"] if long else []
+            total = sum(len(b.narration.split()) for b in self.beats)
+            if target and total > target * (1 + WORD_SLACK):
+                problems.append(
+                    f"the script is {total} words; the video holds about {target}, so cut to at most "
+                    f"{int(target * (1 + WORD_SLACK))} (shorter sentences, fewer words per beat)"
+                )
+            if problems:
+                raise ValueError("; ".join(problems))
             return self
 
     Sized.__name__ = Sized.__qualname__ = "Script"
@@ -43,7 +51,7 @@ class ScriptWriterNode(AgentNode):
     output = Script
 
     async def execute(self, ctx: RunContext) -> Usage:
-        self.output = script_model(beats_for(ctx.brief), max_beat_words(ctx.brief))
+        self.output = script_model(beats_for(ctx.brief), max_beat_words(ctx.brief), target_words(ctx.brief))
         return await super().execute(ctx)
 
     def build_prompt(self, ctx: RunContext) -> str:

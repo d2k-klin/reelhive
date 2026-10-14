@@ -122,6 +122,9 @@ class Brief(Options):
     captions: bool = Field(
         False, description="Show the narration on screen, phrase by phrase, highlighting each word as it is spoken"
     )
+    cold_open: bool = Field(
+        False, description="Open on the hook and show the intro screen after it, instead of opening with the intro"
+    )
     frame_review: bool = Field(
         False,
         description="Send one rendered frame per shot to the review provider for a visual review (vision model)",

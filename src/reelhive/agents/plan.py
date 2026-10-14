@@ -67,9 +67,10 @@ def text_words(text: Any) -> int:
 COLD_OPEN = ("hook", "problem")  # a first scene of these plays before the intro screen
 
 
-def intro_position(scenes: list[Any]) -> int:
-    """Hook first, then the product: the intro screen follows an opening hook (a cold open)."""
-    return 1 if scenes and scenes[0].template in COLD_OPEN else 0
+def intro_position(scenes: list[Any], cold_open: bool = False) -> int:
+    """The intro screen opens the video. With the brief's `cold_open`, an opening hook plays first and the intro
+    follows it."""
+    return 1 if cold_open and scenes and scenes[0].template in COLD_OPEN else 0
 
 
 class PlannedScene(BaseModel):
