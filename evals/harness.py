@@ -25,7 +25,7 @@ KOKORO_WPS = SPEECH_WPM / 60
 class EstimateTTS:
     """Silence as long as Kokoro would take to say the text, so timing and pace metrics stay realistic."""
 
-    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float) -> Speech:
+    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float, name: str | None = None) -> Speech:
         seconds = max(0.5, len(text.split()) / KOKORO_WPS / speed)
         sf.write(out, np.zeros(int(seconds * 24000), dtype=np.float32), 24000)
         return Speech(seconds, estimate_words(text, 0.0, seconds))

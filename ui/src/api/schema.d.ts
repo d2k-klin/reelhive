@@ -279,6 +279,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/runs/{run_id}/cut": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cut */
+        post: operations["cut_api_runs__run_id__cut_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/runs/{run_id}/script/approve": {
         parameters: {
             query?: never;
@@ -833,11 +850,22 @@ export interface components {
              */
             tone: string;
             /**
+             * Narrator
+             * @description Who tells the story, as a character the whole narration speaks as, e.g. 'a deadpan nature documentary narrator'. Pair it with a named voice that suits them
+             */
+            narrator?: string | null;
+            /**
              * Pacing
+             * @description How quickly the picture changes; `punchy` cuts every 2-3 seconds, for social feeds
              * @default balanced
              * @enum {string}
              */
-            pacing: "slow" | "balanced" | "fast";
+            pacing: "slow" | "balanced" | "fast" | "punchy";
+            /**
+             * Platform
+             * @description Made for Instagram Reels, YouTube Shorts or TikTok: a vertical, punchy, captioned cut that opens on its hook and keeps text clear of the app's buttons
+             */
+            platform?: ("reels" | "shorts" | "tiktok") | null;
             /**
              * @default {
              *       "colors": []
@@ -864,7 +892,7 @@ export interface components {
              */
             visuals: components["schemas"]["Visuals"];
             /** Scenes */
-            scenes?: (components["schemas"]["HookScene"] | components["schemas"]["FeatureCardScene"] | components["schemas"]["CtaScene"] | components["schemas"]["ImageScene"] | components["schemas"]["ScreenshotScene"] | components["schemas"]["ProblemScene"] | components["schemas"]["StatScene"] | components["schemas"]["BulletsScene"])[] | null;
+            scenes?: (components["schemas"]["HookScene"] | components["schemas"]["FeatureCardScene"] | components["schemas"]["CtaScene"] | components["schemas"]["ImageScene"] | components["schemas"]["ScreenshotScene"] | components["schemas"]["ProblemScene"] | components["schemas"]["StatScene"] | components["schemas"]["BulletsScene"] | components["schemas"]["OfferScene"] | components["schemas"]["ReviewScene"] | components["schemas"]["PhotoScene"])[] | null;
             /** Music Track */
             music_track?: string | null;
             /**
@@ -1160,6 +1188,15 @@ export interface components {
              * @description Site address, shown small; set from the brief
              */
             url?: string | null;
+        };
+        /** Cut */
+        Cut: {
+            /** Platform */
+            platform?: ("reels" | "shorts" | "tiktok") | null;
+            /** Duration */
+            duration?: number | null;
+            /** Format */
+            format?: ("16:9" | "9:16" | "1:1") | null;
         };
         /** Defaults */
         Defaults: {
@@ -1588,6 +1625,11 @@ export interface components {
              * @default 0.6
              */
             transition: number;
+            /**
+             * Open
+             * @description Seconds the first shot takes to arrive; 0 opens on a settled frame (a feed autoplays the first frame and shows it as the cover). None: as `enter`
+             */
+            open?: number | null;
         };
         /** Note */
         Note: {
@@ -1606,6 +1648,168 @@ export interface components {
              * @description Beat the note is about (script quick actions)
              */
             beat?: number | null;
+        };
+        /** OfferScene */
+        OfferScene: {
+            /** Index */
+            index: number;
+            /** Narration */
+            narration: string;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
+            /** Duration Override */
+            duration_override?: number | null;
+            voice_override?: components["schemas"]["Voice"] | null;
+            /**
+             * Image Approved
+             * @default false
+             */
+            image_approved: boolean;
+            /**
+             * @default {
+             *       "kind": "none"
+             *     }
+             */
+            visual_request: components["schemas"]["VisualRequest"];
+            visual?: components["schemas"]["VisualAsset"] | null;
+            /**
+             * Audio
+             * @description Narration WAV, relative to the run folder
+             */
+            audio?: string | null;
+            /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
+            /**
+             * Start
+             * @default 0
+             */
+            start: number;
+            /**
+             * Duration
+             * @default 0
+             */
+            duration: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            template: "offer";
+            text: components["schemas"]["OfferText"];
+        };
+        /** OfferText */
+        OfferText: {
+            /**
+             * Headline
+             * @description What is on offer: the product, or the deal
+             */
+            headline: string;
+            /**
+             * Price
+             * @description The price as shown, e.g. $49; from the sources only
+             */
+            price: string;
+            /**
+             * Was
+             * @description The earlier price, struck through; from the sources only
+             */
+            was?: string | null;
+            /**
+             * Subline
+             * @description One supporting line, e.g. free shipping
+             */
+            subline?: string | null;
+        };
+        /**
+         * PhotoScene
+         * @description One of the user's photos across the whole frame, under a slow camera move, with an optional caption.
+         */
+        PhotoScene: {
+            /** Index */
+            index: number;
+            /** Narration */
+            narration: string;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
+            /** Duration Override */
+            duration_override?: number | null;
+            voice_override?: components["schemas"]["Voice"] | null;
+            /**
+             * Image Approved
+             * @default false
+             */
+            image_approved: boolean;
+            /**
+             * @default {
+             *       "kind": "none"
+             *     }
+             */
+            visual_request: components["schemas"]["VisualRequest"];
+            visual?: components["schemas"]["VisualAsset"] | null;
+            /**
+             * Audio
+             * @description Narration WAV, relative to the run folder
+             */
+            audio?: string | null;
+            /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
+            /**
+             * Start
+             * @default 0
+             */
+            start: number;
+            /**
+             * Duration
+             * @default 0
+             */
+            duration: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            template: "photo";
+            text: components["schemas"]["PhotoText"];
+            /**
+             * Motion
+             * @description The slow camera move across the photo for the whole shot
+             * @default push_in
+             * @enum {string}
+             */
+            motion: "push_in" | "pull_out" | "pan_left" | "pan_right";
+        };
+        /** PhotoText */
+        PhotoText: {
+            /**
+             * Headline
+             * @description A caption over the photo (a place, a punchline); empty for none
+             * @default
+             */
+            headline: string;
+            /** Subline */
+            subline?: string | null;
         };
         /**
          * PostCopy
@@ -1786,6 +1990,83 @@ export interface components {
              */
             instagram: components["schemas"]["InstagramSettings"];
         };
+        /** ReviewScene */
+        ReviewScene: {
+            /** Index */
+            index: number;
+            /** Narration */
+            narration: string;
+            /**
+             * Covers
+             * @description Brief key-point notes (1-based) this scene tells
+             */
+            covers?: number[];
+            /** Duration Override */
+            duration_override?: number | null;
+            voice_override?: components["schemas"]["Voice"] | null;
+            /**
+             * Image Approved
+             * @default false
+             */
+            image_approved: boolean;
+            /**
+             * @default {
+             *       "kind": "none"
+             *     }
+             */
+            visual_request: components["schemas"]["VisualRequest"];
+            visual?: components["schemas"]["VisualAsset"] | null;
+            /**
+             * Audio
+             * @description Narration WAV, relative to the run folder
+             */
+            audio?: string | null;
+            /**
+             * Hold
+             * @description Seconds the settled frame stays after the narration, so it can be read
+             * @default 0
+             */
+            hold: number;
+            /**
+             * Words
+             * @description The narration's words as spoken; set by timing
+             */
+            words?: components["schemas"]["Word"][];
+            /**
+             * Start
+             * @default 0
+             */
+            start: number;
+            /**
+             * Duration
+             * @default 0
+             */
+            duration: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            template: "review";
+            text: components["schemas"]["ReviewText"];
+        };
+        /** ReviewText */
+        ReviewText: {
+            /**
+             * Headline
+             * @description A customer's words, quoted from the sources (may be shortened)
+             */
+            headline: string;
+            /**
+             * Subline
+             * @description Who said it, as the source names them
+             */
+            subline?: string | null;
+            /**
+             * Rating
+             * @description Their star rating out of 5; from the sources only
+             */
+            rating?: number | null;
+        };
         /** RunView */
         RunView: {
             /** Id */
@@ -1823,6 +2104,33 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /**
+         * SafeArea
+         * @description Insets, as fractions of the frame's width and height, that text must stay inside: the title-safe margin,
+         *     or the parts of a vertical frame a platform's own buttons and captions cover.
+         */
+        SafeArea: {
+            /**
+             * Top
+             * @default 0.04
+             */
+            top: number;
+            /**
+             * Right
+             * @default 0.04
+             */
+            right: number;
+            /**
+             * Bottom
+             * @default 0.04
+             */
+            bottom: number;
+            /**
+             * Left
+             * @default 0.04
+             */
+            left: number;
         };
         /** SceneSpec */
         SceneSpec: {
@@ -1874,6 +2182,16 @@ export interface components {
              */
             motion: components["schemas"]["Motion"];
             /**
+             * @description Where text may go; set from the brief's platform (a vertical cut) by code
+             * @default {
+             *       "top": 0.04,
+             *       "right": 0.04,
+             *       "bottom": 0.04,
+             *       "left": 0.04
+             *     }
+             */
+            safe_area: components["schemas"]["SafeArea"];
+            /**
              * Captions
              * @description Show the narration as word-by-word captions; set from the brief
              * @default false
@@ -1887,7 +2205,7 @@ export interface components {
              */
             intro_at: number;
             /** Scenes */
-            scenes: (components["schemas"]["HookScene"] | components["schemas"]["FeatureCardScene"] | components["schemas"]["CtaScene"] | components["schemas"]["ImageScene"] | components["schemas"]["ScreenshotScene"] | components["schemas"]["ProblemScene"] | components["schemas"]["StatScene"] | components["schemas"]["BulletsScene"])[];
+            scenes: (components["schemas"]["HookScene"] | components["schemas"]["FeatureCardScene"] | components["schemas"]["CtaScene"] | components["schemas"]["ImageScene"] | components["schemas"]["ScreenshotScene"] | components["schemas"]["ProblemScene"] | components["schemas"]["StatScene"] | components["schemas"]["BulletsScene"] | components["schemas"]["OfferScene"] | components["schemas"]["ReviewScene"] | components["schemas"]["PhotoScene"])[];
             credit?: components["schemas"]["Credit"] | null;
             /**
              * Music Volume
@@ -2287,6 +2605,11 @@ export interface components {
              * @default 1
              */
             speed: number;
+            /**
+             * Name
+             * @description A Kokoro voice with a character of its own; it sets the gender and accent
+             */
+            name?: ("af_heart" | "af_bella" | "af_nicole" | "am_michael" | "am_fenrir" | "am_puck" | "bf_emma" | "bf_isabella" | "bm_george" | "bm_fable") | null;
         };
         /**
          * Word
@@ -2871,6 +3194,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cut_api_runs__run_id__cut_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Cut"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunView"];
                 };
             };
             /** @description Validation Error */

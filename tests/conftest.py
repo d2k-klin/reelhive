@@ -72,9 +72,11 @@ class StubTTS:
 
     def __init__(self) -> None:
         self.calls: list[str] = []
+        self.voices: list[str | None] = []
 
-    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float) -> Speech:
+    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float, name: str | None = None) -> Speech:
         self.calls.append(text)
+        self.voices.append(name)
         seconds = len(text.split()) / WORDS_PER_SECOND / speed
         sf.write(out, np.zeros(int(seconds * 24000), dtype=np.float32), 24000)
         return Speech(seconds, estimate_words(text, 0.0, seconds))

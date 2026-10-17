@@ -1,0 +1,11 @@
+level: low
+audience: Platform engineers scrolling Instagram between meetings
+storyline: Cloud bills grow silently. CostHive finds the waste in minutes.
+features:
+  - Scans every region in one command
+  - Flags idle and oversized resources
+duration: 30          # seconds; 15-30 s is where Reels hold attention
+platform: reels       # reels | shorts | tiktok: 9:16, punchy cuts, captions, the hook on the first frame,
+                      # text clear of the app's buttons. Set format, pacing, captions or cold_open to override
+closing: Try CostHive free on GitHub.
+website: https://github.com/d2k-klin/costhive

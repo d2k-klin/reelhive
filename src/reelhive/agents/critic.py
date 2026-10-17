@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,7 +16,7 @@ from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode, _no_usage
 from reelhive.nodes.timing_node import LEAD, PACE, SHOT, TAIL_MIN, holds
 from reelhive.schemas.brief import Brief
-from reelhive.schemas.scene_spec import Intro, SceneSpec
+from reelhive.schemas.scene_spec import Intro, OfferScene, ReviewScene, SceneSpec
 
 DURATION_TOLERANCE = 0.05
 
@@ -31,6 +32,43 @@ class Check:
 
 def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
+
+
+def _numbers(text: str) -> set[float]:
+    return {float(n.replace(",", "")) for n in re.findall(r"\d[\d,]*(?:\.\d+)?", text)}
+
+
+def _plain(text: str) -> str:
+    return " ".join(re.findall(r"[a-z0-9]+", text.lower()))
+
+
+def sources(brief: Brief, run_dir: Path | None) -> str:
+    """Everything a price or a quote may come from: the user's own words and what research read on the website."""
+    parts = [brief.storyline, brief.closing, brief.context or "", *brief.features]
+    research = run_dir / "research.json" if run_dir else None
+    if research and research.exists():
+        parts.append(json.dumps(json.loads(research.read_text()), ensure_ascii=False))
+    return "\n".join(parts)
+
+
+def unsourced(spec: SceneSpec, source: str) -> list[str]:
+    """Prices, quotes and ratings on screen that the sources don't give. A quote may be shortened with an ellipsis,
+    as long as every piece of it is the customer's own words."""
+    numbers, plain = _numbers(source), f" {_plain(source)} "
+    problems = []
+    for s in spec.scenes:
+        if isinstance(s, OfferScene):
+            for field in ("price", "was"):
+                value = getattr(s.text, field)
+                if value and not _numbers(value) <= numbers:
+                    problems.append(f"scene {s.index} {field} {value}")
+        if isinstance(s, ReviewScene):
+            pieces = [_plain(p) for p in re.split(r"\.\.\.|…", s.text.headline)]
+            if not any(pieces) or any(p and f" {p} " not in plain for p in pieces):
+                problems.append(f"scene {s.index} quote")
+            if s.text.rating is not None and s.text.rating not in numbers:
+                problems.append(f"scene {s.index} rating {s.text.rating:g}")
+    return problems
 
 
 def voice_wpm(spec: SceneSpec, narrated: dict[int, tuple[str, float]]) -> float:
@@ -132,6 +170,18 @@ def hard_checks(
         )
     )
 
+    invented = unsourced(spec, sources(brief, run_dir))
+    checks.append(
+        Check(
+            "claims",
+            not invented,
+            "prices, quotes and ratings from the sources",
+            not invented,
+            "on screen but not in the brief or the website's product data; quote prices and reviews exactly as "
+            f"given, or use another template: {invented}",
+        )
+    )
+
     stale = [s.index for s in spec.scenes if narrated.get(s.index, ("",))[0] != s.narration]
     checks.append(Check("audio", not stale, "every scene voiced", not stale, f"scenes without matching audio: {stale}"))
     from reelhive.visuals.resolver import visual_ok
@@ -143,7 +193,7 @@ def hard_checks(
         if scene.visual:
             if run_dir is None or not visual_ok(run_dir, scene.visual, brief.format):
                 bad_images.append(scene.index)
-        elif scene.template in ("image-full", "screenshot-pan"):
+        elif scene.template in ("image-full", "screenshot-pan", "photo"):
             bad_images.append(scene.index)
     checks.append(
         Check(
@@ -153,6 +203,11 @@ def hard_checks(
             not bad_images,
             f"missing, invalid or low-resolution images or clips: {bad_images}",
         )
+    )
+    used = [s.visual_request.image for s in spec.scenes if s.template == "photo" and s.visual_request.image]
+    repeated = sorted({name for name in used if used.count(name) > 1})
+    checks.append(
+        Check("repeats", not repeated, "each photo once", not repeated, f"photos shown more than once: {repeated}")
     )
     checks.append(
         Check(

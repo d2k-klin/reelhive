@@ -578,6 +578,55 @@
         }
       }
     },
+    "/api/runs/{run_id}/cut": {
+      "post": {
+        "summary": "Cut",
+        "operationId": "cut_api_runs__run_id__cut_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cut"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/runs/{run_id}/script/approve": {
       "post": {
         "summary": "Approve Script",
@@ -1880,15 +1929,47 @@
             "title": "Tone",
             "default": "clear and direct"
           },
+          "narrator": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Narrator",
+            "description": "Who tells the story, as a character the whole narration speaks as, e.g. 'a deadpan nature documentary narrator'. Pair it with a named voice that suits them"
+          },
           "pacing": {
             "type": "string",
             "enum": [
               "slow",
               "balanced",
-              "fast"
+              "fast",
+              "punchy"
             ],
             "title": "Pacing",
+            "description": "How quickly the picture changes; `punchy` cuts every 2-3 seconds, for social feeds",
             "default": "balanced"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "reels",
+                  "shorts",
+                  "tiktok"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform",
+            "description": "Made for Instagram Reels, YouTube Shorts or TikTok: a vertical, punchy, captioned cut that opens on its hook and keeps text clear of the app's buttons"
           },
           "brand": {
             "$ref": "#/components/schemas/Brand",
@@ -1982,6 +2063,15 @@
                     },
                     {
                       "$ref": "#/components/schemas/BulletsScene"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OfferScene"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ReviewScene"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PhotoScene"
                     }
                   ],
                   "discriminator": {
@@ -1992,7 +2082,10 @@
                       "feature-card": "#/components/schemas/FeatureCardScene",
                       "hook": "#/components/schemas/HookScene",
                       "image-full": "#/components/schemas/ImageScene",
+                      "offer": "#/components/schemas/OfferScene",
+                      "photo": "#/components/schemas/PhotoScene",
                       "problem": "#/components/schemas/ProblemScene",
+                      "review": "#/components/schemas/ReviewScene",
                       "screenshot-pan": "#/components/schemas/ScreenshotScene",
                       "stat": "#/components/schemas/StatScene"
                     }
@@ -2584,6 +2677,57 @@
           "headline"
         ],
         "title": "CtaText"
+      },
+      "Cut": {
+        "properties": {
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "reels",
+                  "shorts",
+                  "tiktok"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 180.0,
+                "minimum": 15.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "format": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "16:9",
+                  "9:16",
+                  "1:1"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format"
+          }
+        },
+        "type": "object",
+        "title": "Cut"
       },
       "Defaults": {
         "properties": {
@@ -3471,6 +3615,19 @@
             "title": "Transition",
             "description": "Seconds the outgoing shot overlaps the start of the incoming one",
             "default": 0.6
+          },
+          "open": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Open",
+            "description": "Seconds the first shot takes to arrive; 0 opens on a settled frame (a feed autoplays the first frame and shows it as the cover). None: as `enter`"
           }
         },
         "type": "object",
@@ -3514,6 +3671,331 @@
         },
         "type": "object",
         "title": "Note"
+      },
+      "OfferScene": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Index"
+          },
+          "narration": {
+            "type": "string",
+            "title": "Narration"
+          },
+          "covers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Covers",
+            "description": "Brief key-point notes (1-based) this scene tells"
+          },
+          "duration_override": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Override"
+          },
+          "voice_override": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Voice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "image_approved": {
+            "type": "boolean",
+            "title": "Image Approved",
+            "default": false
+          },
+          "visual_request": {
+            "$ref": "#/components/schemas/VisualRequest",
+            "default": {
+              "kind": "none"
+            }
+          },
+          "visual": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VisualAsset"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio",
+            "description": "Narration WAV, relative to the run folder"
+          },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
+          },
+          "start": {
+            "type": "number",
+            "title": "Start",
+            "default": 0.0
+          },
+          "duration": {
+            "type": "number",
+            "title": "Duration",
+            "default": 0.0
+          },
+          "template": {
+            "type": "string",
+            "const": "offer",
+            "title": "Template",
+            "default": "offer"
+          },
+          "text": {
+            "$ref": "#/components/schemas/OfferText"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "narration",
+          "text"
+        ],
+        "title": "OfferScene"
+      },
+      "OfferText": {
+        "properties": {
+          "headline": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Headline",
+            "description": "What is on offer: the product, or the deal"
+          },
+          "price": {
+            "type": "string",
+            "maxLength": 12,
+            "minLength": 1,
+            "title": "Price",
+            "description": "The price as shown, e.g. $49; from the sources only"
+          },
+          "was": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 12
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Was",
+            "description": "The earlier price, struck through; from the sources only"
+          },
+          "subline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subline",
+            "description": "One supporting line, e.g. free shipping"
+          }
+        },
+        "type": "object",
+        "required": [
+          "headline",
+          "price"
+        ],
+        "title": "OfferText"
+      },
+      "PhotoScene": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Index"
+          },
+          "narration": {
+            "type": "string",
+            "title": "Narration"
+          },
+          "covers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Covers",
+            "description": "Brief key-point notes (1-based) this scene tells"
+          },
+          "duration_override": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Override"
+          },
+          "voice_override": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Voice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "image_approved": {
+            "type": "boolean",
+            "title": "Image Approved",
+            "default": false
+          },
+          "visual_request": {
+            "$ref": "#/components/schemas/VisualRequest",
+            "default": {
+              "kind": "none"
+            }
+          },
+          "visual": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VisualAsset"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio",
+            "description": "Narration WAV, relative to the run folder"
+          },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
+          },
+          "start": {
+            "type": "number",
+            "title": "Start",
+            "default": 0.0
+          },
+          "duration": {
+            "type": "number",
+            "title": "Duration",
+            "default": 0.0
+          },
+          "template": {
+            "type": "string",
+            "const": "photo",
+            "title": "Template",
+            "default": "photo"
+          },
+          "text": {
+            "$ref": "#/components/schemas/PhotoText"
+          },
+          "motion": {
+            "type": "string",
+            "enum": [
+              "push_in",
+              "pull_out",
+              "pan_left",
+              "pan_right"
+            ],
+            "title": "Motion",
+            "description": "The slow camera move across the photo for the whole shot",
+            "default": "push_in"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "narration",
+          "text"
+        ],
+        "title": "PhotoScene",
+        "description": "One of the user's photos across the whole frame, under a slow camera move, with an optional caption."
+      },
+      "PhotoText": {
+        "properties": {
+          "headline": {
+            "type": "string",
+            "maxLength": 48,
+            "title": "Headline",
+            "description": "A caption over the photo (a place, a punchline); empty for none",
+            "default": ""
+          },
+          "subline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subline"
+          }
+        },
+        "type": "object",
+        "title": "PhotoText"
       },
       "PostCopy": {
         "properties": {
@@ -3891,6 +4373,167 @@
         "title": "Publishing",
         "description": "Where and how videos are published. Client ids and secrets come from environment variables only."
       },
+      "ReviewScene": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Index"
+          },
+          "narration": {
+            "type": "string",
+            "title": "Narration"
+          },
+          "covers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Covers",
+            "description": "Brief key-point notes (1-based) this scene tells"
+          },
+          "duration_override": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "minimum": 0.5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Override"
+          },
+          "voice_override": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Voice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "image_approved": {
+            "type": "boolean",
+            "title": "Image Approved",
+            "default": false
+          },
+          "visual_request": {
+            "$ref": "#/components/schemas/VisualRequest",
+            "default": {
+              "kind": "none"
+            }
+          },
+          "visual": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VisualAsset"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio",
+            "description": "Narration WAV, relative to the run folder"
+          },
+          "hold": {
+            "type": "number",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Hold",
+            "description": "Seconds the settled frame stays after the narration, so it can be read",
+            "default": 0.0
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            },
+            "type": "array",
+            "title": "Words",
+            "description": "The narration's words as spoken; set by timing"
+          },
+          "start": {
+            "type": "number",
+            "title": "Start",
+            "default": 0.0
+          },
+          "duration": {
+            "type": "number",
+            "title": "Duration",
+            "default": 0.0
+          },
+          "template": {
+            "type": "string",
+            "const": "review",
+            "title": "Template",
+            "default": "review"
+          },
+          "text": {
+            "$ref": "#/components/schemas/ReviewText"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "narration",
+          "text"
+        ],
+        "title": "ReviewScene"
+      },
+      "ReviewText": {
+        "properties": {
+          "headline": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Headline",
+            "description": "A customer's words, quoted from the sources (may be shortened)"
+          },
+          "subline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subline",
+            "description": "Who said it, as the source names them"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 5.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating",
+            "description": "Their star rating out of 5; from the sources only"
+          }
+        },
+        "type": "object",
+        "required": [
+          "headline"
+        ],
+        "title": "ReviewText"
+      },
       "RunView": {
         "properties": {
           "id": {
@@ -3989,6 +4632,41 @@
         ],
         "title": "RunView"
       },
+      "SafeArea": {
+        "properties": {
+          "top": {
+            "type": "number",
+            "exclusiveMaximum": 0.5,
+            "minimum": 0.0,
+            "title": "Top",
+            "default": 0.04
+          },
+          "right": {
+            "type": "number",
+            "exclusiveMaximum": 0.5,
+            "minimum": 0.0,
+            "title": "Right",
+            "default": 0.04
+          },
+          "bottom": {
+            "type": "number",
+            "exclusiveMaximum": 0.5,
+            "minimum": 0.0,
+            "title": "Bottom",
+            "default": 0.04
+          },
+          "left": {
+            "type": "number",
+            "exclusiveMaximum": 0.5,
+            "minimum": 0.0,
+            "title": "Left",
+            "default": 0.04
+          }
+        },
+        "type": "object",
+        "title": "SafeArea",
+        "description": "Insets, as fractions of the frame's width and height, that text must stay inside: the title-safe margin,\nor the parts of a vertical frame a platform's own buttons and captions cover."
+      },
       "SceneSpec": {
         "properties": {
           "version": {
@@ -4036,6 +4714,16 @@
             "default": {
               "enter": 0.8,
               "transition": 0.6
+            }
+          },
+          "safe_area": {
+            "$ref": "#/components/schemas/SafeArea",
+            "description": "Where text may go; set from the brief's platform (a vertical cut) by code",
+            "default": {
+              "top": 0.04,
+              "right": 0.04,
+              "bottom": 0.04,
+              "left": 0.04
             }
           },
           "captions": {
@@ -4087,6 +4775,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/BulletsScene"
+                },
+                {
+                  "$ref": "#/components/schemas/OfferScene"
+                },
+                {
+                  "$ref": "#/components/schemas/ReviewScene"
+                },
+                {
+                  "$ref": "#/components/schemas/PhotoScene"
                 }
               ],
               "discriminator": {
@@ -4097,7 +4794,10 @@
                   "feature-card": "#/components/schemas/FeatureCardScene",
                   "hook": "#/components/schemas/HookScene",
                   "image-full": "#/components/schemas/ImageScene",
+                  "offer": "#/components/schemas/OfferScene",
+                  "photo": "#/components/schemas/PhotoScene",
                   "problem": "#/components/schemas/ProblemScene",
+                  "review": "#/components/schemas/ReviewScene",
                   "screenshot-pan": "#/components/schemas/ScreenshotScene",
                   "stat": "#/components/schemas/StatScene"
                 }
@@ -4955,6 +5655,30 @@
             "minimum": 0.8,
             "title": "Speed",
             "default": 1.0
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "af_heart",
+                  "af_bella",
+                  "af_nicole",
+                  "am_michael",
+                  "am_fenrir",
+                  "am_puck",
+                  "bf_emma",
+                  "bf_isabella",
+                  "bm_george",
+                  "bm_fable"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "A Kokoro voice with a character of its own; it sets the gender and accent"
           }
         },
         "additionalProperties": false,

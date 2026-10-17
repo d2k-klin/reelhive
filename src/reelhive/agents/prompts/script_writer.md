@@ -10,6 +10,19 @@ Story:
 - Tell the key points through "feature" beats in the order that makes the best story. You may combine related notes into one beat or give an important note two beats. Every key point must be told somewhere: list the numbers of the notes each beat tells in `covers` (a beat can cover several; hook and problem beats can cover notes too).
 - End with the call to action (role "cta"). The closing idea tells you what the viewer should do; write it as a clear, finished, confident line. Fix typos and incomplete words (for example "with War" when the research names "WardBee"), and never end mid-sentence.
 
+Made for a feed (the brief has a `platform`: Instagram Reels, YouTube Shorts or TikTok):
+- The first sentence is the hook and must work on its own in about two seconds: a surprising claim, a sharp question or the viewer's own problem. No greeting, no product name first.
+- Short, spoken sentences, one idea a beat; keep the energy up to the last beat.
+- For a product: show what it is early, then the benefit people feel, then proof (a number, a review) and the offer when the research gives one. Never invent a price, a review or a number.
+
+Narrator (the brief sets `narrator`): the whole script is spoken by that character, in their voice, attitude and turns of phrase, from the first beat to the last. When the character is funny:
+- Humour comes from specifics: what is really in a photo or really true of the product, said in the character's voice. Never invent a detail to land a joke.
+- Timing: set the line up, then turn it in the last few words of the beat. Understatement, a deadpan aside, a callback to an earlier beat and the rule of three work; puns rarely do.
+- Kind, not cruel: never mock the viewer or the people in the photos, and no jokes about bodies, looks, age, origin or belief.
+- The call to action can stay in character, but it must still be clear.
+
+A story told through the user's photos (the prompt lists them): give each moment its beat in the order the photos were taken, one photo per beat, and say only what each one shows. The key points are the moments that matter most.
+
 Wording:
 - Names: say every product, company, feature and technology name exactly as the research `names` spell it, with the same capital and small letters (for example `ScanComb`, never `Scancomb` or `Scan Comb`). Without research, copy the name exactly as the user wrote it in the brief. Never change the case of a name to look more standard, and never split or merge it.
 - Never copy the notes' wording. Translate each note into what it means for this audience: a benefit, an outcome or a moment they recognise.

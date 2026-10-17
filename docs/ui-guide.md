@@ -55,9 +55,9 @@ The main controls are:
 3. **What's the story?** says what viewers should understand. Notes are enough ("what Scancomb is, what it offers, why it exists"); the agents turn them into a story.
 4. **Product website** (optional) is researched before writing: the agents read up to ten pages for facts and correctly spelled names, and screenshots are taken from it unless you choose other visuals. Its text goes to your AI provider (it stays local with Ollama).
 5. **Key points** are rough notes, one per row, up to eight. The agents decide how to tell them (merging, splitting or reordering) and write their own wording; the quality review only checks that each note is told somewhere.
-6. **Closing idea** is what viewers should do at the end. Rough is fine: the agents polish it into a finished call to action and fix typos.
+6. **Closing idea** is what viewers should do at the end. **Narrator** (optional) is who tells the story, for example a deadpan nature documentary narrator; pick a voice that suits them under **Narrator** in the voice settings. Rough is fine: the agents polish it into a finished call to action and fix typos.
 7. **Duration** accepts 15–180 seconds. More features need more time; a useful starting point is 30 seconds for one or two points and 60 seconds for three or four.
-8. **Format** controls the render dimensions: landscape `16:9`, portrait `9:16`, or square `1:1`.
+8. **Format** controls the render dimensions: landscape `16:9`, portrait `9:16`, or square `1:1`. **Made for** picks Instagram Reels, YouTube Shorts or TikTok: it sets portrait, `punchy` pacing, captions and **Hook before intro** (each can still be changed), opens on a readable first frame and keeps text clear of the app's buttons.
 9. **Voice** selects gender, US/UK accent, and speed from 0.8 to 1.2. **Preview voice** speaks a fixed sample locally with Kokoro.
 
 Every level can switch the narrator voice, background music and **Captions** (word-by-word, each word lighting up as it is spoken) on or off. Medium and High add tone, pacing, brand colors, a logo, theme, CTA URL, music mood, and music level. High also lets you choose an exact music track. The frame on the right previews the brand palette, duration, voice and estimated scene count; the actual headlines are written by the agents.
@@ -155,6 +155,7 @@ When the status reaches **Done**, the final section provides:
 - an inline video player;
 - **Download MP4** for the finished video;
 - **Subtitles (.srt)** and **(.vtt)** when the video is narrated;
+- **Make a cut for** Instagram Reels, YouTube Shorts or TikTok: a new run, portrait and about 30 seconds, from this video's research and script (condensed for the new length), so the website isn't read again;
 - **Download all files (.zip)**: everything the production made (brief, product research, script, scene plan, audio, video and run log), to archive, re-run from the CLI, or share for troubleshooting;
 - **Reveal folder** to open the local run directory;
 - **Publish**: choose platforms, draft the posts, edit them, and publish after confirming. See [publishing.md](publishing.md).

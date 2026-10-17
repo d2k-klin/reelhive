@@ -9,8 +9,10 @@ def narrate(ctx: RunContext, index: int, text: str) -> float:
     scenes = ctx.spec.scenes if ctx.spec else ctx.brief.scenes or []
     scene = next((s for s in scenes if s.index == index), None)
     voice = (scene.voice_override if scene else None) or ctx.brief.voice
-    speech = ctx.tts.synth(text, ctx.path("audio", f"scene_{index:02d}.wav"), voice.gender, voice.accent, voice.speed)
-    ctx.voiced[index] = voice.model_dump()
+    speech = ctx.tts.synth(
+        text, ctx.path("audio", f"scene_{index:02d}.wav"), voice.gender, voice.accent, voice.speed, voice.name
+    )
+    ctx.voiced[index] = voice.record()
     ctx.narrated[index] = (text, speech.seconds)
     ctx.words[index] = speech.words
     return speech.seconds

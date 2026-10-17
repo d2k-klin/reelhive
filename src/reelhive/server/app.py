@@ -40,6 +40,12 @@ class Note(BaseModel):
     beat: int | None = Field(None, ge=1, description="Beat the note is about (script quick actions)")
 
 
+class Cut(BaseModel):
+    platform: Literal["reels", "shorts", "tiktok"] | None = None
+    duration: int | None = Field(None, ge=15, le=180)
+    format: Literal["16:9", "9:16", "1:1"] | None = None
+
+
 class YamlBrief(BaseModel):
     text: str = Field(max_length=100_000)
 
@@ -185,7 +191,7 @@ def create_app(
         path.parent.mkdir(exist_ok=True)
         if not path.exists():
             KokoroTTS().synth(
-                "Bring your story to life with ReelHive.", path, voice.gender, voice.accent, voice.speed
+                "Bring your story to life with ReelHive.", path, voice.gender, voice.accent, voice.speed, voice.name
             )  # only the audio is used
         return FileResponse(path, media_type="audio/wav")
 
@@ -234,6 +240,12 @@ def create_app(
     def start(run_id: str, brief: Brief):
         ws.start(run_id, brief)
         return {"status": "started"}
+
+    @app.post("/api/runs/{run_id}/cut", status_code=202, response_model=RunView)
+    def cut(run_id: str, target: Cut):
+        if not (target.platform or target.duration or target.format):
+            raise ValueError("say what to cut it for: a platform, a duration or a format")
+        return ws.cut(run_id, target.platform, target.duration, target.format)
 
     @app.post("/api/runs/{run_id}/script/approve", status_code=202)
     def approve_script(run_id: str, script: Script):

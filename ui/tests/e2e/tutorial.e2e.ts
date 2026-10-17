@@ -38,6 +38,7 @@ test('brief import, draft persistence, visual help and YAML export',async({page}
   await page.getByRole('button',{name:'Continue to visuals',exact:true}).click();
   await page.getByLabel('Visual source',{exact:true}).selectOption('screenshots');
   await page.getByLabel('App URL',{exact:true}).fill('http://localhost:3000');
+  await page.getByText('Capture settings',{exact:true}).click(); // routes, masks and framing start folded away
   await page.getByRole('button',{name:'Help: Mask selectors',exact:true}).click();
   await expect(page.getByRole('tooltip')).toContainText('black out');
   await page.keyboard.press('Escape');
@@ -79,6 +80,7 @@ test('auto visuals inherit the website for capture, export and production, with 
   await page.getByLabel('Visual source',{exact:true}).selectOption('auto');
   await expect(page.getByLabel('App URL',{exact:true})).toBeHidden();
   await expect(page.getByText('Screenshots use your product website:')).toContainText('https://product.example');
+  await page.getByText('Capture settings',{exact:true}).click(); // folded away until routes or masks are set
   await page.getByLabel('Routes',{exact:true}).fill('/dashboard');
   await page.getByRole('button',{name:'Test capture',exact:true}).click();
   await expect.poll(()=>captures.length).toBe(1);
@@ -175,7 +177,9 @@ for(const theme of ['light','dark']) for(const width of [390,1440]) {
           .map(el=>el.getBoundingClientRect());
         const controls=rects('main .field input:not([type=checkbox]):not([type=file]), main select, main .filters input');
         const crowdedFeatures=Array.from(document.querySelectorAll('.feature-row')).filter(row=>{
-          const boxes=Array.from(row.querySelectorAll<HTMLElement>('input,.action-help')).map(el=>el.getBoundingClientRect());
+          // The action buttons themselves: their .action-help wrappers are display:contents and have no box.
+          const boxes=Array.from(row.querySelectorAll<HTMLElement>('input,.action-help>button:not(.help-trigger)'))
+            .map(el=>el.getBoundingClientRect()).filter(box=>box.width>0);
           return boxes.some((box,i)=>i>0&&box.left<boxes[i-1].right-1);
         }).length;
         const misalignedRows=Array.from(document.querySelectorAll('.row')).filter(row=>{

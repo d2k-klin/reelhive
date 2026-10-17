@@ -76,6 +76,31 @@
           "minimum": 0.8,
           "title": "Speed",
           "type": "number"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "enum": [
+                "af_heart",
+                "af_bella",
+                "af_nicole",
+                "am_michael",
+                "am_fenrir",
+                "am_puck",
+                "bf_emma",
+                "bf_isabella",
+                "bm_george",
+                "bm_fable"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+          "title": "Name"
         }
       },
       "title": "Voice",
@@ -139,15 +164,49 @@
       "title": "Tone",
       "type": "string"
     },
+    "narrator": {
+      "anyOf": [
+        {
+          "maxLength": 200,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Who tells the story, as a character the whole narration speaks as, e.g. 'a deadpan nature documentary narrator'. Pair it with a named voice that suits them",
+      "title": "Narrator"
+    },
     "pacing": {
       "default": "balanced",
+      "description": "How quickly the picture changes; `punchy` cuts every 2-3 seconds, for social feeds",
       "enum": [
         "slow",
         "balanced",
-        "fast"
+        "fast",
+        "punchy"
       ],
       "title": "Pacing",
       "type": "string"
+    },
+    "platform": {
+      "anyOf": [
+        {
+          "enum": [
+            "reels",
+            "shorts",
+            "tiktok"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Made for Instagram Reels, YouTube Shorts or TikTok: a vertical, punchy, captioned cut that opens on its hook and keeps text clear of the app's buttons",
+      "title": "Platform"
     },
     "brand": {
       "additionalProperties": false,
@@ -438,7 +497,10 @@
                 "feature-card": "#/$defs/FeatureCardScene",
                 "hook": "#/$defs/HookScene",
                 "image-full": "#/$defs/ImageScene",
+                "offer": "#/$defs/OfferScene",
+                "photo": "#/$defs/PhotoScene",
                 "problem": "#/$defs/ProblemScene",
+                "review": "#/$defs/ReviewScene",
                 "screenshot-pan": "#/$defs/ScreenshotScene",
                 "stat": "#/$defs/StatScene"
               },
@@ -507,6 +569,31 @@
                             "minimum": 0.8,
                             "title": "Speed",
                             "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
                           }
                         },
                         "title": "Voice",
@@ -918,6 +1005,31 @@
                             "minimum": 0.8,
                             "title": "Speed",
                             "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
                           }
                         },
                         "title": "Voice",
@@ -1343,6 +1455,31 @@
                             "minimum": 0.8,
                             "title": "Speed",
                             "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
                           }
                         },
                         "title": "Voice",
@@ -1768,6 +1905,31 @@
                             "minimum": 0.8,
                             "title": "Speed",
                             "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
                           }
                         },
                         "title": "Voice",
@@ -2190,6 +2352,31 @@
                             "minimum": 0.8,
                             "title": "Speed",
                             "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
                           }
                         },
                         "title": "Voice",
@@ -2612,6 +2799,31 @@
                             "minimum": 0.8,
                             "title": "Speed",
                             "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
                           }
                         },
                         "title": "Voice",
@@ -3023,6 +3235,31 @@
                             "minimum": 0.8,
                             "title": "Speed",
                             "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
                           }
                         },
                         "title": "Voice",
@@ -3434,6 +3671,31 @@
                             "minimum": 0.8,
                             "title": "Speed",
                             "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
                           }
                         },
                         "title": "Voice",
@@ -3778,6 +4040,1367 @@
                   "text"
                 ],
                 "title": "BulletsScene",
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "index": {
+                    "minimum": 1,
+                    "title": "Index",
+                    "type": "integer"
+                  },
+                  "narration": {
+                    "title": "Narration",
+                    "type": "string"
+                  },
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
+                  },
+                  "duration_override": {
+                    "anyOf": [
+                      {
+                        "maximum": 180,
+                        "minimum": 0.5,
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Duration Override"
+                  },
+                  "voice_override": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "gender": {
+                            "default": "female",
+                            "enum": [
+                              "female",
+                              "male"
+                            ],
+                            "title": "Gender",
+                            "type": "string"
+                          },
+                          "accent": {
+                            "default": "us",
+                            "enum": [
+                              "us",
+                              "uk"
+                            ],
+                            "title": "Accent",
+                            "type": "string"
+                          },
+                          "speed": {
+                            "default": 1.0,
+                            "maximum": 1.2,
+                            "minimum": 0.8,
+                            "title": "Speed",
+                            "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
+                          }
+                        },
+                        "title": "Voice",
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "image_approved": {
+                    "default": false,
+                    "title": "Image Approved",
+                    "type": "boolean"
+                  },
+                  "visual_request": {
+                    "properties": {
+                      "kind": {
+                        "default": "none",
+                        "enum": [
+                          "product_ui",
+                          "concept",
+                          "none"
+                        ],
+                        "title": "Kind",
+                        "type": "string"
+                      },
+                      "image": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Filename from the provided image catalog",
+                        "title": "Image"
+                      },
+                      "clip": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Filename from the provided clip catalog: the user's own video, played muted in the scene",
+                        "title": "Clip"
+                      },
+                      "route": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Route from the screenshot catalog",
+                        "title": "Route"
+                      },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
+                      "prompt": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Concept illustration only; never product UI",
+                        "title": "Prompt"
+                      }
+                    },
+                    "title": "VisualRequest",
+                    "type": "object"
+                  },
+                  "visual": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "source": {
+                            "enum": [
+                              "provided",
+                              "screenshot",
+                              "generated"
+                            ],
+                            "title": "Source",
+                            "type": "string"
+                          },
+                          "file": {
+                            "title": "File",
+                            "type": "string"
+                          },
+                          "media": {
+                            "default": "image",
+                            "enum": [
+                              "image",
+                              "video"
+                            ],
+                            "title": "Media",
+                            "type": "string"
+                          },
+                          "frame": {
+                            "default": "none",
+                            "enum": [
+                              "browser",
+                              "phone",
+                              "none"
+                            ],
+                            "title": "Frame",
+                            "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
+                          },
+                          "duration": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Video only: seconds the clip plays; the last frame holds if the scene runs longer",
+                            "title": "Duration"
+                          },
+                          "width": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Video only: pixel width of the normalized clip",
+                            "title": "Width"
+                          },
+                          "height": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Video only: pixel height of the normalized clip",
+                            "title": "Height"
+                          }
+                        },
+                        "required": [
+                          "source",
+                          "file"
+                        ],
+                        "title": "VisualAsset",
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "audio": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Narration WAV, relative to the run folder",
+                    "title": "Audio"
+                  },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
+                  },
+                  "start": {
+                    "default": 0.0,
+                    "title": "Start",
+                    "type": "number"
+                  },
+                  "duration": {
+                    "default": 0.0,
+                    "title": "Duration",
+                    "type": "number"
+                  },
+                  "template": {
+                    "const": "offer",
+                    "default": "offer",
+                    "title": "Template",
+                    "type": "string"
+                  },
+                  "text": {
+                    "properties": {
+                      "headline": {
+                        "description": "What is on offer: the product, or the deal",
+                        "maxLength": 40,
+                        "title": "Headline",
+                        "type": "string"
+                      },
+                      "price": {
+                        "description": "The price as shown, e.g. $49; from the sources only",
+                        "maxLength": 12,
+                        "minLength": 1,
+                        "title": "Price",
+                        "type": "string"
+                      },
+                      "was": {
+                        "anyOf": [
+                          {
+                            "maxLength": 12,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "The earlier price, struck through; from the sources only",
+                        "title": "Was"
+                      },
+                      "subline": {
+                        "anyOf": [
+                          {
+                            "maxLength": 60,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "One supporting line, e.g. free shipping",
+                        "title": "Subline"
+                      }
+                    },
+                    "required": [
+                      "headline",
+                      "price"
+                    ],
+                    "title": "OfferText",
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "index",
+                  "narration",
+                  "text"
+                ],
+                "title": "OfferScene",
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "index": {
+                    "minimum": 1,
+                    "title": "Index",
+                    "type": "integer"
+                  },
+                  "narration": {
+                    "title": "Narration",
+                    "type": "string"
+                  },
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
+                  },
+                  "duration_override": {
+                    "anyOf": [
+                      {
+                        "maximum": 180,
+                        "minimum": 0.5,
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Duration Override"
+                  },
+                  "voice_override": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "gender": {
+                            "default": "female",
+                            "enum": [
+                              "female",
+                              "male"
+                            ],
+                            "title": "Gender",
+                            "type": "string"
+                          },
+                          "accent": {
+                            "default": "us",
+                            "enum": [
+                              "us",
+                              "uk"
+                            ],
+                            "title": "Accent",
+                            "type": "string"
+                          },
+                          "speed": {
+                            "default": 1.0,
+                            "maximum": 1.2,
+                            "minimum": 0.8,
+                            "title": "Speed",
+                            "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
+                          }
+                        },
+                        "title": "Voice",
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "image_approved": {
+                    "default": false,
+                    "title": "Image Approved",
+                    "type": "boolean"
+                  },
+                  "visual_request": {
+                    "properties": {
+                      "kind": {
+                        "default": "none",
+                        "enum": [
+                          "product_ui",
+                          "concept",
+                          "none"
+                        ],
+                        "title": "Kind",
+                        "type": "string"
+                      },
+                      "image": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Filename from the provided image catalog",
+                        "title": "Image"
+                      },
+                      "clip": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Filename from the provided clip catalog: the user's own video, played muted in the scene",
+                        "title": "Clip"
+                      },
+                      "route": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Route from the screenshot catalog",
+                        "title": "Route"
+                      },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
+                      "prompt": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Concept illustration only; never product UI",
+                        "title": "Prompt"
+                      }
+                    },
+                    "title": "VisualRequest",
+                    "type": "object"
+                  },
+                  "visual": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "source": {
+                            "enum": [
+                              "provided",
+                              "screenshot",
+                              "generated"
+                            ],
+                            "title": "Source",
+                            "type": "string"
+                          },
+                          "file": {
+                            "title": "File",
+                            "type": "string"
+                          },
+                          "media": {
+                            "default": "image",
+                            "enum": [
+                              "image",
+                              "video"
+                            ],
+                            "title": "Media",
+                            "type": "string"
+                          },
+                          "frame": {
+                            "default": "none",
+                            "enum": [
+                              "browser",
+                              "phone",
+                              "none"
+                            ],
+                            "title": "Frame",
+                            "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
+                          },
+                          "duration": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Video only: seconds the clip plays; the last frame holds if the scene runs longer",
+                            "title": "Duration"
+                          },
+                          "width": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Video only: pixel width of the normalized clip",
+                            "title": "Width"
+                          },
+                          "height": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Video only: pixel height of the normalized clip",
+                            "title": "Height"
+                          }
+                        },
+                        "required": [
+                          "source",
+                          "file"
+                        ],
+                        "title": "VisualAsset",
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "audio": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Narration WAV, relative to the run folder",
+                    "title": "Audio"
+                  },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
+                  },
+                  "start": {
+                    "default": 0.0,
+                    "title": "Start",
+                    "type": "number"
+                  },
+                  "duration": {
+                    "default": 0.0,
+                    "title": "Duration",
+                    "type": "number"
+                  },
+                  "template": {
+                    "const": "review",
+                    "default": "review",
+                    "title": "Template",
+                    "type": "string"
+                  },
+                  "text": {
+                    "properties": {
+                      "headline": {
+                        "description": "A customer's words, quoted from the sources (may be shortened)",
+                        "maxLength": 120,
+                        "title": "Headline",
+                        "type": "string"
+                      },
+                      "subline": {
+                        "anyOf": [
+                          {
+                            "maxLength": 40,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Who said it, as the source names them",
+                        "title": "Subline"
+                      },
+                      "rating": {
+                        "anyOf": [
+                          {
+                            "maximum": 5,
+                            "minimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Their star rating out of 5; from the sources only",
+                        "title": "Rating"
+                      }
+                    },
+                    "required": [
+                      "headline"
+                    ],
+                    "title": "ReviewText",
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "index",
+                  "narration",
+                  "text"
+                ],
+                "title": "ReviewScene",
+                "type": "object"
+              },
+              {
+                "description": "One of the user's photos across the whole frame, under a slow camera move, with an optional caption.",
+                "properties": {
+                  "index": {
+                    "minimum": 1,
+                    "title": "Index",
+                    "type": "integer"
+                  },
+                  "narration": {
+                    "title": "Narration",
+                    "type": "string"
+                  },
+                  "covers": {
+                    "description": "Brief key-point notes (1-based) this scene tells",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "title": "Covers",
+                    "type": "array"
+                  },
+                  "duration_override": {
+                    "anyOf": [
+                      {
+                        "maximum": 180,
+                        "minimum": 0.5,
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "title": "Duration Override"
+                  },
+                  "voice_override": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "gender": {
+                            "default": "female",
+                            "enum": [
+                              "female",
+                              "male"
+                            ],
+                            "title": "Gender",
+                            "type": "string"
+                          },
+                          "accent": {
+                            "default": "us",
+                            "enum": [
+                              "us",
+                              "uk"
+                            ],
+                            "title": "Accent",
+                            "type": "string"
+                          },
+                          "speed": {
+                            "default": 1.0,
+                            "maximum": 1.2,
+                            "minimum": 0.8,
+                            "title": "Speed",
+                            "type": "number"
+                          },
+                          "name": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "af_heart",
+                                  "af_bella",
+                                  "af_nicole",
+                                  "am_michael",
+                                  "am_fenrir",
+                                  "am_puck",
+                                  "bf_emma",
+                                  "bf_isabella",
+                                  "bm_george",
+                                  "bm_fable"
+                                ],
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "A Kokoro voice with a character of its own; it sets the gender and accent",
+                            "title": "Name"
+                          }
+                        },
+                        "title": "Voice",
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "image_approved": {
+                    "default": false,
+                    "title": "Image Approved",
+                    "type": "boolean"
+                  },
+                  "visual_request": {
+                    "properties": {
+                      "kind": {
+                        "default": "none",
+                        "enum": [
+                          "product_ui",
+                          "concept",
+                          "none"
+                        ],
+                        "title": "Kind",
+                        "type": "string"
+                      },
+                      "image": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Filename from the provided image catalog",
+                        "title": "Image"
+                      },
+                      "clip": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Filename from the provided clip catalog: the user's own video, played muted in the scene",
+                        "title": "Clip"
+                      },
+                      "route": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Route from the screenshot catalog",
+                        "title": "Route"
+                      },
+                      "region": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Region id from that screenshot page's `regions` to close in on; product UI only",
+                        "title": "Region"
+                      },
+                      "prompt": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "description": "Concept illustration only; never product UI",
+                        "title": "Prompt"
+                      }
+                    },
+                    "title": "VisualRequest",
+                    "type": "object"
+                  },
+                  "visual": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "source": {
+                            "enum": [
+                              "provided",
+                              "screenshot",
+                              "generated"
+                            ],
+                            "title": "Source",
+                            "type": "string"
+                          },
+                          "file": {
+                            "title": "File",
+                            "type": "string"
+                          },
+                          "media": {
+                            "default": "image",
+                            "enum": [
+                              "image",
+                              "video"
+                            ],
+                            "title": "Media",
+                            "type": "string"
+                          },
+                          "frame": {
+                            "default": "none",
+                            "enum": [
+                              "browser",
+                              "phone",
+                              "none"
+                            ],
+                            "title": "Frame",
+                            "type": "string"
+                          },
+                          "focus": {
+                            "anyOf": [
+                              {
+                                "description": "A part of the image to close in on, as fractions of the image's width and height.",
+                                "properties": {
+                                  "x": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "X",
+                                    "type": "number"
+                                  },
+                                  "y": {
+                                    "maximum": 1,
+                                    "minimum": 0,
+                                    "title": "Y",
+                                    "type": "number"
+                                  },
+                                  "width": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Width",
+                                    "type": "number"
+                                  },
+                                  "height": {
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 1,
+                                    "title": "Height",
+                                    "type": "number"
+                                  },
+                                  "label": {
+                                    "default": "",
+                                    "description": "What the region shows, as measured on the page",
+                                    "maxLength": 120,
+                                    "title": "Label",
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "x",
+                                  "y",
+                                  "width",
+                                  "height"
+                                ],
+                                "title": "Focus",
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Resolved from visual_request.region when the image is captured"
+                          },
+                          "duration": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Video only: seconds the clip plays; the last frame holds if the scene runs longer",
+                            "title": "Duration"
+                          },
+                          "width": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Video only: pixel width of the normalized clip",
+                            "title": "Width"
+                          },
+                          "height": {
+                            "anyOf": [
+                              {
+                                "exclusiveMinimum": 0,
+                                "type": "integer"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "default": null,
+                            "description": "Video only: pixel height of the normalized clip",
+                            "title": "Height"
+                          }
+                        },
+                        "required": [
+                          "source",
+                          "file"
+                        ],
+                        "title": "VisualAsset",
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "audio": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Narration WAV, relative to the run folder",
+                    "title": "Audio"
+                  },
+                  "hold": {
+                    "default": 0.0,
+                    "description": "Seconds the settled frame stays after the narration, so it can be read",
+                    "maximum": 3.0,
+                    "minimum": 0,
+                    "title": "Hold",
+                    "type": "number"
+                  },
+                  "words": {
+                    "description": "The narration's words as spoken; set by timing",
+                    "items": {
+                      "description": "One spoken word, timed from the recorded voice (never written by an agent).",
+                      "properties": {
+                        "text": {
+                          "description": "The word with any punctuation that follows it",
+                          "minLength": 1,
+                          "title": "Text",
+                          "type": "string"
+                        },
+                        "start": {
+                          "description": "Seconds from the scene's start",
+                          "minimum": 0,
+                          "title": "Start",
+                          "type": "number"
+                        },
+                        "end": {
+                          "minimum": 0,
+                          "title": "End",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "start",
+                        "end"
+                      ],
+                      "title": "Word",
+                      "type": "object"
+                    },
+                    "title": "Words",
+                    "type": "array"
+                  },
+                  "start": {
+                    "default": 0.0,
+                    "title": "Start",
+                    "type": "number"
+                  },
+                  "duration": {
+                    "default": 0.0,
+                    "title": "Duration",
+                    "type": "number"
+                  },
+                  "template": {
+                    "const": "photo",
+                    "default": "photo",
+                    "title": "Template",
+                    "type": "string"
+                  },
+                  "text": {
+                    "properties": {
+                      "headline": {
+                        "default": "",
+                        "description": "A caption over the photo (a place, a punchline); empty for none",
+                        "maxLength": 48,
+                        "title": "Headline",
+                        "type": "string"
+                      },
+                      "subline": {
+                        "anyOf": [
+                          {
+                            "maxLength": 60,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Subline"
+                      }
+                    },
+                    "title": "PhotoText",
+                    "type": "object"
+                  },
+                  "motion": {
+                    "default": "push_in",
+                    "description": "The slow camera move across the photo for the whole shot",
+                    "enum": [
+                      "push_in",
+                      "pull_out",
+                      "pan_left",
+                      "pan_right"
+                    ],
+                    "title": "Motion",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "index",
+                  "narration",
+                  "text"
+                ],
+                "title": "PhotoScene",
                 "type": "object"
               }
             ]

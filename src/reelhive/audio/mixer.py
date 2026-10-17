@@ -1,7 +1,8 @@
-"""Narration + music mix with sidechain ducking, and the final mux (plan §3.2 `render`)."""
+"""Narration + music mix with sidechain ducking, loudness to the platforms' target, and the final mux."""
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import subprocess
@@ -18,6 +19,10 @@ SAMPLE_RATE = 24000
 EFFECTS_RATE = 48000  # assets/sfx is 48 kHz: clicks and air need the top octave the voice doesn't
 MUSIC_VOLUME = 0.3  # under the voice, before ducking
 FADE_OUT = 2.0
+# What YouTube, Instagram, TikTok and Spotify turn playback to: master here, so the video isn't turned down (and
+# squashed) or left quieter than the one before it in the feed.
+LOUDNESS = "I=-14:TP=-1:LRA=11"
+SILENT = -70.0  # LUFS: below this there is nothing to bring up (no voice, no music)
 
 
 def ffmpeg_exe() -> str:
@@ -113,14 +118,56 @@ def mix_args(
     return [*inputs, "-filter_complex", graph, "-map", "[out]", "-t", f"{duration:.3f}", str(out)]
 
 
+def measure_loudness(path: Path) -> dict[str, str]:
+    """ffmpeg's loudnorm measurement of a file: integrated loudness, true peak, range, threshold and offset."""
+    proc = subprocess.run(
+        [
+            ffmpeg_exe(),
+            "-hide_banner",
+            "-nostats",
+            "-i",
+            str(path),
+            "-af",
+            f"loudnorm={LOUDNESS}:print_format=json",
+            "-f",
+            "null",
+            "-",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    found = re.findall(r"\{[^{}]*\}", proc.stderr)  # the report; ffmpeg may log more lines after it
+    if proc.returncode != 0 or not found:
+        raise RuntimeError(f"ffmpeg could not measure loudness: {proc.stderr.strip()[-2000:]}")
+    return json.loads(found[-1])
+
+
+def normalize(src: Path, out: Path) -> Path:
+    """Two passes: measure, then one linear gain onto the target, so the mix keeps its dynamics (no pumping).
+    loudnorm falls back to gentle dynamic gain only where a linear one would clip the true-peak ceiling."""
+    m = measure_loudness(src)
+    if float(m["input_i"]) < SILENT:
+        shutil.copyfile(src, out)
+        return out
+    measured = (
+        f"measured_I={m['input_i']}:measured_TP={m['input_tp']}:measured_LRA={m['input_lra']}:"
+        f"measured_thresh={m['input_thresh']}:offset={m['target_offset']}"
+    )
+    # loudnorm works at 192 kHz inside; -ar brings it back to the mix's rate.
+    _run(["-i", str(src), "-af", f"loudnorm={LOUDNESS}:{measured}:linear=true", "-ar", "48000", str(out)])
+    return out
+
+
 def mix(run_dir: Path, spec: SceneSpec, narration: bool = True) -> Path:
     audio = run_dir / "audio"
     audio.mkdir(exist_ok=True)
     voice = narration_track(run_dir, spec, audio / "narration.wav", narration)
     effects = effects_track(spec, audio / "effects.wav") if spec.sound_effects else None
-    out = audio / "mix.wav"
+    raw = audio / "mix.raw.wav"
     music = Path(spec.music) if spec.music else None
-    _run(mix_args(voice, music, spec.duration, out, spec.music_volume, effects))
+    _run(mix_args(voice, music, spec.duration, raw, spec.music_volume, effects))
+    out = normalize(raw, audio / "mix.wav")
+    raw.unlink()
     return out
 
 

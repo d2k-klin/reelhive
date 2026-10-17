@@ -13,6 +13,7 @@ from playwright.sync_api import sync_playwright
 
 from reelhive.schemas.brief import Screenshots
 from reelhive.schemas.scene_spec import FORMATS
+from reelhive.visuals import products
 
 
 def same_origin(base: str, route: str) -> str:
@@ -201,7 +202,11 @@ def discover(options: Screenshots, format: str, with_text: bool = False) -> list
                         {"id": f"r{n}", "label": region["label"]}
                         for n, region in enumerate(regions(page, options.mask), start=1)
                     ],
-                    **({"text": _visible_text(page, options.mask)} if with_text else {}),
+                    **(
+                        {"text": _visible_text(page, options.mask), "products": page.evaluate(products.PRODUCTS_JS)}
+                        if with_text
+                        else {}
+                    ),
                 }
             )
             if not options.routes:

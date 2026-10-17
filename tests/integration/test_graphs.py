@@ -247,3 +247,98 @@ def test_scene_preview_leaves_out_the_intro(config, brief):
     svc.preview_scene(result.run_dir, 2)
     assert rendered[0]["intro"]["title"] == "CostHive"  # the real video has it
     assert rendered[-1]["intro"] is None and rendered[-1]["scenes"][0]["start"] == 0.0
+
+
+def test_a_reel_with_an_offer_runs_end_to_end_vertical_safe_and_mastered(config, brief):
+    from reelhive.audio.mixer import measure_loudness
+    from reelhive.schemas.brief import Brief
+    from reelhive.schemas.scene_spec import PLATFORM_SAFE_AREAS
+
+    own = brief.model_dump(exclude_unset=True, exclude={"format"})
+    reel = Brief.model_validate(own | {"platform": "reels", "duration": 30, "context": "Launch price: $89."})
+    plan = make_plan(reel)
+    for scene in plan["scenes"]:  # a punchy shot is read at a glance: the headline alone
+        scene.pop("secondary", None)
+    plan["scenes"][-2] = {"template": "offer", "headline": "CostHive Pro", "price": "$89", "covers": []}
+    svc, _, _ = service(
+        config, {"Script": make_script(reel), "ScenePlan": plan, "MusicChoice": MUSIC, "Verdict": VERDICT_PASS}
+    )
+    result, events = run(svc, reel)
+
+    assert result.status == "done"
+    info = probe(result.video)
+    assert info["duration"] == pytest.approx(30, rel=0.05)
+    spec = json.loads((result.run_dir / "spec.json").read_text())
+    assert (spec["width"], spec["height"]) == (1080, 1920)  # the stand-in renderer draws a small black frame
+    assert spec["safe_area"] == PLATFORM_SAFE_AREAS["reels"].model_dump()
+    assert spec["motion"]["open"] == 0 and spec["intro"]["duration"] == 1.5 and spec["intro_at"] == 1
+    assert spec["captions"] and spec["scenes"][-2]["template"] == "offer"
+    assert all(d["passed"] for d in of_type(events, "gate.result"))
+    assert float(measure_loudness(result.run_dir / "audio" / "mix.wav")["input_i"]) == pytest.approx(-14, abs=1)
+
+
+def test_a_finished_video_is_cut_into_a_reel_from_its_own_research_and_script(config, brief):
+    from reelhive.core.cut import cut_brief, parent_brief
+
+    svc, _, _ = service(
+        config,
+        {"Script": make_script(brief), "ScenePlan": make_plan(brief), "MusicChoice": MUSIC, "Verdict": VERDICT_PASS},
+    )
+    parent, _ = run(svc, brief)
+    (parent.run_dir / "research.json").write_text(json.dumps({"product": "CostHive finds cloud waste"}))
+
+    reel = cut_brief(parent_brief(parent.run_dir), platform="reels")
+    plan = make_plan(reel)
+    for scene in plan["scenes"]:
+        scene.pop("secondary", None)
+    cutter, model, _ = service(
+        config, {"Script": make_script(reel), "ScenePlan": plan, "MusicChoice": MUSIC, "Verdict": VERDICT_PASS}
+    )
+    events = []
+    result = cutter.cut(parent.run_dir, reel, on_event=events.append)
+
+    assert result.status == "done" and result.run_dir != parent.run_dir
+    assert probe(result.video)["duration"] == pytest.approx(30, rel=0.05)
+    tasks = [d["task"] for d in of_type(events, "node.task") if d["node"] == "research"]
+    assert tasks == ["Using the research of the original video"]  # the website isn't read again
+    assert json.loads((result.run_dir / "research.json").read_text())["product"] == "CostHive finds cloud waste"
+    spec = json.loads((result.run_dir / "spec.json").read_text())
+    assert (spec["width"], spec["height"], spec["captions"]) == (1080, 1920, True)
+
+
+def test_a_photo_story_is_told_by_a_named_narrator_through_the_users_photos(config, brief, tmp_path):
+    from PIL import Image
+
+    from reelhive.schemas.brief import Brief
+
+    folder = tmp_path / "trip"
+    folder.mkdir()
+    story = Brief.model_validate(
+        brief.model_dump(exclude_unset=True)
+        | {
+            "features": ["The beach", "The dinner"],
+            "narrator": "a deadpan nature documentary narrator",
+            "voice": {"name": "bm_fable"},
+            "visuals": {"source": "images", "images": {"dir": str(folder)}},
+        }
+    )
+    beats = make_script(story)["beats"]
+    for n in range(len(beats)):
+        Image.new("RGB", (1600, 1200), "navy").save(folder / f"photo-{n + 1}.jpg")
+    plan = make_plan(story)
+    for n, scene in enumerate(plan["scenes"][:-1], start=1):  # every moment a photo; the closing stays a cta
+        scene.clear()
+        scene |= {"template": "photo", "headline": "", "motion": "push_in" if n % 2 else "pan_left"}
+        scene["visual_request"] = {"kind": "concept", "image": f"photo-{n}.jpg"}
+    plan["scenes"][0]["covers"], plan["scenes"][1]["covers"] = [1], [2]
+    svc, _, tts = service(
+        config, {"Script": make_script(story), "ScenePlan": plan, "MusicChoice": MUSIC, "Verdict": VERDICT_PASS}
+    )
+    result, events = run(svc, story)
+
+    assert result.status == "done", [d for d in of_type(events, "gate.result") if not d["passed"]]
+    assert set(tts.voices) == {"bm_fable"}  # every beat in the narrator's voice
+    spec = json.loads((result.run_dir / "spec.json").read_text())
+    photos = [s for s in spec["scenes"] if s["template"] == "photo"]
+    assert len(photos) == len(beats) - 1 and all(s["visual"]["source"] == "provided" for s in photos)
+    assert [s["motion"] for s in photos[:2]] == ["push_in", "pan_left"]

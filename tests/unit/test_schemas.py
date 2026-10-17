@@ -44,3 +44,15 @@ def test_planned_scene_maps_secondary_to_template_field():
     assert (card.index, card.narration, card.covers) == (3, "spoken", [2])
     hook = PlannedScene(template="hook", headline="Hi", secondary="there").to_scene(1, "x")
     assert hook.text.model_dump() == {"headline": "Hi", "subline": "there"}
+
+
+def test_every_example_brief_is_valid():
+    import yaml
+
+    from reelhive.schemas.brief import Brief
+    from tests.conftest import REPO_ROOT
+
+    examples = sorted((REPO_ROOT / "examples" / "briefs").glob("*.yaml"))
+    assert len(examples) >= 6
+    for path in examples:
+        Brief.model_validate(yaml.safe_load(path.read_text()))

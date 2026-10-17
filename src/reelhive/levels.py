@@ -14,9 +14,10 @@ class Level:
     approval_stops: tuple[str, ...]
 
     def defaults(self, brief: Brief) -> dict[str, Any]:
-        # `low` exposes only voice gender; accent and speed are fixed to the defaults.
+        # `low` exposes only voice gender (or a named narrator voice, which brings its own accent); speed is fixed.
         if self.name == "low":
-            return {"voice": brief.voice.model_copy(update={"accent": "us", "speed": 1.0})}
+            accent = {} if brief.voice.name else {"accent": "us"}
+            return {"voice": brief.voice.model_copy(update={"speed": 1.0, **accent})}
         return {}
 
 

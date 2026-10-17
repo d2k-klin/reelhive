@@ -3,7 +3,8 @@ import {stages} from './help-text';
 import type {NodeState, RunEvent} from '../stores/events';
 import {Help} from './Help';
 
-const checks: Record<string, string> = {duration:'Video length', pace:'Speaking pace', closing:'Closing message', features:'Feature coverage', text_limits:'Readable text', reading_time:'Time to read', audio:'Matching narration', images:'Image quality', product_ui:'Authentic product images', voice_fit:'Voice fits the scene', image_approval:'Image approvals', measured:'Every shot drawn', safe_area:'Inside the frame', overlap:'Nothing overlapping', type_size:'Text large enough', sharpness:'Sharp close-ups'};
+// One label per check the critic and the review emit; tests/unit/test_contract.py keeps this in step with them.
+const checks: Record<string, string> = {duration:'Video length', pace:'Speaking pace', closing:'Closing message', features:'Feature coverage', text_limits:'Readable text', reading_time:'Time to read', shot_length:'Shot length', claims:'Prices and quotes from the sources', repeats:'Each photo once', audio:'Matching narration', images:'Image quality', product_ui:'Authentic product images', voice_fit:'Voice fits the scene', image_approval:'Image approvals', measured:'Every shot drawn', safe_area:'Inside the frame', overlap:'Nothing overlapping', type_size:'Text large enough', sharpness:'Sharp close-ups'};
 export function qualitySummary(event: RunEvent) {
   if (event.type === 'critic.verdict') return {label:'Story review', passed:event.data.passed === true, detail:event.data.passed ? 'The story is ready to continue.' : 'The review agent requested improvements before video creation.'};
   if (event.type === 'review.verdict') return {label:'Cut review', passed:event.data.passed === true, detail:event.data.passed ? 'The frames read clearly as one piece.' : 'The art director asked for changes to some shots before the sound mix.'};

@@ -9,6 +9,9 @@ Every scene uses one template. Limits are enforced three times: by the agent's s
 | `problem` | The pain before the product, in muted tones | `headline` (48), `subline` (80) |
 | `stat` | One big number with a supporting line; a leading number counts up as it arrives | `headline` (20, e.g. `~30% wasted`), `subline` (80) |
 | `bullets` | A headline and a short list | `headline` (48), `items` (1-5, each ≤70) |
+| `offer` | What it costs: the price large in the accent colour, an earlier price struck through beside it | `headline` (40, the product or deal), `price` (12, e.g. `$89`), `was` (12, optional), `subline` (60, optional) |
+| `photo` | One of the user's photos across the whole frame, under a slow camera move for the whole shot; photos dissolve into one another. For stories told through photos | `headline` (48, optional: a place or a punchline, low in the frame over a soft shade), `subline` (60, optional); `motion` (`push_in`, `pull_out`, `pan_left`, `pan_right`) |
+| `review` | A customer's words in quotation marks, under their stars (drawn, half stars included) or an accent mark | `headline` (120, the quote), `subline` (40, who said it), `rating` (0-5, optional) |
 | `cta` | The closing call to action | `headline` (60, usually the closing message), `subline` (60, optional), `url` (60, set from the brief, shown small below) |
 | `image-full` | A provided or generated image on a raised card, with its headline | `headline` (48), `subline` (80); `layout` |
 | `screenshot-pan` | A full-page screenshot in an optional browser or phone frame: the page first, then a close-up of the scene's region or a gentle pan | `headline` (48), `subline` (80); `layout` |
@@ -17,7 +20,7 @@ Every scene uses one template. Limits are enforced three times: by the agent's s
 
 Product scenes take a `layout`: `center` (the device above its text, for the first full view), `split-left` or `split-right` (the device on one side, the explanation on the other). On 9:16 a split stacks, with the text left-aligned. Every scene can also take a `hold` of up to 3 seconds: the settled frame stays after the voice ends so it can be read. The closing scene always settles for a second and stays on screen under the credit.
 
-Any scene that resolved a visual is drawn with the image layout, whatever its template, so a `feature-card` with a screenshot shows the screenshot with its headline. A scene whose image could not be resolved falls back to `hook`.
+Any scene that resolved a visual is drawn with the image layout, whatever its template (except `photo`, which is its own full-frame layout), so a `feature-card` with a screenshot shows the screenshot with its headline. A scene whose image could not be resolved falls back to `hook`.
 
 With `captions: true`, a caption band takes the bottom of the frame for the whole video and every shot is laid out in the space above it; the layout review checks that nothing enters the band.
 
@@ -25,4 +28,6 @@ All shots share one motion language: elements arrive in reading order with a gen
 
 Every template sizes itself from the frame, so the same spec renders at 16:9 (1920×1080), 9:16 (1080×1920) and 1:1 (1080×1080). Colors come from the theme: the default dark theme, `dark`, or `brand`, built from up to three brief colors (accent, background, text) plus an optional logo.
 
-That makes eight scene templates, plus the intro and the credit. To add one, see [adding-a-template.md](adding-a-template.md).
+Prices, quotes and ratings in `offer` and `review` must come from the sources: the brief or the product data research read on the website. The critic's `claims` check fails anything else, and the fixer copies the source's words or changes the template.
+
+That makes eleven scene templates, plus the intro and the credit. To add one, see [adding-a-template.md](adding-a-template.md).

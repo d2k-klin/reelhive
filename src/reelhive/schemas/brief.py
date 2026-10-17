@@ -11,6 +11,9 @@ from reelhive.schemas.scene_spec import IntroText, Scene
 from reelhive.schemas.voice import Voice
 
 Color = Annotated[str, Field(pattern=r"^#[0-9a-fA-F]{6}$")]
+# What a Reel, Short or TikTok needs that an explainer doesn't: vertical, quick cuts, readable muted (most feeds
+# autoplay without sound) and a hook in the first frame. The studio fills the same values when a platform is picked.
+PLATFORM_DEFAULTS = {"format": "9:16", "pacing": "punchy", "captions": True, "cold_open": True}
 
 
 class Options(BaseModel):
@@ -106,7 +109,20 @@ class Brief(Options):
     )
     credit: Literal["end", "corner"] = "end"
     tone: str = "clear and direct"
-    pacing: Literal["slow", "balanced", "fast"] = "balanced"
+    narrator: str | None = Field(
+        None,
+        max_length=200,
+        description="Who tells the story, as a character the whole narration speaks as, e.g. 'a deadpan nature "
+        "documentary narrator'. Pair it with a named voice that suits them",
+    )
+    pacing: Literal["slow", "balanced", "fast", "punchy"] = Field(
+        "balanced", description="How quickly the picture changes; `punchy` cuts every 2-3 seconds, for social feeds"
+    )
+    platform: Literal["reels", "shorts", "tiktok"] | None = Field(
+        None,
+        description="Made for Instagram Reels, YouTube Shorts or TikTok: a vertical, punchy, captioned cut that "
+        "opens on its hook and keeps text clear of the app's buttons",
+    )
     brand: Brand = Brand()
     theme: Literal["default", "dark", "brand"] = "default"
     music_mood: Literal["calm", "upbeat", "dramatic", "inspiring", "tech"] | None = None
@@ -157,6 +173,14 @@ class Brief(Options):
             if not name.lower().endswith(tuple(SUFFIXES)):
                 raise ValueError(f"documents must be PDF, .pptx, .ppt or .odp files: {name}")
         return value
+
+    @model_validator(mode="before")
+    @classmethod
+    def platform_defaults(cls, data: Any) -> Any:
+        """A platform brings its own defaults; anything the brief says itself wins."""
+        if isinstance(data, dict) and data.get("platform"):
+            data = {**PLATFORM_DEFAULTS, **data}
+        return data
 
     @model_validator(mode="before")
     @classmethod

@@ -40,3 +40,17 @@ def test_layout_report_shape_matches_the_renderer():
     device = (REPO_ROOT / "renderer/src/components/device.tsx").read_text()
     sharpness = re.search(r"export const MAX_SHARPNESS = ([\d.]+);", device)
     assert sharpness and float(sharpness[1]) <= MAX_ZOOM
+
+
+def test_the_studio_names_every_check_the_critic_and_the_review_emit(brief):
+    from reelhive.agents.critic import hard_checks
+    from reelhive.agents.reviewer import layout_checks
+    from reelhive.schemas.layout import LayoutReport
+    from reelhive.schemas.scene_spec import HookScene, HookText
+
+    brief.level = "high"  # the level with every check, image approval included
+    spec = SceneSpec(scenes=[HookScene(index=1, narration="x", text=HookText(headline="h"))])
+    names = {c.name for c in hard_checks(spec, brief, {})} | {c.name for c in layout_checks(LayoutReport(), spec)}
+    source = (REPO_ROOT / "ui/src/components/ProductionProgress.tsx").read_text()
+    unnamed = sorted(name for name in names if f"{name}:'" not in source)
+    assert not unnamed, f"label these in ProductionProgress.tsx, or the studio calls them 'Production check': {unnamed}"

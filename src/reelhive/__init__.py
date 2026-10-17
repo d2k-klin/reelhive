@@ -1,3 +1,3 @@
 """ReelHive: brief in, video out."""
 
-__version__ = "0.5.2"
+__version__ = "0.6.0"

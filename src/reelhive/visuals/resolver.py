@@ -15,7 +15,9 @@ from reelhive.schemas.brief import Generate, Images
 from reelhive.schemas.scene_spec import Focus, HookScene, HookText, Theme, VisualAsset
 from reelhive.visuals import capture, clips, documents, provided
 
-MINIMUM_SIZE = {"16:9": (1280, 720), "9:16": (720, 1280), "1:1": (720, 720)}
+# ponytail: one floor for every format. Templates draw an image on a card, not across the frame, so a square
+# packshot is fine in 9:16; how large it is really drawn is measured by the review's sharpness gate.
+MINIMUM_SIZE = {"16:9": (720, 720), "9:16": (720, 720), "1:1": (720, 720)}
 GENERATION_SIZE = {"16:9": "1536x1024", "9:16": "1024x1536", "1:1": "1024x1024"}
 
 
@@ -103,6 +105,9 @@ def catalog(ctx: RunContext) -> list[dict[str, Any]]:
     entries = []
     if options.source in ("auto", "images") and isinstance(options.images, Images):
         entries += provided.catalog(options.images, ctx.run_dir / "visuals" / "posters")
+    shop = ctx.run_dir / "visuals" / "product"  # photos from the website's product data, saved by `research`
+    if options.source in ("auto", "images") and (shop / "captions.yaml").exists():
+        entries += provided.catalog(Images(dir=str(shop)))
     if options.source in ("auto", "images") and ctx.brief.documents:
         try:
             pages = documents.pages(ctx.brief.documents, ctx.run_dir / "documents")
@@ -157,7 +162,7 @@ def resolve(ctx: RunContext, generator=None) -> None:
                 entry = provided.match(ctx.visual_catalog, request.image, scene.narration + " " + scene.text.headline)
                 if entry and image_ok(Path(entry["file"]), ctx.brief.format):
                     dest = ctx.path("visuals", f"scene_{scene.index:02d}_provided{Path(entry['file']).suffix.lower()}")
-                    shutil.copyfile(entry["file"], dest)
+                    provided.copy_upright(Path(entry["file"]), dest)
                     scene.visual = VisualAsset(source="provided", file=str(dest.relative_to(ctx.run_dir)))
             if (
                 scene.visual is None

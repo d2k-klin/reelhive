@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import asyncio
+
 from pydantic import Field, model_validator
 from strands.types.event_loop import Usage
 
 from reelhive.agents.plan import brief_block, notes_block, research_block
 from reelhive.core.context import RunContext
+from reelhive.core.cut import cut_block
 from reelhive.nodes.base import AgentNode
 from reelhive.nodes.timing_node import SHOT, beats_for, max_beat_words, target_words
+from reelhive.schemas.brief import Images
 from reelhive.schemas.script import Beat, Script
+from reelhive.visuals import provided
 
 BEAT_SLACK = 2  # the writer may use a couple of beats more or fewer than the target, where the story needs it
 WORD_SLACK = 0.10  # and run up to 10% over the word target; under is fine (timing pads it), over makes it long
@@ -44,6 +49,36 @@ def script_model(beats: int, max_words: int, target: int | None = None) -> type[
     return Sized
 
 
+MAX_PHOTOS = 40  # a photo story has about one beat per photo, and a video at most 40 beats
+
+
+async def photos_for(ctx: RunContext) -> None:
+    """The user's own photos, so the writer can tell a story through them: what each shows (its caption, or a vision
+    description when the brief opts in) and when it was taken."""
+    images = ctx.brief.visuals.images
+    if ctx.brief.visuals.source not in ("auto", "images") or not isinstance(images, Images):
+        return
+    ctx.photos = [e for e in await asyncio.to_thread(provided.catalog, images) if "image" in e][:MAX_PHOTOS]
+    if images.describe_images:
+        await provided.describe(ctx, ctx.photos)
+
+
+def photos_block(ctx: RunContext) -> str:
+    if not ctx.photos:
+        return ""
+    ordered = sorted(ctx.photos, key=lambda p: (p.get("taken") or "~", p["image"]))
+    lines = "\n".join(
+        f"- {p['image']}"
+        + (f" (taken {p['taken']})" if p.get("taken") else "")
+        + (f": {p['caption']}" if p["caption"] else "")
+        for p in ordered
+    )
+    return (
+        "\n\nThe user's photos, in the order they were taken. When the story is told through them, give each moment "
+        "its beat in this order, and say only what a photo really shows (its caption is the truth about it):\n" + lines
+    )
+
+
 class ScriptWriterNode(AgentNode):
     name = "script"
     tier = "strong"
@@ -52,12 +87,14 @@ class ScriptWriterNode(AgentNode):
 
     async def execute(self, ctx: RunContext) -> Usage:
         self.output = script_model(beats_for(ctx.brief), max_beat_words(ctx.brief), target_words(ctx.brief))
+        await photos_for(ctx)
         return await super().execute(ctx)
 
     def build_prompt(self, ctx: RunContext) -> str:
         beats = beats_for(ctx.brief)
         return (
-            f"{brief_block(ctx.brief)}\n\n{notes_block(ctx.brief)}{research_block(ctx)}\n\n"
+            f"{brief_block(ctx.brief)}\n\n{notes_block(ctx.brief)}{research_block(ctx)}{cut_block(ctx.run_dir)}"
+            f"{photos_block(ctx)}\n\n"
             f"Target: about {target_words(ctx.brief)} words in total across all beats.\n"
             f"Beats: about {beats} ({max(2, beats - BEAT_SLACK)}-{beats + BEAT_SLACK}), so each shot stays on screen "
             f"about {SHOT[ctx.brief.pacing][0]:g} seconds: one short idea per beat, one or two short sentences, "

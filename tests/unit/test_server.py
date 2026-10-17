@@ -105,3 +105,24 @@ def test_publishing_api_needs_explicit_approval_and_never_returns_tokens(tmp_pat
         assert client.post("/api/publish/accounts/myspace/connect?token=t", headers=origin).status_code == 422
         assert client.delete("/api/publish/accounts/youtube?token=t", headers=origin).status_code == 204
     assert accounts.load("youtube") is None
+
+
+def test_a_cut_is_a_new_run_seeded_from_the_parent_and_needs_a_target_and_a_script(tmp_path, monkeypatch):
+    from reelhive.schemas.script import Beat, Script
+
+    workspace = Workspace(Config(runs_dir=tmp_path / "runs"))
+    started = []
+    monkeypatch.setattr(workspace, "start", lambda run_id, brief: started.append((run_id, brief)))
+    parent = workspace.create(sample_brief(), start=False)
+    origin = {"origin": "http://127.0.0.1"}
+    with TestClient(create_app(workspace=workspace, token="t"), base_url="http://127.0.0.1") as client:
+        url = f"/api/runs/{parent.id}/cut?token=t"
+        assert client.post(url, headers=origin, json={}).status_code == 422
+        assert client.post(url, headers=origin, json={"platform": "myspace"}).status_code == 422
+        assert client.post(url, headers=origin, json={"platform": "reels"}).status_code == 422  # nothing drafted yet
+        assert len(workspace.list_runs()) == 1  # the failed cut left no folder behind
+        script = Script(title="t", beats=[Beat(role="hook", narration="One."), Beat(role="cta", narration="Two.")])
+        (workspace.path(parent.id) / "script.json").write_text(script.model_dump_json())
+        cut = client.post(url, headers=origin, json={"platform": "reels"})
+    assert cut.status_code == 202 and cut.json()["brief"]["platform"] == "reels"
+    assert started[0][0] == cut.json()["id"] and (workspace.path(cut.json()["id"]) / "cut_from.json").exists()

@@ -21,7 +21,9 @@ class Speech:
 class TTS(Protocol):
     """Text to a WAV file. Piper (German) plugs in here later."""
 
-    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float) -> Speech: ...
+    def synth(
+        self, text: str, out: Path, gender: str, accent: str, speed: float, name: str | None = None
+    ) -> Speech: ...
 
 
 SILENCE = 0.01  # amplitude below which a 10 ms window counts as silence (about -40 dBFS)

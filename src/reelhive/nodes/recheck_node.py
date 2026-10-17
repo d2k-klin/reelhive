@@ -20,7 +20,7 @@ class RecheckNode(FunctionNode):
             s
             for s in ctx.spec.scenes
             if ctx.narrated.get(s.index, ("",))[0] != s.narration
-            or ctx.voiced.get(s.index) != (s.voice_override or ctx.brief.voice).model_dump()
+            or ctx.voiced.get(s.index) != (s.voice_override or ctx.brief.voice).record()
         ]
         for n, scene in enumerate(changed, start=1):
             ctx.events.emit(

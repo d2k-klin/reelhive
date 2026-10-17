@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-17
+
+### Added
+- `platform: reels | shorts | tiktok` (**Made for** in the studio): a vertical, punchy, captioned cut. It opens on a
+  settled hook, so the first frame (the feed's autoplay and cover) is readable; the intro screen shortens to 1.5 s;
+  and on 9:16 every shot is laid out clear of the app's buttons and captions, which the layout review checks.
+- `pacing: punchy`: about one cut every 2.5 s (4 s at most), with quicker entrances (0.5 s) and transitions (0.4 s).
+- The mix is mastered to -14 LUFS integrated and -1 dBTP (two-pass `loudnorm`, linear gain), the level YouTube,
+  Instagram and TikTok play at, so a video is no longer turned down or left quieter than its neighbours.
+- `examples/briefs/reels.yaml`.
+- Product data: research reads the products a website describes in its schema.org structured data (Shopify,
+  WooCommerce and most store themes): name, price, rating and reviews, and saves up to six product photos, fetched
+  only from public addresses and re-encoded, which join the catalog as `Product photo: <name>`.
+- Two templates: `offer` (the price, with an earlier price struck through as it lands) and `review` (a customer's
+  quote under drawn stars). A new hard check, `claims`, fails any price, quote or rating that isn't in the brief or
+  the product data; the fixer copies the source's words or changes the template.
+- New cuts: `reelhive cut <run> --for reels|shorts|tiktok [--duration N] [--format F]`, or **Make a cut for** on a
+  finished video in the studio, makes a new run from the same story and material. It reuses the research and the
+  product photos (the website isn't read again) and hands the writer the original script to condense.
+- Photo stories: the `photo` template shows one of the user's photos across the whole frame under a slow camera
+  move (push in, pull out, pan) with an optional caption, and photos dissolve into one another. The writer sees the
+  photos in the order they were taken (EXIF), with their captions or opt-in vision descriptions, which are now made
+  once per run. A new hard check, `repeats`, keeps each photo to one scene.
+- `narrator`: the character the whole narration speaks as. A funny narrator jokes about what the sources really
+  show, never at the expense of the people in the photos; the critic judges it.
+- `voice.name`: ten Kokoro voices with a character of their own (`reelhive voices`, or **Narrator** in the studio).
+- `reelhive run` takes several briefs: all are checked first, then made in turn, with a summary at the end.
+- Writer, planner and critic prompts know about videos made for a feed: a hook that works in two seconds, the
+  product shown early, proof and the offer before the call to action.
+
+### Fixed
+- Photos from a phone showed sideways: phones store a portrait sideways with a rotation tag, which uploads and copied
+  images now apply (keeping the photo's EXIF date).
+- The studio's quality checks showed "Production check" for the shot length check (and would have for the new
+  `claims` and `repeats`); every check has its own label now, and a contract test keeps the labels in step with the
+  checks the critic and the review emit.
+- Six studio end-to-end tests had gone stale with the 0.5.2 studio redesign (capture settings start folded away;
+  key-point actions are laid out on the row's grid), so CI's `ui-e2e` job failed. The tests follow the studio again.
+
+### Changed
+- Scene images need 720 px on every side in every format (was the format's full frame, such as 720×1280 for
+  9:16), so square product photos can be used in a vertical video; the sharpness check still measures how large
+  each is drawn.
+
 ## [0.5.2] - 2026-10-14
 
 ### Changed

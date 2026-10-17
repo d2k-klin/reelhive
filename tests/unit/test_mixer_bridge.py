@@ -18,6 +18,19 @@ def test_mix_args_duck_the_music_under_the_voice(tmp_path):
     assert "-filter_complex" not in mixer.mix_args(tmp_path / "n.wav", None, 60.0, tmp_path / "mix.wav")
 
 
+def test_the_mix_is_mastered_to_the_platforms_loudness_and_silence_is_left_alone(tmp_path):
+    seconds = np.arange(48000 * 6) / 48000
+    sf.write(tmp_path / "quiet.wav", (0.02 * np.sin(2 * np.pi * 440 * seconds)).astype(np.float32), 48000)
+    assert float(mixer.measure_loudness(tmp_path / "quiet.wav")["input_i"]) < -30
+    mastered = mixer.measure_loudness(mixer.normalize(tmp_path / "quiet.wav", tmp_path / "out.wav"))
+    assert float(mastered["input_i"]) == pytest.approx(-14, abs=1)
+    assert float(mastered["input_tp"]) <= -1 + 0.2
+    assert sf.info(tmp_path / "out.wav").samplerate == 48000
+    sf.write(tmp_path / "silent.wav", np.zeros(48000 * 4, dtype=np.float32), 48000)
+    mixer.normalize(tmp_path / "silent.wav", tmp_path / "still.wav")
+    assert not sf.read(tmp_path / "still.wav")[0].any()
+
+
 def test_mux_always_writes_the_credit_metadata(tmp_path):
     args = mixer.mux_args(tmp_path / "v.mp4", tmp_path / "a.wav", tmp_path / "out.mp4")
     assert f"comment={CREDIT_TEXT}" in args

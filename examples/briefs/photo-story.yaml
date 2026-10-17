@@ -1,0 +1,19 @@
+level: low
+audience: Friends and family who weren't on the trip
+storyline: Our family's first camping trip, told honestly.
+features:             # the moments that matter; one photo each, in the order they were taken
+  - Setting up the tent took three hours
+  - The bear turned out to be a raccoon
+  - Breakfast in the rain
+duration: 30
+format: "9:16"
+platform: reels
+narrator: a deadpan nature documentary narrator, observing the family as a rare species
+voice:
+  name: bm_fable      # reelhive voices lists the narrator voices
+closing: Same time next year, apparently.
+visuals:
+  source: images
+  images:
+    dir: ./photos     # your photos; add a captions.yaml (filename: what it shows) so the jokes stay true
+    describe_images: false

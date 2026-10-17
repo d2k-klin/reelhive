@@ -200,6 +200,14 @@ class Service:
     def run(self, brief: Brief, on_event: Callable[[Event], None] | None = None) -> RunResult:
         return asyncio.run(self.run_async(self.new_run(brief, on_event)))
 
+    def cut(self, parent: Path, brief: Brief, on_event: Callable[[Event], None] | None = None) -> RunResult:
+        """A new run that cuts the parent's video for `brief` (see core/cut.py), reusing its research and script."""
+        from reelhive.core.cut import seed
+
+        ctx = self.new_run(brief, on_event)
+        seed(parent.resolve(), ctx.run_dir)
+        return asyncio.run(self.run_async(ctx))
+
     def approve(self, run_dir: Path, on_event: Callable[[Event], None] | None = None) -> RunResult:
         run_dir = run_dir.resolve()
         # Exclusive marker prevents two terminals from producing the same run concurrently.
@@ -305,7 +313,7 @@ class Service:
         for scene in ctx.spec.scenes:
             if (
                 ctx.narrated.get(scene.index, ("",))[0] != scene.narration
-                or ctx.voiced.get(scene.index) != (scene.voice_override or ctx.brief.voice).model_dump()
+                or ctx.voiced.get(scene.index) != (scene.voice_override or ctx.brief.voice).record()
             ):
                 narrate(ctx, scene.index, scene.narration)
         resolve(ctx)

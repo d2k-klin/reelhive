@@ -29,7 +29,7 @@ Shortcuts: `visuals: {url: http://localhost:3000}`, `visuals: {images: ./my-imag
 | Concept | Matching provided image → generated illustration → text |
 | None | Text |
 
-Generated images are never accepted for product UI, including after a fix. PNG, JPEG and WebP are supported. Minimum visual resolution is 1280×720 for landscape, 720×1280 for portrait, and 720×720 for square. Images below those sizes fall through to the next source. Screenshots are full-page and use a format-sized viewport (mobile emulation for portrait). `screenshot-pan` pans tall captures inside an optional browser or phone frame.
+Generated images are never accepted for product UI, including after a fix. PNG, JPEG and WebP are supported. A visual needs at least 720 px on every side, in every format; smaller images fall through to the next source. How large each is really drawn is measured after the render (the review's sharpness check). Screenshots are full-page and use a format-sized viewport (mobile emulation for portrait). `screenshot-pan` pans tall captures inside an optional browser or phone frame.
 
 Before capturing, ReelHive scrolls through the page to trigger deferred images, returns to the top, and waits for fonts and image decoding. Preparation is bounded to 40 scroll steps and 10 seconds; continuous background requests do not prevent capture. Animations are frozen for the shot. HTTP error pages are rejected instead of becoming scene images, and discovery counts the home page only once whether its URL has a trailing slash or not.
 
@@ -59,9 +59,17 @@ team.webp: Our team working together
 
 Images remain local by default. `describe_images: true` explicitly sends supplied images to the scenes provider for descriptions; select a vision-capable Strands provider for this option. Copilot can't read images, so with Copilot the descriptions are skipped (the run carries on with filenames and captions); set `nodes: {scenes: claude}` (or another vision provider) to use them. A blank image folder means no images.
 
+## Photo stories
+
+To tell a story through your own photos, point `visuals.images` at the folder (or drop them in the studio), set `source: images`, and give the brief a `narrator` and a `voice.name` that suits them. The writer sees the photos in the order they were taken (from their EXIF), with their captions, or with a vision description when you set `describe_images: true` (described once per run, in `visuals/descriptions.json`), so the narration says only what each one shows. The planner gives each moment a `photo` scene: the photo across the whole frame under a slow camera move, dissolving into the next. Phones store portrait photos sideways with a rotation tag; ReelHive applies it, so every photo shows upright. A photo too small to fill the frame fails the sharpness check, and the fixer shows it on a card with `image-full` instead.
+
 ## Documents
 
 `documents: [./deck.pptx, ./whitepaper.pdf]` (top level of the brief, up to five) adds PDFs and slide decks. Each page is rendered into the run folder's `documents/` at a size that meets every format's minimum, and joins the catalog with its text as the caption. The scene planner picks a page only by its exact name, for a chart, diagram or product slide; keyword matching never picks a document page, so text-heavy pages don't end up on screen by accident. Pages count as provided images, so `source: auto` or `images` uses them and `none` doesn't. Decks are converted with LibreOffice (`soffice`) when it is installed; without it, export the deck as PDF. In the studio, drop the file on **Documents** under the product website.
+
+## Product photos
+
+When the product website describes its products in schema.org structured data (Shopify, WooCommerce and most store themes do), research reads each product's name, price, rating and reviews, and saves up to six of its photos to the run folder's `visuals/product/`. They join the catalog as provided images captioned `Product photo: <name>`, so `source: auto` or `images` can show them and `none` or `screenshots` doesn't. Photos are fetched only from public http(s) addresses, capped at 10 MB and re-encoded before use. The price and reviews are what the `offer` and `review` templates may show.
 
 ## Login and preview
 

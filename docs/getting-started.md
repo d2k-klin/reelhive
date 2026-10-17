@@ -49,7 +49,8 @@ See the illustrated [UI user guide](ui-guide.md) for launch options and the comp
 | Command | What it does |
 | --- | --- |
 | `reelhive init [folder]` | Write a starter `brief.yaml` and `config.yaml` |
-| `reelhive run <brief>` | Make a video (pauses for approval at `medium` and `high`) |
+| `reelhive run <brief> [<brief> ...]` | Make a video from each brief, in turn (pauses for approval at `medium` and `high`). Every brief is checked before the first starts; a batch carries on past a failed one and ends with a summary |
+| `reelhive cut <run> --for reels\|shorts\|tiktok [--duration N] [--format 9:16]` | A new cut of a video, for a platform, length or format: a new run from the same research and script, condensed for the new length |
 | `reelhive approve <run>` | Continue after reviewing or editing `script.json` |
 | `reelhive approve-scenes <run>` | Continue after reviewing the scenes and images (`high`) |
 | `reelhive regen <run> --scene N --note "..."` | Redo one scene |

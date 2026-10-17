@@ -18,6 +18,10 @@ export interface Shot {
   device?: Device;
   /** The shot shows the logo itself, so the corner logo steps aside. */
   featuresLogo?: boolean;
+  /** A picture across the whole frame (a photo): it dissolves in, and is never pushed, which would show its edge. */
+  fullBleed?: boolean;
+  /** Image pixels drawn per source pixel at the closest framing, for a shot without a device (a photo). */
+  zoom?: number;
   /** The entrance, exactly `seconds` long; `except` is a part another motion already brings in (a carried device). */
   enter(seconds: number, except?: Layout): ThreadGenerator;
   /** What happens once settled, exactly `seconds` long (a camera move, or stillness). */

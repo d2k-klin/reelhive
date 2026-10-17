@@ -29,12 +29,13 @@ class KokoroTTS:
             self._pipelines[lang] = KPipeline(lang_code=lang, repo_id="hexgrad/Kokoro-82M")
         return self._pipelines[lang]
 
-    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float) -> Speech:
+    def synth(self, text: str, out: Path, gender: str, accent: str, speed: float, name: str | None = None) -> Speech:
         import numpy as np
         import soundfile as sf
 
         chunks, words, offset = [], [], 0.0
-        for result in self._pipeline(accent)(text, voice=VOICES[(gender, accent)], speed=speed):
+        voice = name or VOICES[(gender, accent)]  # a named voice carries its own accent (schemas/voice.py)
+        for result in self._pipeline(accent)(text, voice=voice, speed=speed):
             if result.audio is None:
                 continue
             audio = result.audio.numpy()

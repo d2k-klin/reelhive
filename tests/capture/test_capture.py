@@ -48,6 +48,23 @@ def site():
                 <section><h2>Pricing <span class="private">acct 42</span></h2><p>Plans</p></section>
                 <form aria-label="Sign up"><input></form>
                 <section style="height:20px"><h2>Too thin to show</h2></section>"""
+            elif self.path == "/product":
+                data = {
+                    "@context": "https://schema.org",
+                    "@graph": [
+                        {"@type": "Organization", "name": "Hive Goods"},
+                        {
+                            "@type": "Product",
+                            "name": "Everyday Backpack",
+                            "image": ["/photo.jpg"],
+                            "offers": [{"@type": "Offer", "price": "89.00", "priceCurrency": "USD"}],
+                            "aggregateRating": {"ratingValue": "4.8", "reviewCount": "212"},
+                        },
+                    ],
+                }
+                html = f"""<title>Everyday Backpack</title><h1>Everyday Backpack</h1>
+                <script type="application/ld+json">{json.dumps(data)}</script>
+                <script type="application/ld+json">not json</script>"""
             elif self.path == "/live":
                 html = """<title>Live page</title><h1>Ready content</h1>
                 <script>setInterval(() => fetch('/stream'), 50)</script>"""
@@ -153,3 +170,13 @@ def test_regions_are_measured_for_close_ups_and_match_the_screenshot(site, tmp_p
     assert pricing["box"] == [100, 200, 1200, 500]  # full-page pixels, the same frame as the screenshot
     with Image.open(output) as shot:
         assert shot.getpixel((150, 250)) == (255, 255, 255) and shot.height >= 1400
+
+
+def test_research_reads_the_products_a_page_describes_in_its_structured_data(site):
+    from reelhive.visuals.products import collect
+
+    [page] = discover(Screenshots(url=site, routes=["/product"]), "9:16", with_text=True)
+    assert [p["name"] for p in page["products"]] == ["Everyday Backpack"]  # the broken block is skipped
+    [product] = collect([page])
+    assert (product["price"], product["currency"], product["rating"]) == ("89.00", "USD", "4.8")
+    assert product["images"] == [site + "/photo.jpg"]  # resolved against the page

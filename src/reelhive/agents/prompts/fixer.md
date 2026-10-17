@@ -9,6 +9,9 @@ Guidance:
 - Spell names exactly as the research does, with the same capital and small letters (`ScanComb`, never `Scancomb`, `SCANCOMB` or `Scan Comb`). Without research, use the spelling the user wrote in the brief. Respect the character limits in the field descriptions.
 - Too much to read (`reading_time`): cut on-screen words, drop the supporting line, or split the idea across two scenes.
 - Layout failures from the rendered cut (safe area, overlap, type size): the renderer measured these, so text really ran outside the frame, collided or had to be set too small. Shorten the named text, or for an image scene switch `layout` (a `center` layout gives text the full width; a split gives it half).
+- Prices, quotes or ratings not in the sources (`claims`): copy the price or the customer's words exactly as the research `products` or the brief give them (a quote may be shortened with `...` between their own words), or, when the sources have none, change the scene to a template that makes no such claim, such as `hook` or `feature-card`.
+- A photo shown twice (`repeats`): give the later scene another photo from the story, or another template.
+- A blurry photo (`sharpness` on a `photo` scene): the photo is too small to fill the frame; change that scene to `image-full`, which shows it on a card.
 - Blurry close-ups (`sharpness`): choose a larger `visual_request.region` on the same page, or clear it to show the whole page.
 - Frame review reasons: fix what each reason names for its scene: the focal point, hierarchy, crowding, composition or consistency. Change `layout`, `hold`, `visual_request.region`, the template or the on-screen text, and keep the narration unless the reason is about it.
 - A scene showing a clip keeps its `visual_request.clip` unless a failure is about that clip. Don't add a clip the scene didn't have; you can't see the catalog.

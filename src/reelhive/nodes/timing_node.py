@@ -10,30 +10,36 @@ from reelhive.schemas.brief import Brief
 from reelhive.schemas.scene_spec import (
     CREDIT_SECONDS,
     INTRO_SECONDS,
+    PLATFORM_SAFE_AREAS,
     Credit,
     CtaScene,
     Intro,
+    Motion,
+    SafeArea,
     SceneSpec,
     Word,
     display_url,
 )
 
 # Narration density per brief `pacing`: (lowest, highest, target) words per minute of video. `slow` leaves
-# room for the picture (short showcase cuts); `balanced` is the classic narrated explainer.
-PACE = {"slow": (100, 135, 115), "balanced": (130, 170, 145), "fast": (145, 175, 160)}
+# room for the picture (short showcase cuts); `balanced` is the classic narrated explainer; `punchy` talks almost
+# without a break, as a Reel or a Short does.
+PACE = {"slow": (100, 135, 115), "balanced": (130, 170, 145), "fast": (145, 175, 160), "punchy": (140, 180, 165)}
 SPEECH_WPM = 145  # Kokoro at speed 1.0 on real product scripts, clips trimmed (measured 138-154; plain text ~161)
 SLOW_SPEECH_WPM = 125  # the same voice on names, numbers and acronyms ("ISO 27001, SOC 2"): measured 122-141
 # How long one shot stays on screen, per brief `pacing`: (average to aim for, longest allowed) in seconds. The
 # picture changes with every beat, so a beat is one short idea; a screen held much longer reads as a slideshow.
-SHOT = {"slow": (6.5, 9.0), "balanced": (5.5, 8.0), "fast": (4.5, 6.5)}
+SHOT = {"slow": (6.5, 9.0), "balanced": (5.5, 8.0), "fast": (4.5, 6.5), "punchy": (2.5, 4.0)}
 MAX_BEATS = 40
 LEAD = 0.3  # silence before the voice starts in each scene (covers the fade-in)
 # Breathing room after the voice, per pacing: a natural pause between sentences, shorter when the cut is quick.
-TAILS = {"slow": 0.6, "balanced": 0.5, "fast": 0.3}
+TAILS = {"slow": 0.6, "balanced": 0.5, "fast": 0.3, "punchy": 0.3}
 TAIL_MIN = 0.3
 MAX_EXTRA = 3.0  # most padding added per scene before we'd rather lengthen the script
 FINAL_HOLD = 1.0  # the closing frame settles this long after the last words, before the credit
 FPS = 30
+PLATFORM_INTRO = 1.5  # a feed is scrolled past in about that: the title screen is a brand beat, not a reveal
+PUNCHY_MOTION = Motion(enter=0.5, transition=0.4)  # a 0.8 s entrance would take a third of a 2.5 s shot
 
 
 def credit_for(brief: Brief) -> Credit | None:
@@ -60,10 +66,26 @@ def tail_for(brief: Brief) -> float:
     return TAILS[brief.pacing]
 
 
-def available_seconds(brief: Brief, intro: float = INTRO_SECONDS) -> float:
+def intro_for(brief: Brief) -> float:
+    return PLATFORM_INTRO if brief.platform else INTRO_SECONDS
+
+
+def safe_area_for(brief: Brief) -> SafeArea:
+    """The platform's covered edges, on the vertical frame they cover; elsewhere the app letterboxes the video and
+    its buttons sit on the bars, so the title-safe margin is enough."""
+    return PLATFORM_SAFE_AREAS[brief.platform] if brief.platform and brief.format == "9:16" else SafeArea()
+
+
+def motion_for(brief: Brief) -> Motion:
+    motion = PUNCHY_MOTION if brief.pacing == "punchy" else Motion()
+    # A feed autoplays the first frame and shows it as the cover, so a platform cut opens already settled.
+    return motion.model_copy(update={"open": 0.0}) if brief.platform else motion
+
+
+def available_seconds(brief: Brief, intro: float | None = None) -> float:
     """Seconds left for scenes once the intro and the end credit are counted into the target."""
     credit = credit_for(brief)
-    return brief.duration - intro - (credit.duration if credit else 0.0)
+    return brief.duration - (intro_for(brief) if intro is None else intro) - (credit.duration if credit else 0.0)
 
 
 def beats_for(brief: Brief) -> int:
@@ -105,6 +127,10 @@ def apply_timing(
 ) -> SceneSpec:
     spec.credit = credit_for(brief)
     spec.captions = brief.captions
+    spec.safe_area = safe_area_for(brief)
+    spec.motion = motion_for(brief)
+    if spec.intro:
+        spec.intro.duration = intro_for(brief)
     place_urls(spec, brief)
     opening = intro_seconds(spec)
     available = available_seconds(brief, opening)

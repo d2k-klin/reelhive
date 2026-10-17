@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from PIL import Image
+from PIL import Image, ImageOps
 from pydantic import BaseModel
 
 from reelhive.config import Config
@@ -236,6 +236,21 @@ class Workspace:
 
         self.submit(run_id, draft, production=False)
 
+    def cut(self, run_id: str, platform: str | None, duration: int | None, format: str | None) -> RunView:
+        """A new run cutting this one's video for another platform, length or format (core/cut.py), started now."""
+        from reelhive.core.cut import cut_brief, parent_brief, seed
+
+        parent = self.path(run_id)
+        brief = cut_brief(parent_brief(parent), platform, duration, format)
+        view = self.create(brief, start=False)
+        try:
+            seed(parent, self.path(view.id))
+        except Exception:
+            self.delete(view.id)
+            raise
+        self.start(view.id, brief)
+        return self.details(view.id)
+
     def approve_script(self, run_id: str, script: Script) -> None:
         path = self.path(run_id)
         svc = self.service(run_id)
@@ -381,7 +396,9 @@ class Workspace:
                 raise ValueError("unsupported image or more than 30 megapixels")
             output = path / "uploads" / f"{uuid.uuid4().hex}.png"
             output.parent.mkdir(exist_ok=True)
-            image.convert("RGBA").save(output, format="PNG")
+            upright = ImageOps.exif_transpose(image)  # a phone stores a portrait sideways, with a rotation tag
+            # The rotation is applied now; the rest of the EXIF stays, so `taken` still orders a photo story.
+            upright.convert("RGBA").save(output, format="PNG", exif=upright.getexif())
         brief = Brief.model_validate(yaml.safe_load((path / "brief.yaml").read_text()))
         if logo:
             brief.brand.logo = str(output)

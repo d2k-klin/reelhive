@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 import re
+import shutil
 from pathlib import Path
 from typing import Any
 
 import yaml
-from PIL import Image
+from PIL import Image, ImageOps
 
 from reelhive.schemas.brief import Images
 from reelhive.visuals import clips
@@ -39,8 +41,35 @@ def catalog(options: Images, posters: Path | None = None) -> list[dict[str, Any]
             continue
         with Image.open(file) as image:
             image.verify()
-        result.append({"image": file.name, "file": str(file), "caption": caption})
+        entry = {"image": file.name, "file": str(file), "caption": caption}
+        result.append(entry | ({"taken": when} if (when := taken(file)) else {}))
     return result
+
+
+EXIF_IFD, TAKEN, CHANGED = 0x8769, 0x9003, 0x0132  # Exif sub-IFD, DateTimeOriginal, DateTime
+
+
+def taken(file: Path) -> str | None:
+    """When the photo was taken, from its EXIF (`2024-06-01 14:22`), so a photo story can be told in order."""
+    try:
+        with Image.open(file) as image:
+            exif = image.getexif()
+            stamp = exif.get_ifd(EXIF_IFD).get(TAKEN) or exif.get(CHANGED)
+    except (OSError, ValueError):
+        return None
+    match = re.match(r"(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2})", str(stamp or ""))
+    return f"{match[1]}-{match[2]}-{match[3]} {match[4]}:{match[5]}" if match else None
+
+
+def copy_upright(source: Path, dest: Path) -> None:
+    """Copy an image, applying its EXIF rotation, so every renderer draws a phone's portrait photo upright."""
+    with Image.open(source) as image:
+        if image.getexif().get(0x0112, 1) == 1:  # Orientation: already upright
+            shutil.copyfile(source, dest)
+            return
+        upright = ImageOps.exif_transpose(image)
+        lossy = {"quality": 95} if image.format in ("JPEG", "WEBP") else {}  # a full-bleed photo shows every artefact
+        upright.save(dest, format=image.format or "PNG", exif=upright.getexif(), **lossy)
 
 
 def clip(entries: list[dict[str, Any]], filename: str) -> dict[str, Any] | None:
@@ -61,8 +90,10 @@ def match(entries: list[dict[str, Any]], filename: str | None, text: str) -> dic
     return max(scored, key=lambda pair: pair[0])[1] if any(score > 0 for score, _ in scored) else None
 
 
-async def describe(ctx) -> None:
-    """Opt-in only: image bytes (and one frame per clip) leave the machine through the scenes provider."""
+async def describe(ctx, entries: list[dict[str, Any]] | None = None) -> None:
+    """Opt-in only: image bytes (and one frame per clip) leave the machine through the scenes provider. Each file is
+    described once per run (`visuals/descriptions.json`), whichever step asks first: the writer of a photo story, the
+    planner, a repair."""
     from strands import Agent
 
     if ctx.config.provider_for("scenes", "fast") == "copilot":
@@ -77,10 +108,17 @@ async def describe(ctx) -> None:
     agent = Agent(
         model=model, system_prompt="Describe this image in one short factual sentence.", callback_handler=None
     )
-    for entry in ctx.visual_catalog:
+    cache_path = ctx.path("visuals", "descriptions.json")
+    cache = json.loads(cache_path.read_text()) if cache_path.exists() else {}
+    for entry in ctx.visual_catalog if entries is None else entries:
         if "image" not in entry and "poster" not in entry:
             continue
         path = Path(entry.get("poster") or entry["file"])
+        stat = path.stat()
+        key = f"{path.resolve()}:{stat.st_size}:{stat.st_mtime_ns}"
+        if key in cache:
+            entry["caption"] = cache[key]
+            continue
         format = "jpeg" if path.suffix.lower() in (".jpg", ".jpeg") else path.suffix[1:].lower()
         what = "frame from the middle of a video clip" if "clip" in entry else "image"
         content: Any = [
@@ -88,7 +126,8 @@ async def describe(ctx) -> None:
             {"image": {"format": format, "source": {"bytes": path.read_bytes()}}},
         ]
         result = await agent.invoke_async(content)
-        entry["caption"] = str(result)
+        entry["caption"] = cache[key] = str(result)
+        cache_path.write_text(json.dumps(cache, indent=2))
         ctx.events.emit(
             "node.task",
             node="scenes",

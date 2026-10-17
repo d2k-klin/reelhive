@@ -19,7 +19,14 @@ from reelhive.schemas.scene_spec import (
     HookText,
     ImageScene,
     IntroText,
+    OfferScene,
+    OfferText,
+    PhotoMotion,
+    PhotoScene,
+    PhotoText,
     ProblemScene,
+    ReviewScene,
+    ReviewText,
     ScreenshotScene,
     StatScene,
     StatText,
@@ -36,6 +43,9 @@ TEXT_MODELS: dict[str, type[BaseModel]] = {
     "problem": HookText,
     "stat": StatText,
     "bullets": BulletsText,
+    "offer": OfferText,
+    "review": ReviewText,
+    "photo": PhotoText,
 }
 SCENE_MODELS: dict[str, type[BaseModel]] = {
     "hook": HookScene,
@@ -46,6 +56,9 @@ SCENE_MODELS: dict[str, type[BaseModel]] = {
     "problem": ProblemScene,
     "stat": StatScene,
     "bullets": BulletsScene,
+    "offer": OfferScene,
+    "review": ReviewScene,
+    "photo": PhotoScene,
 }
 
 
@@ -74,12 +87,35 @@ def intro_position(scenes: list[Any], cold_open: bool = False) -> int:
 
 
 class PlannedScene(BaseModel):
-    template: Literal["hook", "feature-card", "cta", "image-full", "screenshot-pan", "problem", "stat", "bullets"]
-    headline: str = Field(description="Main on-screen line. Limits: hook 48, feature-card 40, cta 60 chars")
+    template: Literal[
+        "hook",
+        "feature-card",
+        "cta",
+        "image-full",
+        "screenshot-pan",
+        "problem",
+        "stat",
+        "bullets",
+        "offer",
+        "review",
+        "photo",
+    ]
+    headline: str = Field(
+        description="Main on-screen line. Limits: hook 48, feature-card 40, cta 60, offer 40 chars; review: the "
+        "customer's quoted words (120)"
+    )
     secondary: str | None = Field(
-        None, description="hook/cta: subline (80/60 chars); feature-card: body (110 chars). Optional"
+        None,
+        description="hook/cta/offer: subline (80/60/60 chars); feature-card: body (110 chars); review: who said it "
+        "(40). Optional",
     )
     label: str | None = Field(None, description="feature-card only: a short marker such as 01 (max 4 chars)")
+    price: str | None = Field(None, description="offer only: the price as the sources give it, e.g. $49 (12 chars)")
+    was: str | None = Field(None, description="offer only: the earlier price, struck through (12 chars). Optional")
+    rating: float | None = Field(None, description="review only: the reviewer's stars out of 5. Optional")
+    motion: PhotoMotion = Field(
+        "push_in", description="photo only: the slow camera move, push_in, pull_out, pan_left or pan_right"
+    )
     covers: list[int] = Field(
         default_factory=list, description="Numbers (1-based) of the brief's key-point notes this scene tells"
     )
@@ -97,13 +133,17 @@ class PlannedScene(BaseModel):
     items: list[str] | None = None
 
     def text(self) -> BaseModel:
-        fields = {"headline": self.headline}
+        fields: dict[str, Any] = {"headline": self.headline}
         if self.template == "bullets":
             return BulletsText(headline=self.headline, items=self.items or [self.secondary or self.headline])
         if self.secondary:
             fields["body" if self.template == "feature-card" else "subline"] = self.secondary
         if self.template == "feature-card" and self.label:
             fields["label"] = self.label
+        if self.template == "offer":
+            fields.update({"price": self.price or "", "was": self.was})
+        if self.template == "review":
+            fields["rating"] = self.rating
         return TEXT_MODELS[self.template].model_validate(fields)
 
     @model_validator(mode="after")
@@ -118,6 +158,8 @@ class PlannedScene(BaseModel):
         direction: dict[str, Any] = {"hold": self.hold}
         if self.template in VISUAL_TEMPLATES:
             direction["layout"] = self.layout
+        if self.template == "photo":
+            direction["motion"] = self.motion
         scene = SCENE_MODELS[self.template](
             index=index,
             narration=narration,
@@ -137,8 +179,9 @@ def keep_direction(planned: PlannedScene, scene: SceneT, prior: SceneT | None) -
         scene.visual_request = prior.visual_request
     if "hold" not in planned.model_fields_set:
         scene.hold = prior.hold
-    if "layout" not in planned.model_fields_set and hasattr(prior, "layout") and hasattr(scene, "layout"):
-        scene.layout = prior.layout
+    for field in ("layout", "motion"):
+        if field not in planned.model_fields_set and hasattr(prior, field) and hasattr(scene, field):
+            setattr(scene, field, getattr(prior, field))
 
 
 class ScenePlan(BaseModel):

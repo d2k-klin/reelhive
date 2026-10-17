@@ -25,7 +25,6 @@ from reelhive.nodes.base import AgentNode, _no_usage
 from reelhive.schemas.layout import Box, LayoutReport, ShotLayout
 from reelhive.schemas.scene_spec import Intro, SceneSpec
 
-SAFE_MARGIN = 0.04  # of each frame side: text stays inside this inset (title-safe)
 MIN_TYPE = 0.022  # of the frame's short side: 24 px at 1080, readable on a phone
 MAX_ZOOM = 1.35  # source pixels may be enlarged this much before they visibly soften
 OVERLAP = 0.02  # share of the smaller box two elements may share before they collide
@@ -49,10 +48,11 @@ def layout_checks(report: LayoutReport, spec: SceneSpec) -> list[Check]:
     expected = [("intro", 0) if isinstance(i, Intro) else ("scene", i.index) for i in spec.timeline()]
     unmeasured = [f"{k} {i}".replace("intro 0", "intro") for k, i in expected if (k, i) not in shots]
     outside, collisions, small, soft = [], [], [], []
+    safe = spec.safe_area  # the title-safe margin, or the edges a platform's buttons cover
     for shot in report.shots:
         name = _name(shot)
-        left, top = shot.width * SAFE_MARGIN, shot.height * SAFE_MARGIN
-        right, bottom = shot.width - left, shot.height - top
+        left, top = shot.width * safe.left, shot.height * safe.top
+        right, bottom = shot.width * (1 - safe.right), shot.height * (1 - safe.bottom)
         texts = [b for b in shot.boxes if b.role in TEXT_ROLES]
         visuals = [b for b in shot.boxes if b.role == "visual"]
         for box in texts:
@@ -80,7 +80,8 @@ def layout_checks(report: LayoutReport, spec: SceneSpec) -> list[Check]:
         Check(
             "safe_area",
             not outside,
-            f"text inside a {SAFE_MARGIN:.0%} margin",
+            f"text inside the safe area (top {safe.top:.0%}, right {safe.right:.0%}, bottom {safe.bottom:.0%}, "
+            f"left {safe.left:.0%})",
             not outside,
             f"elements run outside the frame's safe area, shorten the text or change the layout: {outside}",
         ),

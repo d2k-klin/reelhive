@@ -19,6 +19,7 @@ from reelhive.agents.plan import brief_block
 from reelhive.core.context import RunContext
 from reelhive.nodes.base import AgentNode, _no_usage
 from reelhive.schemas.brief import Screenshots
+from reelhive.visuals import products
 
 
 class ProductNotes(BaseModel):
@@ -53,6 +54,11 @@ class ResearchNode(AgentNode):
     output = ProductNotes
 
     async def execute(self, ctx: RunContext) -> Usage:
+        seeded = ctx.run_dir / "research.json"
+        if ctx.research is None and seeded.exists():  # a cut carries its parent's research over
+            ctx.research = json.loads(seeded.read_text())
+            ctx.events.emit("node.task", node=self.name, task="Using the research of the original video")
+            return _no_usage()
         site = site_options(ctx)
         ctx.site_pages = []
         if site:
@@ -62,6 +68,7 @@ class ResearchNode(AgentNode):
             try:
                 pages = await asyncio.to_thread(discover, site, ctx.brief.format, True)
                 ctx.site_pages += [p for p in pages if p.get("text")]
+                await self._products(ctx, pages)
             except Exception as error:  # an unreachable site must not stop the video
                 ctx.events.emit("node.task", node=self.name, task=f"Could not read the website: {error}")
         if ctx.brief.documents:
@@ -83,11 +90,24 @@ class ResearchNode(AgentNode):
         ctx.events.emit("node.task", node=self.name, task=f"Read {len(ctx.site_pages)} pages")
         return await super().execute(ctx)
 
+    async def _products(self, ctx: RunContext, pages: list[dict]) -> None:
+        """The site's own product data (price, rating, reviews) as facts, and its product photos as images."""
+        ctx.products = products.collect(pages)
+        if not ctx.products:
+            return
+        names = ", ".join(p["name"] for p in ctx.products)
+        ctx.events.emit("node.task", node=self.name, task=f"Product data for {names}")
+        if ctx.brief.visuals.source in ("auto", "images"):
+            skipped = await asyncio.to_thread(products.save_photos, ctx.products, ctx.path("visuals", "product"))
+            for reason in skipped:
+                ctx.events.emit("node.task", node=self.name, task=f"Product photo skipped: {reason}")
+
     def build_prompt(self, ctx: RunContext) -> str:
         pages = "\n\n".join(f"## {p['title']} ({p['route']})\n{p['text']}" for p in ctx.site_pages)
         return f"{brief_block(ctx.brief)}\n\nSource pages (the product website and the user's documents):\n{pages}"
 
     def apply(self, ctx: RunContext, out: ProductNotes) -> None:
-        ctx.research = out.model_dump()
+        # The structured facts are the site's own words, kept beside the notes so writers and the critic can use them.
+        ctx.research = out.model_dump() | ({"products": ctx.products} if ctx.products else {})
         ctx.path("research.json").write_text(json.dumps(ctx.research, indent=2))
         ctx.events.emit("node.task", node=self.name, task=f"Product notes ready: {out.product[:80]}")

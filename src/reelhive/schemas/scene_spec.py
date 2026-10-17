@@ -145,6 +145,26 @@ class StatText(BaseModel):
     subline: str | None = Field(None, max_length=80)
 
 
+class OfferText(BaseModel):
+    headline: str = Field(max_length=40, description="What is on offer: the product, or the deal")
+    price: str = Field(min_length=1, max_length=12, description="The price as shown, e.g. $49; from the sources only")
+    was: str | None = Field(None, max_length=12, description="The earlier price, struck through; from the sources only")
+    subline: str | None = Field(None, max_length=60, description="One supporting line, e.g. free shipping")
+
+
+class PhotoText(BaseModel):
+    headline: str = Field(
+        "", max_length=48, description="A caption over the photo (a place, a punchline); empty for none"
+    )
+    subline: str | None = Field(None, max_length=60)
+
+
+class ReviewText(BaseModel):
+    headline: str = Field(max_length=120, description="A customer's words, quoted from the sources (may be shortened)")
+    subline: str | None = Field(None, max_length=40, description="Who said it, as the source names them")
+    rating: float | None = Field(None, ge=0, le=5, description="Their star rating out of 5; from the sources only")
+
+
 class Word(BaseModel):
     """One spoken word, timed from the recorded voice (never written by an agent)."""
 
@@ -217,11 +237,54 @@ class BulletsScene(_SceneBase):
     text: BulletsText
 
 
+class OfferScene(_SceneBase):
+    template: Literal["offer"] = "offer"
+    text: OfferText
+
+
+class ReviewScene(_SceneBase):
+    template: Literal["review"] = "review"
+    text: ReviewText
+
+
+PhotoMotion = Literal["push_in", "pull_out", "pan_left", "pan_right"]
+
+
+class PhotoScene(_SceneBase):
+    """One of the user's photos across the whole frame, under a slow camera move, with an optional caption."""
+
+    template: Literal["photo"] = "photo"
+    text: PhotoText
+    motion: PhotoMotion = Field("push_in", description="The slow camera move across the photo for the whole shot")
+
+
 Scene = Annotated[
-    HookScene | FeatureCardScene | CtaScene | ImageScene | ScreenshotScene | ProblemScene | StatScene | BulletsScene,
+    HookScene
+    | FeatureCardScene
+    | CtaScene
+    | ImageScene
+    | ScreenshotScene
+    | ProblemScene
+    | StatScene
+    | BulletsScene
+    | OfferScene
+    | ReviewScene
+    | PhotoScene,
     Field(discriminator="template"),
 ]
-TEMPLATES = ("hook", "feature-card", "cta", "image-full", "screenshot-pan", "problem", "stat", "bullets")
+TEMPLATES = (
+    "hook",
+    "feature-card",
+    "cta",
+    "image-full",
+    "screenshot-pan",
+    "problem",
+    "stat",
+    "bullets",
+    "offer",
+    "review",
+    "photo",
+)
 
 
 class Motion(BaseModel):
@@ -229,6 +292,31 @@ class Motion(BaseModel):
 
     enter: float = Field(0.8, gt=0, description="Seconds a shot's elements take to arrive, staggered in reading order")
     transition: float = Field(0.6, gt=0, description="Seconds the outgoing shot overlaps the start of the incoming one")
+    open: float | None = Field(
+        None,
+        ge=0,
+        description="Seconds the first shot takes to arrive; 0 opens on a settled frame (a feed autoplays the first "
+        "frame and shows it as the cover). None: as `enter`",
+    )
+
+
+class SafeArea(BaseModel):
+    """Insets, as fractions of the frame's width and height, that text must stay inside: the title-safe margin,
+    or the parts of a vertical frame a platform's own buttons and captions cover."""
+
+    top: float = Field(0.04, ge=0, lt=0.5)
+    right: float = Field(0.04, ge=0, lt=0.5)
+    bottom: float = Field(0.04, ge=0, lt=0.5)
+    left: float = Field(0.04, ge=0, lt=0.5)
+
+
+# ponytail: no platform publishes these; measured from each app's overlay at 1080x1920 and rounded up. Re-measure
+# when an app redesigns its player. Reels' top also clears the 4:5 crop the feed shows (with the content padding).
+PLATFORM_SAFE_AREAS = {
+    "reels": SafeArea(top=0.13, right=0.12, bottom=0.22, left=0.05),
+    "tiktok": SafeArea(top=0.08, right=0.13, bottom=0.20, left=0.05),
+    "shorts": SafeArea(top=0.08, right=0.11, bottom=0.21, left=0.05),
+}
 
 
 class Credit(BaseModel):
@@ -255,6 +343,9 @@ class SceneSpec(BaseModel):
     duration: float = 0.0
     theme: Theme = Theme()
     motion: Motion = Motion()
+    safe_area: SafeArea = Field(
+        SafeArea(), description="Where text may go; set from the brief's platform (a vertical cut) by code"
+    )
     captions: bool = Field(False, description="Show the narration as word-by-word captions; set from the brief")
     intro: Intro | None = None
     intro_at: int = Field(

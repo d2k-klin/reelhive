@@ -2,7 +2,13 @@
 // through these, so margins, sizes and hierarchy are the same in every shot and every format.
 import {Txt, type View2D} from '@revideo/2d';
 import {DEFAULT} from '@revideo/core';
+import type {SafeArea} from './spec';
 import type {Theme} from './themes/default';
+
+/** Title-safe on every side: the review gate's default. */
+export const TITLE_SAFE: SafeArea = {top: 0.04, right: 0.04, bottom: 0.04, left: 0.04};
+/** Room the layout keeps inside the safe area, so a shot passes the gate with margin to spare. */
+const ROOM = {x: 0.03, y: 0.04};
 
 export interface Stage {
   view: View2D;
@@ -16,19 +22,29 @@ export interface Stage {
   content: {w: number; h: number; left: number; top: number; cy: number};
   /** The caption band below the content when captions are on: its centre and height. */
   captions: {cy: number; h: number} | null;
+  /** Where text may go, as fractions of the frame (the same insets the layout gate checks). */
+  safe: SafeArea;
   /** Comfortable line length for centred text. */
   measure: number;
   type: {display: number; hero: number; headline: number; body: number; label: number; url: number};
   theme: Theme;
 }
 
-export function stageOf(view: View2D, theme: Theme, captions = false): Stage {
+export function stageOf(view: View2D, theme: Theme, captions = false, safe: SafeArea = TITLE_SAFE): Stage {
   const w = view.width(), h = view.height(), s = Math.min(w, h);
   const band = captions ? s * 0.16 : 0;
-  const content = {w: w * 0.86, h: h * 0.84 - band, left: -w * 0.43, top: -h * 0.42, cy: -band / 2};
+  // ponytail: the sides take the wider inset, so every template stays centred; a platform's right-hand buttons
+  // cost the left a few percent of width.
+  const side = Math.max(safe.left, safe.right) + ROOM.x;
+  const top = safe.top + ROOM.y, bottom = safe.bottom + ROOM.y;
+  const bandBottom = h / 2 - bottom * h; // the content (and the caption band under it) ends here
+  const content = {
+    w: w * (1 - 2 * side), h: h * (1 - top - bottom) - band, left: -w * (0.5 - side), top: -h * (0.5 - top),
+    cy: (h * (top - bottom) - band) / 2,
+  };
   return {
-    view, w, h, s, theme,
-    captions: captions ? {cy: h * 0.42 - band / 2, h: band} : null,
+    view, w, h, s, theme, safe,
+    captions: captions ? {cy: bandBottom - band / 2, h: band} : null,
     portrait: h > w,
     content,
     measure: Math.min(content.w, s * 1.3),

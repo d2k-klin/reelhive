@@ -40,7 +40,9 @@ class RunContext:
     spec_only: bool = False  # evals: stop at the render contract, no video
     image_generator: Any = None  # visuals/generators/base.py ImageGenerator; None means configured OpenAI
     visual_catalog: list[dict[str, Any]] = field(default_factory=list)
-    site_pages: list[dict[str, str]] = field(default_factory=list)  # research: pages read from the website
+    site_pages: list[dict[str, Any]] = field(default_factory=list)  # research: pages read from the website
+    products: list[dict[str, Any]] = field(default_factory=list)  # research: the site's structured product facts
+    photos: list[dict[str, Any]] = field(default_factory=list)  # script: the user's own photos, for a photo story
     research: dict[str, Any] | None = None  # research: product notes (also saved as research.json)
     script: Script | None = None
     spec: SceneSpec | None = None

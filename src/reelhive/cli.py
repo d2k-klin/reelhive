@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+from enum import StrEnum
 from pathlib import Path
 
 import typer
@@ -87,43 +88,113 @@ def _printer(verbose: bool):
 
 @app.command()
 def run(
-    brief_file: Path = typer.Argument(..., exists=True, dir_okay=False, help="Brief YAML file."),
+    brief_files: list[Path] = typer.Argument(
+        ..., exists=True, dir_okay=False, help="Brief YAML files; several make one video each, in turn."
+    ),
     config_file: Path = typer.Option(None, "--config", exists=True, dir_okay=False, help="config.yaml path."),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Stream agent output."),
 ):
-    """Make a video from a brief."""
+    """Make a video from each brief."""
     from reelhive.core.service import Service
     from reelhive.providers.factory import ProviderError
 
+    briefs = []
+    for brief_file in brief_files:  # every brief is checked before the first one spends a token
+        try:
+            briefs.append(Brief.model_validate(yaml.safe_load(brief_file.read_text())))
+        except ValidationError as e:
+            console.print(f"[red]Invalid {brief_file}:[/red]")
+            for err in e.errors():
+                console.print(f"  • {'.'.join(str(p) for p in err['loc']) or 'root'}: {err['msg']}")
+            raise typer.Exit(2) from e
     try:
-        brief = Brief.model_validate(yaml.safe_load(brief_file.read_text()))
         config = load_config(config_file)
     except ValidationError as e:
-        console.print(f"[red]Invalid {brief_file if 'Brief' in e.title else 'config'}:[/red]")
+        console.print("[red]Invalid config:[/red]")
         for err in e.errors():
             console.print(f"  • {'.'.join(str(p) for p in err['loc']) or 'root'}: {err['msg']}")
         raise typer.Exit(2) from e
 
     service = Service(config)
-    try:
-        result = service.run(brief, on_event=_printer(verbose))
-    except ProviderError as e:
-        console.print(f"[red]{e}[/red]")
-        raise typer.Exit(2) from e
-    except Exception as e:
-        console.print(f"[red]Run failed:[/red] {e}")
-        raise typer.Exit(1) from e
+    outcomes = []
+    for brief_file, brief in zip(brief_files, briefs, strict=True):
+        if len(briefs) > 1:
+            console.rule(f"[bold]{brief_file}[/bold]")
+        try:
+            result = service.run(brief, on_event=_printer(verbose))
+        except ProviderError as e:
+            console.print(f"[red]{e}[/red]")
+            raise typer.Exit(2) from e  # the same provider fails every brief
+        except Exception as e:
+            console.print(f"[red]Run failed:[/red] {e}")
+            outcomes.append((brief_file, "failed", str(e)))
+            continue
+        outcomes.append((brief_file, result.status, _outcome(result)))
+    if len(briefs) > 1:
+        console.rule("[bold]Batch[/bold]")
+        for brief_file, status, detail in outcomes:
+            color = "green" if status == "done" else "yellow" if status.startswith("awaiting") else "red"
+            console.print(f"[{color}]{status}[/{color}] {brief_file} [dim]{detail}[/dim]")
+    if any(status not in ("done", "awaiting_script") for _, status, _ in outcomes):
+        raise typer.Exit(1)
 
+
+def _outcome(result) -> str:
+    """Print where a run ended and what to do next; return a one-line summary for a batch."""
     if result.status == "done":
         console.print(f"\n[bold green]Video ready:[/bold green] {result.video}")
-    elif result.status == "awaiting_script":
+        return str(result.video)
+    if result.status == "awaiting_script":
         console.print(f"\n[bold]Script ready for review:[/bold] {result.run_dir / 'script.json'}")
         console.print(f"Edit that file if needed, then run: reelhive approve {result.run_dir}")
-    else:
-        console.print("\n[bold red]Stopped before rendering.[/bold red] The spec still fails these checks:")
-        for line in result.report:
-            console.print(f"  • {line}")
-        console.print(f"[dim]Run folder: {result.run_dir}[/dim]")
+        return f"reelhive approve {result.run_dir}"
+    console.print("\n[bold red]Stopped before rendering.[/bold red] The spec still fails these checks:")
+    for line in result.report:
+        console.print(f"  • {line}")
+    console.print(f"[dim]Run folder: {result.run_dir}[/dim]")
+    return str(result.run_dir)
+
+
+class CutTarget(StrEnum):
+    reels = "reels"
+    shorts = "shorts"
+    tiktok = "tiktok"
+
+
+class CutFormat(StrEnum):
+    landscape = "16:9"
+    portrait = "9:16"
+    square = "1:1"
+
+
+@app.command()
+def cut(
+    run_dir: Path = typer.Argument(..., exists=True, file_okay=False, help="A finished (or drafted) run."),
+    platform: CutTarget = typer.Option(None, "--for", help="Cut it for Instagram Reels, YouTube Shorts or TikTok."),
+    duration: int = typer.Option(None, "--duration", min=15, max=180, help="Seconds (30 for a platform by default)."),
+    format: CutFormat = typer.Option(None, "--format", help="16:9, 9:16 or 1:1."),
+    config_file: Path = typer.Option(None, "--config", exists=True, dir_okay=False, help="config.yaml path."),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Stream agent output."),
+):
+    """Make a new cut of a video: another platform, length or format, from the same story and material."""
+    from reelhive.core.cut import cut_brief, parent_brief
+    from reelhive.core.service import Service
+
+    if not (platform or duration or format):
+        console.print("[red]Say what to cut it for:[/red] --for reels|shorts|tiktok, --duration or --format")
+        raise typer.Exit(2)
+    try:
+        brief = cut_brief(parent_brief(run_dir), platform and platform.value, duration, format and format.value)
+    except (ValidationError, OSError) as e:
+        console.print(f"[red]Can't cut {run_dir}:[/red] {e}")
+        raise typer.Exit(2) from e
+    try:
+        result = Service(load_config(config_file)).cut(run_dir, brief, on_event=_printer(verbose))
+    except ValueError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(2) from e
+    _outcome(result)
+    if result.status not in ("done", "awaiting_script"):
         raise typer.Exit(1)
 
 
@@ -399,8 +470,9 @@ def init(
 
 @app.command()
 def voices():
-    """List the Kokoro voices a brief can choose with voice.gender and voice.accent."""
+    """List the Kokoro voices a brief can choose with voice.gender and voice.accent, or by voice.name."""
     from reelhive.audio.tts.kokoro import VOICES
+    from reelhive.schemas.voice import CHARACTERS
 
     table = Table(title="Voices (Kokoro)")
     table.add_column("gender")
@@ -409,6 +481,12 @@ def voices():
     for (gender, accent), voice in VOICES.items():
         table.add_row(gender, accent, voice)
     console.print(table)
+    named = Table(title="Named voices (voice.name)")
+    named.add_column("name")
+    named.add_column("character")
+    for name, character in CHARACTERS.items():
+        named.add_row(name, character)
+    console.print(named)
     console.print("[dim]voice.speed takes 0.8-1.2; accent and speed need level medium or high.[/dim]")
 
 

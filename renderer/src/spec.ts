@@ -2,7 +2,9 @@
 // src/reelhive/schemas/scene_spec.py; a pytest contract test keeps the two in sync.
 import schema from './spec.schema.json';
 
-export type Template = 'hook' | 'feature-card' | 'cta' | 'image-full' | 'screenshot-pan' | 'problem' | 'stat' | 'bullets';
+export type Template =
+  | 'hook' | 'feature-card' | 'cta' | 'image-full' | 'screenshot-pan' | 'problem' | 'stat' | 'bullets' | 'offer' | 'review'
+  | 'photo';
 
 export interface Focus {
   x: number;
@@ -35,6 +37,8 @@ export interface SceneSpec {
   narration: string;
   hold?: number;
   layout?: ShotLayout;
+  /** photo only: the slow camera move across it. */
+  motion?: 'push_in' | 'pull_out' | 'pan_left' | 'pan_right';
   /** The narration's words as spoken, in seconds from the scene's start. */
   words?: {text: string; start: number; end: number}[];
   visual?: Visual | null;
@@ -44,6 +48,16 @@ export interface SceneSpec {
 export interface Motion {
   enter: number;
   transition: number;
+  /** Seconds the first shot takes to arrive; 0 opens on a settled frame (a feed's autoplay and cover). */
+  open?: number | null;
+}
+
+/** Insets text stays inside, as fractions of the frame: title-safe, or the edges a platform's buttons cover. */
+export interface SafeArea {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
 }
 
 export interface Credit {
@@ -67,6 +81,7 @@ export interface Spec {
   fps: number;
   duration: number;
   motion?: Motion;
+  safe_area?: SafeArea;
   captions?: boolean;
   intro?: Intro | null;
   intro_at?: number;
@@ -80,7 +95,7 @@ const TEXT_DEFS: Record<Template, string> = {
   cta: 'CtaText',
   'image-full': 'HookText',
   'screenshot-pan': 'HookText',
-  problem: 'HookText', stat: 'StatText', bullets: 'BulletsText',
+  problem: 'HookText', stat: 'StatText', bullets: 'BulletsText', offer: 'OfferText', review: 'ReviewText', photo: 'PhotoText',
 };
 
 /** Character limits per field of one text definition, read from the generated JSON Schema. */

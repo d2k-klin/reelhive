@@ -214,6 +214,10 @@ def test_describe_is_explicit_and_sends_only_catalog_images(ctx, monkeypatch):
     ctx.visual_catalog = [{"image": file.name, "file": str(file), "caption": ""}, {"route": "/dashboard"}]
     asyncio.run(provided.describe(ctx))
     assert len(calls) == 1 and calls[0][1]["image"]["source"]["bytes"] == file.read_bytes()
+    described = ctx.visual_catalog[0]["caption"]
+    fresh = [{"image": file.name, "file": str(file), "caption": ""}]
+    asyncio.run(provided.describe(ctx, fresh))  # another step asks again: the run's description is reused
+    assert len(calls) == 1 and fresh[0]["caption"] == described
     ctx.config.provider = "copilot"
     asyncio.run(provided.describe(ctx))
     assert len(calls) == 1

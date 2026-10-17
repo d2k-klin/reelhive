@@ -45,7 +45,10 @@ function* cornerLogo(stage: Stage, layer: Node): Generator<any, Img | null> {
   yield logo.toPromise();
   const natural = logo.naturalSize();
   logo.size(natural.scale(Math.min((stage.w * 0.09) / natural.x, (stage.h * 0.07) / natural.y)));
-  logo.position([stage.w / 2 - stage.w * 0.06 - logo.width() / 2, -stage.h / 2 + stage.h * 0.06 + logo.height() / 2]);
+  const {right, top} = stage.safe; // just inside the safe area, clear of a platform's buttons
+  logo.position([
+    stage.w / 2 - stage.w * (right + 0.02) - logo.width() / 2, -stage.h / 2 + stage.h * (top + 0.02) + logo.height() / 2,
+  ]);
   layer.add(logo);
   return logo;
 }
@@ -54,7 +57,19 @@ function* transition(stage: Stage, prev: Shot | null, next: Shot, seconds: numbe
   next.root.opacity(1);
   if (!prev) return;
   const motions: ThreadGenerator[] = [];
-  if (prev.device && next.device) {
+  if (next.fullBleed) {
+    // dissolve: a photo fades in over whatever was there; a pushed photo would show its edge.
+    next.root.opacity(0);
+    motions.push(next.root.opacity(1, seconds, easeOutCubic));
+  } else if (prev.fullBleed) {
+    // Out of a photo: it fades away under the next shot, which arrives as it always would.
+    motions.push(prev.root.opacity(0, seconds, easeOutCubic));
+    if (!settle) {
+      const axis = stage.portrait ? 'y' : 'x';
+      next.root[axis](stage.s * 0.08);
+      motions.push(next.root[axis](0, seconds, spring));
+    }
+  } else if (prev.device && next.device) {
     const a = prev.device.frame, b = next.device.frame;
     const target = b.position(), from = a.position();
     const ratio = a.width() / b.width();
@@ -90,7 +105,7 @@ export default makeScene2D('from-spec', function* (view: View2D) {
   const theme = currentTheme();
   yield* fontsReady(theme);
   const captions = !!spec.captions && spec.scenes.some(scene => scene.words?.length);
-  const stage = stageOf(view, theme, captions);
+  const stage = stageOf(view, theme, captions, spec.safe_area);
   // Shots are laid out around the content centre, which moves up when the caption band takes the bottom.
   const back = new Node({}), shots = new Node({y: stage.content.cy}), front = new Node({});
   view.add(back);
@@ -98,7 +113,7 @@ export default makeScene2D('from-spec', function* (view: View2D) {
   view.add(front);
   yield backdrop(stage, back); // runs for the whole video alongside the shots
   const corner = yield* cornerLogo(stage, front);
-  if (spec.credit?.mode === 'corner') addCreditCorner(view);
+  if (spec.credit?.mode === 'corner') addCreditCorner(view, stage.safe);
   const band = captions ? captionBand(stage) : null;
   if (band) {
     front.add(band);
@@ -112,15 +127,16 @@ export default makeScene2D('from-spec', function* (view: View2D) {
     const duration = item.kind === 'intro' ? checkIntro(item.intro).duration : checkScene(item.scene).duration;
     const shot: Shot = item.kind === 'intro'
       ? yield* introShot(stage, shots, item.intro)
-      : yield* TEMPLATES[item.scene.visual ? 'image-full' : item.scene.template](stage, shots, item.scene);
-    const enter = Math.min(motion.enter, duration * 0.5);
+      : yield* TEMPLATES[item.scene.visual && item.scene.template !== 'photo' ? 'image-full' : item.scene.template](stage, shots, item.scene);
+    // The first shot may open already settled (motion.open = 0): a feed autoplays that frame and shows it as the cover.
+    const enter = Math.min(!prev && motion.open != null ? motion.open : motion.enter, duration * 0.5);
     const cut = Math.min(motion.transition, enter);
     const carried = !!(prev?.device && shot.device);
     const settle = item.kind === 'intro' || position === items.length - 1;
     const lead = prev ? cut * CLEAR * 0.8 : 0;
     const startsAt = useThread().time();
     const moments: Moment[] = [
-      {kind: 'cut', at: startsAt, detail: !prev ? 'open' : carried ? 'carry' : settle ? 'settle' : 'push'},
+      {kind: 'cut', at: startsAt, detail: !prev ? 'open' : shot.fullBleed ? 'dissolve' : carried ? 'carry' : settle ? 'settle' : 'push'},
     ];
     yield* all(
       transition(stage, prev, shot, cut, settle),
@@ -134,10 +150,10 @@ export default makeScene2D('from-spec', function* (view: View2D) {
     if (landing != null && item.kind === 'scene') {
       moments.push({kind: 'focus', at: settledAt + landing, detail: item.scene.visual?.focus?.label || 'region'});
     }
-    report(view, item.kind, item.kind === 'intro' ? 0 : item.scene.index, measured, shot.device?.zoom ?? 1, moments);
+    report(view, item.kind, item.kind === 'intro' ? 0 : item.scene.index, measured, shot.device?.zoom ?? shot.zoom ?? 1, moments);
     yield* shot.hold(holding);
     prev = shot;
   }
   // The closing frame stays; the end credit appears beneath it.
-  if (spec.credit?.mode === 'end') yield* creditEnd(view, spec.credit);
+  if (spec.credit?.mode === 'end') yield* creditEnd(view, spec.credit, stage.safe);
 });
