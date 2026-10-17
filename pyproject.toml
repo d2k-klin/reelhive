@@ -40,7 +40,7 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn>=0.34",
     "python-multipart>=0.0.20",
-    "ag-ui-protocol==0.1.22",
+    "ag-ui-protocol==1.0.0",
     "pypdfium2>=5.14.0",
     "httpx>=0.28",  # publishing: the platform APIs
 ]
