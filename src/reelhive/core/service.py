@@ -125,8 +125,8 @@ class Service:
     def _reopen_finishing(ctx: RunContext) -> None:
         """Edits invalidate every verdict and cut: check, render and review again from `critic`."""
         ctx.completed.difference_update(FINISHING)
-        ctx.critic_passed = ctx.recheck_passed = False
-        ctx.review_passed, ctx.review_rounds, ctx.plan_rounds = None, 0, 0
+        ctx.critic_passed = ctx.recheck_passed = ctx.story_reviewed = False
+        ctx.review_passed, ctx.review_rounds, ctx.plan_rounds, ctx.story_rounds = None, 0, 0, 0
 
     @staticmethod
     def _status(ctx: RunContext, status: str, report: list[str] | None = None) -> None:

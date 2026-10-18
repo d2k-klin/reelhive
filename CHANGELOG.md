@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-10-18
+
+### Changed
+- A repaired plan gets the story review too. Before, the critic's rubric ran only when a plan passed its hard checks
+  the first time, so a long video that needed a timing repair (most do) was never story-reviewed, and a plan the
+  rubric sent back was never judged again. `recheck` now runs the rubric once its gates pass, unless the story is
+  already approved. The rubric may ask for at most two story repairs; after that the video goes ahead with the
+  reviewer's notes in the run log rather than stopping. Costs one more model call on a repaired plan.
+
 ## [0.6.0] - 2026-10-17
 
 ### Added

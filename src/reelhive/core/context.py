@@ -55,6 +55,8 @@ class RunContext:
     review_passed: bool | None = None  # None until the rendered cut has been reviewed
     review_rounds: int = 0  # failed reviews so far; the production graph bounds the repair loop
     plan_rounds: int = 0  # rechecks that still failed after a fix; the production graph bounds those repairs too
+    story_reviewed: bool = False  # the critic's rubric approved the plan (or its story repairs ran out)
+    story_rounds: int = 0  # rubric rejections so far; MAX_STORY_REPAIRS bounds the repairs they get
     video: Path | None = None
     publish: PublishJob | None = None  # publishing (publish/job.json): platforms, copy, and what each post became
     http: Any = None  # an httpx.Client for the platform adapters; None makes one per node (tests pass a mock)
@@ -83,6 +85,8 @@ class RunContext:
                 "review_passed": self.review_passed,
                 "review_rounds": self.review_rounds,
                 "plan_rounds": self.plan_rounds,
+                "story_reviewed": self.story_reviewed,
+                "story_rounds": self.story_rounds,
                 "video": self.video.name if self.video and self.video.is_file() else None,
             }
             temporary = self.path("checkpoint.tmp")
@@ -124,6 +128,8 @@ class RunContext:
             "review_passed",
             "review_rounds",
             "plan_rounds",
+            "story_reviewed",
+            "story_rounds",
         ):
             if key in data:
                 setattr(self, key, data[key])

@@ -69,6 +69,7 @@ def test_a_clipped_cut_is_repaired_and_rendered_again(config, brief):
         "master",
     ]
     assert len(renders) == 2 and model.calls.count("ScenePlan") == 2  # planner, then the fixer
+    assert model.calls.count("Verdict") == 1  # the approved story isn't reviewed again after a layout repair
     gates = [e.data for e in events if e.type == "gate.result" and e.data["check"] == "safe_area"]
     assert [g["passed"] for g in gates] == [False, True]
     checkpoint = json.loads((result.run_dir / "checkpoint.json").read_text())

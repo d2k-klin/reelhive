@@ -76,12 +76,14 @@ def test_hard_check_failure_takes_the_fix_path(config, brief):
             "Script": script,
             "ScenePlan": [make_plan(brief, drop_feature=1), make_plan(brief, narration=fixed_narration)],
             "MusicChoice": MUSIC,
+            "Verdict": VERDICT_PASS,
         },
     )
     result, events = run(svc, brief)
 
     assert result.status == "done"
-    assert "Verdict" not in model.calls  # hard checks failed, so no LLM review
+    # No story review while the hard checks fail; once the repair passes them, the repaired plan is reviewed.
+    assert model.calls.count("Verdict") == 1 and of_type(events, "critic.verdict")[0]["passed"]
     gates = of_type(events, "gate.result")
     assert {(d["node"], d["check"]) for d in gates if not d["passed"]} == {("critic", "features")}
     assert all(d["passed"] for d in gates if d["node"] == "recheck")
@@ -105,7 +107,7 @@ def test_recheck_failure_stops_with_a_report(config, brief):
     assert of_type(events, "run.finished")[0]["status"] == "stopped"
 
 
-def test_critic_rejection_goes_through_fix(config, brief):
+def test_critic_rejection_goes_through_fix_and_the_repair_is_reviewed_again(config, brief):
     script = make_script(brief)
     narration = [b["narration"] for b in script["beats"]]
     verdict = {**VERDICT_PASS, "hook": 2, "passed": False, "reasons": ["hook is flat"]}
@@ -115,13 +117,38 @@ def test_critic_rejection_goes_through_fix(config, brief):
             "Script": script,
             "ScenePlan": [make_plan(brief), make_plan(brief, narration=narration)],
             "MusicChoice": MUSIC,
-            "Verdict": verdict,
+            "Verdict": [verdict, VERDICT_PASS],
         },
     )
     result, events = run(svc, brief)
     assert result.status == "done"
-    assert of_type(events, "critic.verdict")[0]["reasons"] == ["hook is flat"]
+    verdicts = of_type(events, "critic.verdict")
+    assert [v["passed"] for v in verdicts] == [False, True] and verdicts[0]["reasons"] == ["hook is flat"]
+    assert model.calls.count("ScenePlan") == 2  # the planner, then one repair the second review approved
     assert of_type(events, "fix.diff")[0]["changes"] == []
+
+
+def test_a_story_review_that_never_approves_gets_bounded_repairs_then_the_video_goes_ahead(config, brief):
+    from reelhive.agents.critic import MAX_STORY_REPAIRS
+
+    script = make_script(brief)
+    narration = [b["narration"] for b in script["beats"]]
+    verdict = {**VERDICT_PASS, "hook": 2, "passed": False, "reasons": ["hook is flat"]}
+    svc, model, _ = service(
+        config,
+        {
+            "Script": script,
+            "ScenePlan": [make_plan(brief)] + [make_plan(brief, narration=narration)] * MAX_STORY_REPAIRS,
+            "MusicChoice": MUSIC,
+            "Verdict": verdict,
+        },
+    )
+    result, events = run(svc, brief)
+    assert result.status == "done"  # every hard check passes, so taste alone doesn't stop the video
+    assert model.calls.count("Verdict") == 1 + MAX_STORY_REPAIRS
+    assert model.calls.count("ScenePlan") == 1 + MAX_STORY_REPAIRS
+    notes = [d["task"] for d in of_type(events, "node.task") if d["node"] == "recheck" and "Going ahead" in d["task"]]
+    assert notes == ["Going ahead; the story review still notes: hook is flat"]
 
 
 def test_disabling_the_credit_keeps_the_metadata_tag(config, brief, monkeypatch):

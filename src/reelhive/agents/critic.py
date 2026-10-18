@@ -19,6 +19,10 @@ from reelhive.schemas.brief import Brief
 from reelhive.schemas.scene_spec import Intro, OfferScene, ReviewScene, SceneSpec
 
 DURATION_TOLERANCE = 0.05
+# Story repairs the rubric may ask for. It judges every plan that reaches it, a repaired one included; after this
+# many rejections the plan goes ahead with the reviewer's notes logged, since a matter of taste shouldn't stop a video
+# whose hard checks all pass.
+MAX_STORY_REPAIRS = 2
 
 
 @dataclass
@@ -292,6 +296,10 @@ class CriticNode(AgentNode):
         if ctx.failures:  # hard checks failed: go straight to `fix`, no LLM call
             ctx.critic_passed = False
             return _no_usage()
+        return await self.review(ctx)
+
+    async def review(self, ctx: RunContext) -> Usage:
+        """The rubric alone, for a plan whose hard checks have just passed (here, or in `recheck` after a repair)."""
         return await super().execute(ctx)
 
     def build_prompt(self, ctx: RunContext) -> str:
@@ -302,5 +310,7 @@ class CriticNode(AgentNode):
         scores = out.model_dump(exclude={"passed", "reasons"})
         passed = out.passed and min(scores.values()) >= 3
         ctx.events.emit("critic.verdict", node=self.name, scores=scores, passed=passed, reasons=out.reasons)
-        ctx.critic_passed = passed
+        ctx.critic_passed = ctx.story_reviewed = passed
         ctx.failures = [] if passed else (out.reasons or ["critic rubric score below 3"])
+        if not passed:
+            ctx.story_rounds += 1

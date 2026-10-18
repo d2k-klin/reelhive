@@ -38,7 +38,7 @@ production:   ┌─► scenes ─► visuals ─┐
 | `timing` | deterministic | Scene starts and lengths from real audio, padded to the target | `nodes/timing_node.py` |
 | `critic` | hard checks + agent | Deterministic gates first; only if they pass, a rubric review | `agents/critic.py` |
 | `fix` | agent, strong | Repair the scene plan against the failures | `agents/fixer.py` |
-| `recheck` | deterministic | Re-voice changed scenes, re-resolve visuals, re-time, run the gates again | `nodes/recheck_node.py` |
+| `recheck` | deterministic + agent | Re-voice changed scenes, re-resolve visuals, re-time, run the gates again; once they pass, the critic's rubric too if the story isn't approved yet | `nodes/recheck_node.py` |
 | `render` | deterministic | Revideo draws the silent cut and reports the layout it measured on screen (`render/layout.json`) | `nodes/render_node.py`, `render/bridge.py` |
 | `review` | layout gates + optional vision agent | Gates on the measured geometry first; then, only when the brief opts in (`frame_review`), a vision agent scores one settled frame per shot | `agents/reviewer.py`, `render/frames.py` |
 | `sound` | agent, fast | Scores the approved cut with a few effects, or none, on the moments the renderer reported; the rules (budget, spacing, quiet under the voice) are validators of its per-run output model | `agents/sound_designer.py` |
@@ -82,6 +82,8 @@ The brief is raw material. The writers get the notes numbered, the product resea
 - every image present, inside the run folder and at the format's minimum resolution;
 - no generated image in a `product_ui` scene;
 - every price, quote and rating on screen (`offer`, `review`) found in the brief or the website's product data (`claims`).
+
+A repaired plan gets the same story review as any other: once `recheck`'s gates pass, it runs the critic's rubric unless the story was already approved, so a plan that first failed a timing check, or that the rubric sent back, is judged again. The rubric may ask for at most `MAX_STORY_REPAIRS` (2) story repairs; after that the plan goes ahead with the reviewer's notes in the run log, because a matter of taste shouldn't stop a video that passes every hard check. A layout repair after the render doesn't repeat an approved story review.
 
 If `recheck` still fails, the plan goes back to `fix` (a bounded cycle: at most `MAX_PLAN_REPAIRS`, 3, fixes in a row), so a near miss such as a shot 0.1 s too long is repaired rather than fatal. After the last repair no edge is satisfied, the graph ends, and the service stops the run with the failure report instead of rendering a bad video.
 

@@ -33,7 +33,7 @@ from reelhive.agents.scene_planner import ScenePlannerNode
 from reelhive.agents.sound_designer import SoundDesignerNode
 from reelhive.nodes.master_node import MasterNode
 from reelhive.nodes.narrate_node import NarrateNode
-from reelhive.nodes.recheck_node import RecheckNode
+from reelhive.nodes.recheck_node import MAX_PLAN_REPAIRS, RecheckNode
 from reelhive.nodes.render_node import RenderNode
 from reelhive.nodes.timing_node import TimingNode
 from reelhive.nodes.visuals_node import VisualsNode
@@ -42,7 +42,6 @@ BRANCHES = ("visuals", "narrate", "music")
 FINISHING = ("critic", "fix", "recheck", "render", "review", "sound", "master")
 NODES = ("scenes", *BRANCHES, "timing", *FINISHING)
 REPAIR_LOOP = ("fix", "recheck", "render", "review")
-MAX_PLAN_REPAIRS = 3  # fixes of the plan in a row (the first from `critic`, more while `recheck` still fails)
 
 
 def all_branches_done(state: GraphState) -> bool:
