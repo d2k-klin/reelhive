@@ -77,7 +77,7 @@ class ResearchNode(AgentNode):
             except Exception as error:  # an unreachable site must not stop the video
                 ctx.events.emit("node.task", node=self.name, task=f"Could not read the website: {error}")
         if ctx.brief.repo:
-            await self._repo(ctx)
+            await self._repo(ctx, ctx.brief.repo)
         if ctx.brief.documents:
             from reelhive.visuals.documents import pages as document_pages
 
@@ -97,14 +97,14 @@ class ResearchNode(AgentNode):
         ctx.events.emit("node.task", node=self.name, task=f"Read {len(ctx.site_pages)} pages")
         return await super().execute(ctx)
 
-    async def _repo(self, ctx: RunContext) -> None:
+    async def _repo(self, ctx: RunContext, source: str) -> None:
         """The repository's docs as pages, and its images as scene images when the brief takes provided images."""
         from reelhive.visuals import repo
 
-        ctx.events.emit("node.task", node=self.name, task=f"Reading the repository {repo.name_of(ctx.brief.repo)}")
+        ctx.events.emit("node.task", node=self.name, task=f"Reading the repository {repo.name_of(source)}")
         images = ctx.path("visuals", "repo") if ctx.brief.visuals.source in ("auto", "images") else None
         try:
-            pages, saved, skipped = await asyncio.to_thread(repo.read, ctx.brief.repo, images)
+            pages, saved, skipped = await asyncio.to_thread(repo.read, source, images)
         except Exception as error:  # an unreachable or private repository must not stop the video
             ctx.events.emit("node.task", node=self.name, task=f"Could not read the repository: {error}")
             return
