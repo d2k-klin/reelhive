@@ -1,8 +1,10 @@
-"""`research`: read the product website and documents and turn them into product notes the writers build on.
+"""`research`: read the product website, repository and documents and turn them into notes the writers build on.
 
-Runs between `brief` and `script` when the brief has a `website` (or a public screenshot URL) or
+Runs between `brief` and `script` when the brief has a `website` (or a public screenshot URL), a `repo` or
 `documents`. The crawl is the screenshot crawler's: same origin only, at most 10 pages, masked selectors
-removed, saved login state honoured. Documents are PDFs or decks, read page by page. Page text goes to
+removed, saved login state honoured. A repository (GitHub URL or local folder) is read as its file tree, READMEs, docs
+and manifests, and its own images are saved for the scenes (see visuals/repo.py). Documents are PDFs or decks, read
+page by page. Page text goes to
 the configured provider (it stays local with Ollama). With none of them the step is skipped.
 """
 
@@ -28,6 +30,9 @@ class ProductNotes(BaseModel):
     offerings: list[str] = Field(default_factory=list)
     audience_pains: list[str] = Field(default_factory=list)
     proof_points: list[str] = Field(default_factory=list, description="Facts from the sources only")
+    components: list[str] = Field(
+        default_factory=list, description="Parts of the system and what each does, from a repository or documents"
+    )
     note_readings: list[str] = Field(default_factory=list, description="One per brief key point, same order")
 
 
@@ -71,6 +76,8 @@ class ResearchNode(AgentNode):
                 await self._products(ctx, pages)
             except Exception as error:  # an unreachable site must not stop the video
                 ctx.events.emit("node.task", node=self.name, task=f"Could not read the website: {error}")
+        if ctx.brief.repo:
+            await self._repo(ctx)
         if ctx.brief.documents:
             from reelhive.visuals.documents import pages as document_pages
 
@@ -90,6 +97,24 @@ class ResearchNode(AgentNode):
         ctx.events.emit("node.task", node=self.name, task=f"Read {len(ctx.site_pages)} pages")
         return await super().execute(ctx)
 
+    async def _repo(self, ctx: RunContext) -> None:
+        """The repository's docs as pages, and its images as scene images when the brief takes provided images."""
+        from reelhive.visuals import repo
+
+        ctx.events.emit("node.task", node=self.name, task=f"Reading the repository {repo.name_of(ctx.brief.repo)}")
+        images = ctx.path("visuals", "repo") if ctx.brief.visuals.source in ("auto", "images") else None
+        try:
+            pages, saved, skipped = await asyncio.to_thread(repo.read, ctx.brief.repo, images)
+        except Exception as error:  # an unreachable or private repository must not stop the video
+            ctx.events.emit("node.task", node=self.name, task=f"Could not read the repository: {error}")
+            return
+        ctx.site_pages += pages
+        if saved or skipped:
+            task = f"{saved} repository images for the scenes" + (
+                f", {skipped} too small or unreadable" if skipped else ""
+            )
+            ctx.events.emit("node.task", node=self.name, task=task)
+
     async def _products(self, ctx: RunContext, pages: list[dict]) -> None:
         """The site's own product data (price, rating, reviews) as facts, and its product photos as images."""
         ctx.products = products.collect(pages)
@@ -104,7 +129,8 @@ class ResearchNode(AgentNode):
 
     def build_prompt(self, ctx: RunContext) -> str:
         pages = "\n\n".join(f"## {p['title']} ({p['route']})\n{p['text']}" for p in ctx.site_pages)
-        return f"{brief_block(ctx.brief)}\n\nSource pages (the product website and the user's documents):\n{pages}"
+        sources = "the product website, its repository and the user's documents"
+        return f"{brief_block(ctx.brief)}\n\nSource pages ({sources}):\n{pages}"
 
     def apply(self, ctx: RunContext, out: ProductNotes) -> None:
         # The structured facts are the site's own words, kept beside the notes so writers and the critic can use them.

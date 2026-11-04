@@ -105,9 +105,10 @@ def catalog(ctx: RunContext) -> list[dict[str, Any]]:
     entries = []
     if options.source in ("auto", "images") and isinstance(options.images, Images):
         entries += provided.catalog(options.images, ctx.run_dir / "visuals" / "posters")
-    shop = ctx.run_dir / "visuals" / "product"  # photos from the website's product data, saved by `research`
-    if options.source in ("auto", "images") and (shop / "captions.yaml").exists():
-        entries += provided.catalog(Images(dir=str(shop)))
+    # Saved by `research`: photos from the website's product data, and the repository's own images
+    for saved in (ctx.run_dir / "visuals" / "product", ctx.run_dir / "visuals" / "repo"):
+        if options.source in ("auto", "images") and (saved / "captions.yaml").exists():
+            entries += provided.catalog(Images(dir=str(saved)))
     if options.source in ("auto", "images") and ctx.brief.documents:
         try:
             pages = documents.pages(ctx.brief.documents, ctx.run_dir / "documents")

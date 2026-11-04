@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Annotated, Any, Literal
 from urllib.parse import urlparse
 
@@ -14,6 +15,21 @@ Color = Annotated[str, Field(pattern=r"^#[0-9a-fA-F]{6}$")]
 # What a Reel, Short or TikTok needs that an explainer doesn't: vertical, quick cuts, readable muted (most feeds
 # autoplay without sound) and a hook in the first frame. The studio fills the same values when a platform is picked.
 PLATFORM_DEFAULTS = {"format": "9:16", "pacing": "punchy", "captions": True, "cold_open": True}
+GITHUB_REPO = re.compile(r"^https://github\.com/[\w.-]+/[\w.-]+/?$")
+# The angle of the video. Every agent reads the guidance with the brief, so it steers the research, the story,
+# the scenes and the review alike; the brief's own audience, storyline and key points still say what to tell.
+KINDS = {
+    "architecture": "An architecture video for technical viewers: how the system is built. Name its real parts "
+    "(services, stores, queues, libraries) from the sources, show how they connect and how data and requests flow "
+    "between them, and why it is designed that way. Prefer diagrams and the repository's own images over marketing "
+    "screens. Never invent a component the sources don't name.",
+    "user": "A user's-eye video: follow one person using the product to get something done, step by step, in what "
+    "they see and do on screen and what they get out of it. Talk about outcomes, not internals: no code, no "
+    "architecture. Prefer screenshots of the product in use.",
+    "developer": "A getting-started video for developers: what the project is for, how to install or integrate it, "
+    "the first thing to build with it and where to go next. Use the commands, APIs and names exactly as the sources "
+    "spell them, and show code or terminal shots where they help.",
+}
 
 
 class Options(BaseModel):
@@ -104,6 +120,17 @@ class Brief(Options):
         max_length=5,
         description="PDFs or slide decks (.pptx, .ppt, .odp): read for the story, their pages usable as scene images",
     )
+    repo: str | None = Field(
+        None,
+        max_length=300,
+        description="A public GitHub repository URL or a local project folder: its file tree, READMEs, docs and "
+        "manifests are researched, and its own images (diagrams, screenshots) become scene images",
+    )
+    kind: Literal["architecture", "user", "developer"] | None = Field(
+        None,
+        description="The video's angle: `architecture` (how the system is built), `user` (a user getting something "
+        "done) or `developer` (getting started). Unset, a product explainer",
+    )
     context: str | None = Field(
         None, max_length=4000, description="Extra info for the agents: facts, pricing, release notes, anything to use"
     )
@@ -162,6 +189,13 @@ class Brief(Options):
     def website_url(cls, value: str | None) -> str | None:
         if value:
             Screenshots(url=value)  # same rule: http(s), no embedded credentials
+        return value or None
+
+    @field_validator("repo")
+    @classmethod
+    def repo_source(cls, value: str | None) -> str | None:
+        if value and "://" in value and not GITHUB_REPO.match(value.removesuffix(".git")):
+            raise ValueError("repo must be a public GitHub URL (https://github.com/owner/name) or a local folder")
         return value or None
 
     @field_validator("documents")

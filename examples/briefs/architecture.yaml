@@ -1,0 +1,12 @@
+level: low
+audience: Engineers deciding whether to contribute to ReelHive
+storyline: From a few notes to a finished video. Walk through the parts that make it happen and how a brief flows through them.
+repo: https://github.com/d2k-klin/reelhive   # or a local folder, e.g. ../my-app
+kind: architecture   # architecture | user | developer
+features:
+  - the draft graph, brief to research to script
+  - agents and their prompts
+  - the renderer
+  - local voice and music
+duration: 90
+closing: Read the architecture doc and open your first pull request

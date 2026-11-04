@@ -136,6 +136,38 @@
       "title": "Documents",
       "type": "array"
     },
+    "repo": {
+      "anyOf": [
+        {
+          "maxLength": 300,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "A public GitHub repository URL or a local project folder: its file tree, READMEs, docs and manifests are researched, and its own images (diagrams, screenshots) become scene images",
+      "title": "Repo"
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "enum": [
+            "architecture",
+            "user",
+            "developer"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "The video's angle: `architecture` (how the system is built), `user` (a user getting something done) or `developer` (getting started). Unset, a product explainer",
+      "title": "Kind"
+    },
     "context": {
       "anyOf": [
         {

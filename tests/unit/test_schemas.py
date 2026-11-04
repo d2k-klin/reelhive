@@ -19,6 +19,9 @@ def test_example_brief_is_valid(brief):
         ({"features": [f"f{i}" for i in range(9)]}, "at most 8"),
         ({"duration": 5}, "greater than or equal to 15"),
         ({"visuals": {"url": "file:///etc/passwd"}}, "http"),
+        ({"repo": "https://gitlab.com/owner/name"}, "public GitHub URL"),
+        ({"repo": "file:///etc"}, "public GitHub URL"),
+        ({"kind": "trailer"}, "architecture"),
     ],
 )
 def test_brief_rejects(brief, change, message):
@@ -56,3 +59,13 @@ def test_every_example_brief_is_valid():
     assert len(examples) >= 6
     for path in examples:
         Brief.model_validate(yaml.safe_load(path.read_text()))
+
+
+def test_repo_and_kind(brief):
+    from reelhive.agents.plan import brief_block
+
+    for source in ("https://github.com/d2k-klin/reelhive", "https://github.com/d2k-klin/reelhive.git", "../app"):
+        assert Brief.model_validate({**brief.model_dump(), "repo": source}).repo == source
+    assert "Kind of video" not in brief_block(brief)
+    architecture = Brief.model_validate({**brief.model_dump(), "kind": "architecture"})
+    assert "Kind of video (`kind`): An architecture video" in brief_block(architecture)

@@ -71,6 +71,10 @@ To tell a story through your own photos, point `visuals.images` at the folder (o
 
 When the product website describes its products in schema.org structured data (Shopify, WooCommerce and most store themes do), research reads each product's name, price, rating and reviews, and saves up to six of its photos to the run folder's `visuals/product/`. They join the catalog as provided images captioned `Product photo: <name>`, so `source: auto` or `images` can show them and `none` or `screenshots` doesn't. Photos are fetched only from public http(s) addresses, capped at 10 MB and re-encoded before use. The price and reviews are what the `offer` and `review` templates may show.
 
+## Repository images
+
+With a `repo` (a public GitHub URL or a local folder), research saves up to 12 of the repository's own images (PNG, JPEG, WebP or GIF, at least 720 px a side, so icons and badges drop out) to the run folder's `visuals/repo/`, the ones its READMEs and docs show first. Transparent diagrams are flattened onto white. Each is captioned with the alt text the Markdown gives it and its path, such as `System diagram (docs/arch.png in the repository)`, so the scene planner can pick the diagram by what it shows. They join the catalog like product photos: `source: auto` or `images` can show them, `none` or `screenshots` doesn't. SVG and Mermaid diagrams aren't drawn yet; export them as PNG in the repository, or add them to your own image folder.
+
 ## Login and preview
 
 ```bash

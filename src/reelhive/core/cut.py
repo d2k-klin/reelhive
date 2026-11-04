@@ -36,7 +36,7 @@ def cut_brief(
 
 
 def seed(parent: Path, child: Path) -> None:
-    """Carry the parent's research, product photos and script into the new run folder."""
+    """Carry the parent's research, product and repository images and script into the new run folder."""
     script = parent / "script.json"
     if not script.exists():
         raise ValueError("the run has no script yet; a cut needs a drafted run")
@@ -46,8 +46,9 @@ def seed(parent: Path, child: Path) -> None:
     )
     if (parent / "research.json").exists():
         shutil.copyfile(parent / "research.json", child / "research.json")
-    if (parent / "visuals" / "product").is_dir():
-        shutil.copytree(parent / "visuals" / "product", child / "visuals" / "product", dirs_exist_ok=True)
+    for saved in ("product", "repo"):
+        if (parent / "visuals" / saved).is_dir():
+            shutil.copytree(parent / "visuals" / saved, child / "visuals" / saved, dirs_exist_ok=True)
 
 
 def parent_brief(parent: Path) -> Brief:

@@ -11,6 +11,7 @@
 | [`high.yaml`](high.yaml) | `high`: you write every scene (hook, stat, bullets, feature-card, cta), with a per-scene voice override, a chosen music track and volume; pauses after the script and after the scenes |
 | [`photo-story.yaml`](photo-story.yaml) | A story told through your own photos (`./photos`, with a `captions.yaml`) by a deadpan narrator in a named voice, as a Reel |
 | [`reels.yaml`](reels.yaml) | `platform: reels`: a 30 s Instagram Reel, vertical with punchy cuts and captions, opening on its hook and keeping text clear of the app's buttons |
+| [`architecture.yaml`](architecture.yaml) | `repo` + `kind: architecture`: how ReelHive itself is built, researched from its GitHub repository, with the repository's own images as scene images. Swap in a local folder (`repo: ../my-app`) to explain your own project |
 | [`medium.yaml`](medium.yaml) | `medium`: 9:16, UK voice, tone and pacing, brand colors and theme, music mood, CTA URL, `visuals.source: auto`; pauses for script approval |
 
 ```bash

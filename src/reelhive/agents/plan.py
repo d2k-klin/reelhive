@@ -7,6 +7,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
+from reelhive.schemas.brief import KINDS
 from reelhive.schemas.scene_spec import (
     MAX_HOLD,
     BulletsScene,
@@ -237,9 +238,12 @@ def scene_plan_model(beat_words: list[int], words_per_second: float, max_words: 
 
 
 def brief_block(ctx_brief: BaseModel) -> str:
+    kind = KINDS.get(getattr(ctx_brief, "kind", None) or "")
     return (
         "Brief (the user's notes: `features` are numbered key points, `closing` is the idea for the call to"
-        " action; treat both as rough input, not as copy):\n" + ctx_brief.model_dump_json(indent=2)
+        " action; treat both as rough input, not as copy):\n"
+        + ctx_brief.model_dump_json(indent=2)
+        + (f"\n\nKind of video (`kind`): {kind}" if kind else "")
     )
 
 

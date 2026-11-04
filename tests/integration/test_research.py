@@ -132,6 +132,31 @@ def test_research_combines_the_site_with_a_pdf_and_extra_info(config, site, tmp_
     assert "evidence collection" in prompt and "Free plan for up to 3 users" in prompt
 
 
+def test_a_local_repo_folder_feeds_research_and_the_scenes(config, tmp_path):
+    from types import SimpleNamespace
+
+    from PIL import Image
+
+    from reelhive.visuals.resolver import catalog
+
+    project = tmp_path / "hivemind"
+    (project / "docs").mkdir(parents=True)
+    (project / "README.md").write_text("# Hivemind\nAn api, a Redis queue and two workers.\n![Flow](docs/flow.png)")
+    Image.new("RGB", (1280, 720), "white").save(project / "docs" / "flow.png")
+    brief = rough_brief(None, repo=str(project), kind="architecture", visuals={"source": "auto"})
+    model = RecordingModel({"ProductNotes": NOTES, "Script": make_script(brief)})
+    result = Service(config, {"strong": model, "fast": model}, StubTTS(), stub_renderer).run(
+        brief.model_copy(update={"level": "medium"})
+    )
+
+    assert "a Redis queue and two workers" in model.prompts["ProductNotes"]
+    assert "hivemind: file tree" in model.prompts["ProductNotes"]
+    for prompt in (model.prompts["ProductNotes"], model.prompts["Script"]):
+        assert "Kind of video (`kind`): An architecture video" in prompt
+    entries = catalog(SimpleNamespace(brief=brief, run_dir=result.run_dir, events=None))
+    assert [(e["image"], e["caption"]) for e in entries] == [("repo-1.png", "Flow (docs/flow.png in the repository)")]
+
+
 def test_masked_text_never_reaches_the_research_prompt(config, site):
     brief = rough_brief(site, visuals={"source": "auto", "screenshots": {"url": site, "mask": [".secret"]}})
     model = RecordingModel({"ProductNotes": NOTES, "Script": make_script(brief)})

@@ -21,6 +21,8 @@ export const fieldHelp: Record<string, string> = {
   'Music track': 'Choose a specific local track, or let the music agent pick one that suits your story.',
   'Made with ReelHive credit': 'End card adds a short credit at the end; Corner keeps a small credit badge over the video.',
   'Credit placement': 'End card adds a short credit at the end; Corner keeps a small credit badge over the video.',
+  'Code repository': 'Optional. A public GitHub repository is cloned (only its latest version); a local folder is read where it is. The research agent reads the file tree, READMEs, docs and build files such as package.json (their text goes to your AI provider); source code and .env files are not read. Its own images, at least 720 pixels a side, can appear as scene images and stay on this computer.',
+  'Kind of video': 'The angle every agent works to. Architecture: the system\'s parts and how they connect. User walkthrough: one person getting something done. Developer: install, first steps, where to go next. Product explainer: what it is and why it matters.',
   'Visual source': 'None uses typography. Screenshots captures an app. Images uses your files. Generate creates concept art. Auto uses your product website for captures and tries suitable images you supply, then falls back to text.',
   'App URL': 'Optional when you supplied a product website: leave this blank to use that website. Enter another address only if you want to show a different app, such as a signed-in dashboard. It must be reachable on this computer.',
   Routes: 'One page path per line, such as /dashboard. Leave empty to discover up to ten pages on the same site.',

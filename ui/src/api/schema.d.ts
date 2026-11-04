@@ -834,6 +834,16 @@ export interface components {
              */
             documents?: string[];
             /**
+             * Repo
+             * @description A public GitHub repository URL or a local project folder: its file tree, READMEs, docs and manifests are researched, and its own images (diagrams, screenshots) become scene images
+             */
+            repo?: string | null;
+            /**
+             * Kind
+             * @description The video's angle: `architecture` (how the system is built), `user` (a user getting something done) or `developer` (getting started). Unset, a product explainer
+             */
+            kind?: ("architecture" | "user" | "developer") | null;
+            /**
              * Context
              * @description Extra info for the agents: facts, pricing, release notes, anything to use
              */

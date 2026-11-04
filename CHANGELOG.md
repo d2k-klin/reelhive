@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-04
+
+### Added
+- `repo`: a public GitHub repository URL or a local project folder as a source. Research reads its file tree,
+  READMEs, docs and build manifests (never source code, hidden files such as `.env`, or anything behind a symlink),
+  and up to 12 of its own images (diagrams, screenshots) become scene images in `visuals/repo/`, carried into cuts.
+  A GitHub repository is shallow-cloned and deleted once read; nothing in it runs. **Code repository** in the studio.
+- `kind: architecture | user | developer` (**Kind of video** in the studio): the video's angle, read by every agent
+  with the brief. Research also returns the system's `components` when a repository or document shows them.
+- `examples/briefs/architecture.yaml`.
+
 ## [0.6.1] - 2026-10-18
 
 ### Changed

@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "ReelHive local API",
-    "version": "0.5.2"
+    "version": "0.7.0"
   },
   "paths": {
     "/api/health": {
@@ -1901,6 +1901,36 @@
             "maxItems": 5,
             "title": "Documents",
             "description": "PDFs or slide decks (.pptx, .ppt, .odp): read for the story, their pages usable as scene images"
+          },
+          "repo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repo",
+            "description": "A public GitHub repository URL or a local project folder: its file tree, READMEs, docs and manifests are researched, and its own images (diagrams, screenshots) become scene images"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "architecture",
+                  "user",
+                  "developer"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind",
+            "description": "The video's angle: `architecture` (how the system is built), `user` (a user getting something done) or `developer` (getting started). Unset, a product explainer"
           },
           "context": {
             "anyOf": [
