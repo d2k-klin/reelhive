@@ -53,6 +53,15 @@ describe('brief progressive disclosure',()=>{
   fireEvent.click(screen.getByRole('checkbox',{name:'Narrator voice'}));
   expect((screen.getByLabelText('Voice') as HTMLSelectElement).value).toBe('male');
  });
+ it('drops the punchy social pacing when the platform is cleared',async()=>{
+  renderBrief();
+  await screen.findByRole('option',{name:'Calm track'});
+  fireEvent.click(screen.getByRole('button',{name:/^High/}));
+  fireEvent.change(screen.getByLabelText('Made for'),{target:{value:'reels'}});
+  expect((screen.getByLabelText('Pacing') as HTMLSelectElement).value).toBe('punchy');
+  fireEvent.change(screen.getByLabelText('Made for'),{target:{value:''}});
+  expect((screen.getByLabelText('Pacing') as HTMLSelectElement).value).toBe('balanced');
+ });
  it('hides music controls when disabled without clearing their values',async()=>{
   renderBrief();
   await screen.findByRole('option',{name:'Calm track'});
