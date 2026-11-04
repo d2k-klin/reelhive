@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-04
+
 ### Fixed
 - Clearing **Made for** in the studio now drops the `punchy` pacing it set, back to `balanced`. Before, a landscape
   video kept the 2.5-second social cut (and its short, rushed lines), unseen at Low customization.
