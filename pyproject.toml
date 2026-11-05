@@ -60,7 +60,7 @@ ollama = [
     "strands-agents[ollama]>=1.59.0",
 ]
 copilot = [
-    "github-copilot-sdk==1.0.26",
+    "github-copilot-sdk==1.0.28",
 ]
 
 [project.scripts]
