@@ -91,7 +91,7 @@ export function PublishPanel({runId}: {runId: string}) {
   const [posts, setPosts] = useState<Posts | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const {connect, waiting} = useConnect(() => accounts.refetch());
+  const {connect, waiting, error: connectError} = useConnect(() => accounts.refetch());
   const data = job.data;
   useEffect(() => {
     if (data?.posts) setPosts(data.posts);
@@ -128,6 +128,6 @@ export function PublishPanel({runId}: {runId: string}) {
         ? <>{r.url ? <a href={r.url} target="_blank" rel="noreferrer">View post <ExternalLink size={12}/></a> : <span>Sent</span>}{r.note && <small>{r.note}</small>}</>
         : <span className="error">{r?.error}</span>}
     </li>)}</ul>}
-    <ErrorNote error={error || job.error}/>
+    <ErrorNote error={error || connectError || job.error}/>
   </section>;
 }

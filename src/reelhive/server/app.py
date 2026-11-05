@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field, ValidationError
 from reelhive import __version__
 from reelhive.config import REPO_ROOT, Config, load_config
 from reelhive.core.workspace import RunView, Workspace
+from reelhive.publish.http import PublishError
 from reelhive.schemas.brief import Brief, Screenshots
 from reelhive.schemas.publish import Platform, PostCopy, PublishJob
 from reelhive.schemas.scene_spec import SceneSpec
@@ -96,6 +97,10 @@ def create_app(
 
     @app.exception_handler(ValueError)
     async def bad_value(request, error):
+        return JSONResponse({"detail": str(error)}, status_code=422)
+
+    @app.exception_handler(PublishError)
+    async def publish_failed(request, error):
         return JSONResponse({"detail": str(error)}, status_code=422)
 
     @app.exception_handler(FileNotFoundError)

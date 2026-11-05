@@ -63,7 +63,7 @@ input[type=checkbox], input[type=radio] { flex: none; margin: 0; }
 .section-title .quick-toggle{margin:0 0 0 auto;font-size:.82rem;font-weight:600;white-space:nowrap}
 
 /* On/off switches on one line that wraps into aligned columns: each box, its label and its help icon stay together. */
-.toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, max-content)); align-items: center; gap: .5rem 1.75rem; margin: 1rem 0 1.25rem; }
+.toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr)); align-items: center; gap: .5rem 1.75rem; margin: 1rem 0 1.25rem; }
 .toggles > .toggle { display: inline-flex; align-items: center; gap: .4rem; flex: none; }
 .toggles .check { display: inline-flex; margin: 0; max-width: none; white-space: nowrap; line-height: 1.4; }
 
@@ -77,6 +77,10 @@ input[type=checkbox], input[type=radio] { flex: none; margin: 0; }
 .publish-results .error { margin: 0; }
 .confirm { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; padding: .75rem 1rem; border-left: 3px solid var(--lime); background: color-mix(in srgb, var(--lime) 9%, var(--surface)); }
 .toggles .toggle > button { margin-left: .25rem; }
+/* The cut picker: the button and its help sit level with the select, not with the label above it. */
+.final-video .cut-row { margin-top: 1rem; align-items: flex-end; }
+.final-video .cut-row > .field { margin: 0; }
+.final-video .cut-row > .help-trigger { margin-bottom: 10px; }
 .accounts { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .5rem 1.25rem; }
 .accounts > .provider button { justify-self: start; }
 .accounts > p, .accounts > .error { grid-column: 1 / -1; }
