@@ -10,10 +10,19 @@ updates:
     labels: ["dependencies"]
     open-pull-requests-limit: 10
 
-  - package-ecosystem: "npm"  # renderer workspace
+  - package-ecosystem: "npm"  # renderer + ui workspaces, one lockfile
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:  # these only work when they move together
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+      ag-ui:
+        patterns: ["@ag-ui/*", "@copilotkit/*"]
+      vite:
+        patterns: ["vite", "vitest", "@vitejs/*", "@tailwindcss/vite"]
+      minor-and-patch:
+        update-types: ["minor", "patch"]
     commit-message:
       prefix: "deps"
     labels: ["dependencies"]
