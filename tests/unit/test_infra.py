@@ -106,3 +106,15 @@ def test_placeholder_generator_preserves_curated_music(tmp_path, monkeypatch):
     monkeypatch.setitem(generator.__globals__, "TRACKS", {})
     generator()
     assert json.loads(manifest.read_text())["tracks"] == [curated]
+
+
+@pytest.mark.parametrize(
+    ("version", "ok"),
+    [("v24.14.0", True), ("v22.12.0", True), ("v22.11.0", False), ("v20.19.0", False), ("", False)],
+)
+def test_doctor_requires_the_node_floor_vite_and_vitest_set(monkeypatch, version, ok):
+    from reelhive import doctor
+
+    monkeypatch.setattr(doctor.shutil, "which", lambda _name: "/usr/bin/node")
+    monkeypatch.setattr(doctor.subprocess, "run", lambda *_a, **_k: SimpleNamespace(stdout=f"{version}\n"))
+    assert doctor._node_version()[0] is ok
