@@ -4,7 +4,7 @@ The ReelHive studio is a local web interface for turning a brief into a narrated
 
 ## 1. Install and open the studio
 
-ReelHive requires Python 3.11 or 3.12, Node 20+, and `uv`. From the repository root:
+ReelHive requires Python 3.11 or 3.12, Node 22.12+, and `uv`. From the repository root:
 
 ```bash
 make setup

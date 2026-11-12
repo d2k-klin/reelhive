@@ -24,10 +24,13 @@ class Result:
 def _node_version() -> tuple[bool, str]:
     node = shutil.which("node")
     if not node:
-        return False, "not found; install Node 20+"
+        return False, "not found; install Node 22.12+"
     version = subprocess.run([node, "--version"], capture_output=True, text=True).stdout.strip()
-    major = int(version.lstrip("v").split(".")[0] or 0)
-    return major >= 20, version if major >= 20 else f"{version}; need 20+"
+    try:  # vite 8 and vitest 5 set the floor
+        ok = tuple(int(part) for part in version.lstrip("v").split(".")[:2]) >= (22, 12)
+    except ValueError:
+        ok = False
+    return ok, version if ok else f"{version}; need 22.12+"
 
 
 def _ffmpeg() -> tuple[bool, str]:

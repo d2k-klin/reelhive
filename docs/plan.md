@@ -472,7 +472,7 @@ Evals score the script, spec and image prompts; they never render video or gener
 
 ## 10. Local setup (no Docker)
 
-Requirements: Python 3.11–3.12 (pinned to what Kokoro supports), Node 20+, ffmpeg, espeak-ng.
+Requirements: Python 3.11–3.12 (pinned to what Kokoro supports), Node 22.12+, ffmpeg, espeak-ng.
 
 ```bash
 git clone https://github.com/<owner>/reelhive && cd reelhive   # same owner as SentryHive/CostHive

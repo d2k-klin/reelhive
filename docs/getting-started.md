@@ -6,7 +6,7 @@ Install ReelHive, make a first video from the terminal or the studio, and find e
 
 After setup, the [UI user guide](ui-guide.md) and [providers](providers.md) cover the rest.
 
-Requirements: Python 3.11-3.12, Node 20+ and [uv](https://docs.astral.sh/uv/). ffmpeg and espeak-ng are used from your system when installed, and otherwise come bundled with the Python dependencies.
+Requirements: Python 3.11-3.12, Node 22.12+ and [uv](https://docs.astral.sh/uv/). ffmpeg and espeak-ng are used from your system when installed, and otherwise come bundled with the Python dependencies.
 
 ```bash
 git clone https://github.com/d2k-klin/reelhive && cd reelhive
