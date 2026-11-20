@@ -38,15 +38,25 @@ Everything runs on your own machine. Only text goes to the AI service you choose
 
 You can work in the browser-based studio, or from the terminal with a brief file.
 
+![The ReelHive studio: writing a brief for a new video](docs/ui-guide/01-new-video.png)
+
 ## Quick start
+
+You need Python 3.11 or 3.12, Node 22.12+, [uv](https://docs.astral.sh/uv/) and access to one AI service: Anthropic, Amazon Bedrock, OpenAI, GitHub Copilot, or a local Ollama model.
 
 ```bash
 git clone https://github.com/d2k-klin/reelhive && cd reelhive
-make setup
-uv run reelhive ui
+make setup                        # Python and Node dependencies, browsers for capture and rendering
+export ANTHROPIC_API_KEY=...      # or another service, see docs/providers.md
+uv run reelhive doctor            # checks every dependency and key
+uv run reelhive ui                # opens the studio in your browser
 ```
 
-Requirements, choosing your AI service and your first terminal run are in [Getting started](docs/getting-started.md).
+Choosing your AI service and your first terminal run are in [Getting started](docs/getting-started.md).
+
+## Status
+
+ReelHive is early (pre-alpha, see the [changelog](CHANGELOG.md)). It works end to end and is tested on every change, but brief fields and commands may still change between releases. Bug reports and ideas are welcome in [issues](https://github.com/d2k-klin/reelhive/issues).
 
 ## Documentation
 

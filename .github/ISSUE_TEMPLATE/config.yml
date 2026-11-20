@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Documentation
+    url: https://github.com/d2k-klin/reelhive/tree/main/docs
+    about: Setup, briefs, providers and limits. Many questions are answered here.
   - name: Security vulnerability
     url: https://github.com/d2k-klin/reelhive/security/advisories/new
     about: Report security issues privately (see SECURITY.md). Do not open a public issue.

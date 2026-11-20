@@ -69,6 +69,9 @@ reelhive = "reelhive.cli:app"
 [project.urls]
 Homepage = "https://github.com/d2k-klin/reelhive"
 Repository = "https://github.com/d2k-klin/reelhive"
+Documentation = "https://github.com/d2k-klin/reelhive/tree/main/docs"
+Issues = "https://github.com/d2k-klin/reelhive/issues"
+Changelog = "https://github.com/d2k-klin/reelhive/blob/main/CHANGELOG.md"
 
 [tool.hatch.metadata]
 allow-direct-references = true
