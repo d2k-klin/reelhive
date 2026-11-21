@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-11-21
+
+### Fixed
+- Rendering on Ubuntu 23.10+ (and other distros that restrict unprivileged user namespaces) failed with Chrome's
+  *No usable sandbox*. The render error now names the `sysctl` that fixes it; ReelHive never turns the sandbox off.
+- Connecting a publishing platform that isn't configured showed nothing in the studio; the Publish panel now shows
+  the server's reason.
+- Result actions, the cut selector and the publish platform columns line up in the studio.
+
+### Changed
+- Node 22.12+ is required (vite 8 and vitest 5); `reelhive doctor` checks it.
+- Dependencies: vite 8, vitest 5, CopilotKit 1.83.0, `@ag-ui/client` 1.0.2, `ag-ui-protocol` 1.0.0,
+  `github-copilot-sdk` 1.0.28, lucide-react 1, and minor and patch bumps.
+- The nightly workflow runs only on manual dispatch.
+- README quick start, requirements and project metadata for a public audience.
+
 ## [0.7.1] - 2026-11-04
 
 ### Fixed
