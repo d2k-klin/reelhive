@@ -1,9 +1,8 @@
 name: Nightly
 
 # Slow end-to-end tests (real Kokoro, real Revideo) and a Claude eval smoke run on 5 briefs (plan §9).
+# Manual only: the daily schedule is off. Run it from the Actions tab before a release.
 on:
-  schedule:
-    - cron: "0 3 * * *"
   workflow_dispatch:
 
 permissions:
@@ -24,6 +23,8 @@ jobs:
       - run: pip install uv && uv sync --all-extras --frozen
       - run: uv run playwright install --with-deps chromium
       - run: npm ci && npx puppeteer browsers install chrome-headless-shell
+      # Ubuntu 24.04 runners block Chrome's sandbox; every render failed with "No usable sandbox".
+      - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Slow tests
         run: uv run pytest -m slow
 

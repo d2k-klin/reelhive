@@ -23,6 +23,6 @@ models:
 
 Run `reelhive models --provider copilot` for the account's live model list. Other providers show configured models. `reelhive doctor --config config.yaml` checks the selected providers, local dependencies, and Copilot runtime/sign-in when selected. It does not make a paid model request. Ollama with generation and image descriptions disabled makes no cloud model calls.
 
-`make setup EXTRAS="--extra copilot --extra openai --extra ollama"` installs all integrations and prefetches the Copilot runtime. The SDK is pinned to 1.0.17; it downloads its matching runtime on first use if needed. Never pass credentials in committed config files.
+`make setup EXTRAS="--extra copilot --extra openai --extra ollama"` installs all integrations and prefetches the Copilot runtime. The SDK is pinned to 1.0.28; it downloads its matching runtime on first use if needed. Never pass credentials in committed config files.
 
 The CLI saves the selected config in the run directory. `reelhive approve <run-folder>` uses it to resume without regenerating the script. Invalid structured output gets one explicit repair attempt after the provider's own validation handling; repeated failure stops the run.

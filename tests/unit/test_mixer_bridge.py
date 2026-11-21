@@ -105,3 +105,9 @@ def test_renderer_failure_explains_permission_errors(tmp_path, monkeypatch):
     fake_repo(tmp_path, monkeypatch, 'echo "Error: spawn /x/ffprobe EACCES"\nexit 1\n')
     with pytest.raises(bridge.RenderError, match="npm rebuild"):
         bridge.render(tmp_path / "s.json", tmp_path / "o.mp4", print)
+
+
+def test_renderer_failure_explains_a_blocked_chrome_sandbox(tmp_path, monkeypatch):
+    fake_repo(tmp_path, monkeypatch, 'echo "FATAL:zygote_host_impl_linux.cc:130] No usable sandbox!"\nexit 1\n')
+    with pytest.raises(bridge.RenderError, match="apparmor_restrict_unprivileged_userns"):
+        bridge.render(tmp_path / "s.json", tmp_path / "o.mp4", print)

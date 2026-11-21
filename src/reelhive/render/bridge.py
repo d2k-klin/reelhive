@@ -77,5 +77,11 @@ def render(spec: Path, out: Path, on_progress: Callable[[float], None]) -> None:
         hint = ""
         if "EACCES" in output:
             hint = "\nHint: a bundled binary is not executable; run `npm rebuild` (or `make setup`) and resume the run."
+        elif "No usable sandbox" in output:
+            # Ubuntu 23.10+ blocks the user namespaces Chrome's sandbox needs. ponytail: explain, never --no-sandbox.
+            hint = (
+                "\nHint: this Linux blocks Chrome's sandbox (Ubuntu 23.10+ AppArmor). Allow it with "
+                "`sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0` and resume the run."
+            )
         raise RenderError("renderer failed:\n" + output + hint)
     layout_path(out).write_text(LayoutReport.from_lines(measured).model_dump_json(indent=2))

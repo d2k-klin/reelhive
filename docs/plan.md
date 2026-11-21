@@ -425,7 +425,7 @@ reelhive/
 | Events | pytest | Every node emits started/task/finished; skipped nodes emit `node.skipped`; gates emit one `gate.result` per check; the log replays to the same state | every push |
 | UI | pytest, vitest, axe, Playwright | API, security, components, accessibility and end-to-end; full list in `reelhive-ui-plan.md`, section 14 | every push |
 | Credit | pytest + vitest | Credit present by default in the spec; `end` never overlaps the closing scene; `REELHIVE_DISABLE_CREDIT=true` removes it and the brief alone cannot; metadata tag always written | every push |
-| E2E | pytest `-m slow` | Real Kokoro, real Playwright, one-scene 3-second render; checks MP4 duration, audio stream, resolution and the credit metadata tag with ffprobe | nightly + pre-release |
+| E2E | pytest `-m slow` | Real Kokoro, real Playwright, one-scene 3-second render; checks MP4 duration, audio stream, resolution and the credit metadata tag with ffprobe | manual (`nightly.yml`) + pre-release |
 
 `FakeModel`, `FakeCopilotSession` and `FakeImageGenerator` implement the real interfaces with canned output, so CI needs no API keys. The fixture site is served locally by the test suite, so capture tests never touch the internet.
 
@@ -465,7 +465,7 @@ Evals score the script, spec and image prompts; they never render video or gener
 
 - **Visibility:** public, Apache-2.0.
 - **CI (`ci.yml`):** ruff, mypy, pytest (unit, integration, capture, UI API and security), vitest (renderer and UI), Playwright UI end-to-end, schema contract test, on push and PRs.
-- **Nightly (`nightly.yml`):** E2E slow tests and a Claude eval smoke run on 5 briefs, using a repo secret.
+- **Nightly (`nightly.yml`, manual trigger only):** E2E slow tests and a Claude eval smoke run on 5 briefs, using a repo secret.
 - **Release (`release.yml`):** on a `v*` tag, create a GitHub Release with generated notes, the wheel and the demo MP4 attached. Nothing is published to PyPI or npm.
 - **Repo hygiene:** issue templates (bug, feature, new template request), PR template with checklist, Dependabot (pip, npm, actions), CODEOWNERS, branch protection on `main`, conventional commits.
 - **Discoverability:** topics `strands-agents`, `kokoro-tts`, `revideo`, `playwright`, `copilot-sdk`, `ai-video`, `text-to-video`, `local-first`; a social preview image.

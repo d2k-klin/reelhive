@@ -8,6 +8,8 @@ After setup, the [UI user guide](ui-guide.md) and [providers](providers.md) cove
 
 Requirements: Python 3.11-3.12, Node 22.12+ and [uv](https://docs.astral.sh/uv/). ffmpeg and espeak-ng are used from your system when installed, and otherwise come bundled with the Python dependencies.
 
+On Ubuntu 23.10+ (and other distros that restrict unprivileged user namespaces), rendering fails with *No usable sandbox* until you run `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`; the render error says so too.
+
 ```bash
 git clone https://github.com/d2k-klin/reelhive && cd reelhive
 make setup                                        # Python + Node deps, browsers for capture and rendering
